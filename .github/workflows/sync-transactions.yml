@@ -35,7 +35,56 @@ jobs:
         working-directory: frontend
 
     steps:
+      # Step 0: 오전 05:00~07:29 KST 전용 게이트 (GitHub Actions 큐 지연으로 08~12시·11:00 KST에 실행되는 중복 크롤링·자동 커밋·2차 Vercel 재배포 원천 차단)
+      - name: Morning-only KST Schedule Gate (Skip Delayed Daytime Runs)
+        id: schedule_gate
+        working-directory: .
+        run: |
+          EVENT_NAME="${{ github.event_name }}"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "should_crawl=true" >> "$GITHUB_OUTPUT"
+            echo "skip_reason=none" >> "$GITHUB_OUTPUT"
+            echo "Manual workflow_dispatch requested — proceeding with sync"
+            exit 0
+          fi
+
+          if [ "$EVENT_NAME" = "push" ]; then
+            echo "should_crawl=false" >> "$GITHUB_OUTPUT"
+            echo "skip_reason=push_event" >> "$GITHUB_OUTPUT"
+            echo "Push event — skipping scheduled crawl"
+            exit 0
+          fi
+
+          KST_HHMM_RAW=$(TZ='Asia/Seoul' date +%H%M)
+          KST_HHMM=$((10#${KST_HHMM_RAW}))
+          TODAY_YMD=$(TZ='Asia/Seoul' date +%Y%m%d)
+
+          # Strict early-morning KST window: 05:00 <= KST < 07:30 (prevents delayed ~11:00 KST crawling & 2nd deploy)
+          if [ "$KST_HHMM" -lt 500 ] || [ "$KST_HHMM" -ge 730 ]; then
+            echo "should_crawl=false" >> "$GITHUB_OUTPUT"
+            echo "skip_reason=outside_morning_window" >> "$GITHUB_OUTPUT"
+            echo "Skipping delayed schedule run at ${KST_HHMM_RAW} KST (allowed early-morning window: 05:00~07:29 KST only)"
+            exit 0
+          fi
+
+          # Same-day production check: if 05:35/06:15 Vercel Cron + Deploy Hook already published today's batch, skip redundant crawl
+          # Cache-bust query + headers bypass /data/:path* public max-age=900 CDN caching
+          CACHE_BUST=$(date +%s)
+          LIVE_JSON=$(curl -fsS --max-time 5 -H "Cache-Control: no-cache" -H "Pragma: no-cache" "https://dongtanview.com/data/market-stats.json?t=${CACHE_BUST}" 2>/dev/null || echo "")
+          LIVE_REG_DATE=$(printf '%s\n' "$LIVE_JSON" | tr '\r\n' ' ' | sed -n 's/.*"latestRegisteredDate"[[:space:]]*:[[:space:]]*"\([0-9]\{8\}\)".*/\1/p')
+          if [ -n "$LIVE_REG_DATE" ] && [ "$LIVE_REG_DATE" = "$TODAY_YMD" ]; then
+            echo "should_crawl=false" >> "$GITHUB_OUTPUT"
+            echo "skip_reason=already_live_today" >> "$GITHUB_OUTPUT"
+            echo "Production already reflects today's MOLIT batch (${TODAY_YMD}) via Vercel morning cron — skipping redundant GitHub Actions crawl"
+            exit 0
+          fi
+
+          echo "should_crawl=true" >> "$GITHUB_OUTPUT"
+          echo "skip_reason=none" >> "$GITHUB_OUTPUT"
+          echo "Early-morning recovery window active (${KST_HHMM_RAW} KST, live latestRegisteredDate=${LIVE_REG_DATE:-unknown}) — proceeding with sync"
+
       - name: Checkout
+        if: github.event_name != 'schedule' || steps.schedule_gate.outputs.should_crawl == 'true'
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -43,6 +92,7 @@ jobs:
           fetch-depth: 2
 
       - name: Setup Node.js
+        if: github.event_name != 'schedule' || steps.schedule_gate.outputs.should_crawl == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -50,6 +100,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
+        if: github.event_name != 'schedule' || steps.schedule_gate.outputs.should_crawl == 'true'
         run: npm ci
 
       - name: Skip expensive jobs on push
@@ -59,7 +110,7 @@ jobs:
       # Step 1: 국토부 API → Firestore (평일 2개월 증분, 일요일 4개월 딥 싱크)
       # Note: Direct runner sync replaces pre-loop curl to /api/cron/sync-transactions?ym=${YM}&skipDeploy=1 to prevent duplicate Vercel Fluid CPU execution
       - name: Fetch transactions from 국토부 API
-        if: github.event_name != 'push'
+        if: github.event_name != 'push' && steps.schedule_gate.outputs.should_crawl == 'true'
         run: |
           node scripts/fetch-transactions.js
           node scripts/fetch-rent.js
@@ -78,7 +129,7 @@ jobs:
 
       # Step 2: Firestore → 정적 파일 생성 (실데이터 기준 이중 서킷 브레이커 내장)
       - name: Generate static transaction files
-        if: github.event_name != 'push'
+        if: github.event_name != 'push' && steps.schedule_gate.outputs.should_crawl == 'true'
         run: node scripts/sync-transactions.js
         env:
           SKIP_MOLIT_DIRECT_FETCH: 'true'
@@ -96,7 +147,7 @@ jobs:
 
       # Step 2.5: 제로 데이터 무결성 2차 파일 크기 방어
       - name: Verify data integrity before commit
-        if: github.event_name != 'push'
+        if: github.event_name != 'push' && steps.schedule_gate.outputs.should_crawl == 'true'
         run: |
           SIZE=$(wc -c < public/data/tx-summary.json || echo 0)
           if [ "$SIZE" -lt 50000 ]; then
@@ -104,10 +155,10 @@ jobs:
             exit 1
           fi
 
-      # Step 3: 변경사항 Git 커밋 & 푸시 (Asia/Seoul 기준 날짜 태깅 + 프로덕션 선반영 시 [vercel skip] 중복 빌드 방지)
+      # Step 3: 변경사항 Git 커밋 & 푸시 (Asia/Seoul 기준 날짜 태깅 + 프로덕션 선반영 시 중복 재배포 원천 차단)
       - name: Commit and push changes
         id: commit_push
-        if: github.event_name != 'push'
+        if: github.event_name != 'push' && steps.schedule_gate.outputs.should_crawl == 'true'
         run: |
           cd ..
           git config user.name "github-actions[bot]"
@@ -118,28 +169,36 @@ jobs:
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
             TODAY=$(date +%Y-%m-%d)
-            ALREADY_LIVE=$(node -e '
+            TODAY_YMD=$(date +%Y%m%d)
+            EVENT_NAME="${{ github.event_name }}"
+            ALREADY_LIVE=$(TODAY_YMD="$TODAY_YMD" EVENT_NAME="$EVENT_NAME" node -e '
               (async () => {
                 try {
+                  if (process.env.EVENT_NAME === "workflow_dispatch") return console.log("false");
                   const fs = require("fs");
                   const localStats = JSON.parse(fs.readFileSync("frontend/public/data/market-stats.json", "utf8"));
                   const localSummary = JSON.parse(fs.readFileSync("frontend/public/data/tx-summary.json", "utf8"));
                   const localRent = Object.values(localSummary.summary || {}).reduce((s, v) => s + (Number(v && v.rentTxCount) || 0), 0);
                   const ac = new AbortController();
                   const timer = setTimeout(() => ac.abort(), 8000);
+                  const cb = Date.now();
                   const [sRes, tRes] = await Promise.all([
-                    fetch("https://dongtanview.com/data/market-stats.json", { signal: ac.signal, cache: "no-store" }),
-                    fetch("https://dongtanview.com/data/tx-summary.json", { signal: ac.signal, cache: "no-store" })
+                    fetch(`https://dongtanview.com/data/market-stats.json?t=${cb}`, { signal: ac.signal, cache: "no-store", headers: { "Cache-Control": "no-cache" } }),
+                    fetch(`https://dongtanview.com/data/tx-summary.json?t=${cb}`, { signal: ac.signal, cache: "no-store", headers: { "Cache-Control": "no-cache" } })
                   ]);
                   clearTimeout(timer);
                   if (!sRes.ok || !tRes.ok) return console.log("false");
                   const liveStats = await sRes.json();
                   const liveSummary = await tRes.json();
                   const liveRent = Object.values(liveSummary.summary || {}).reduce((s, v) => s + (Number(v && v.rentTxCount) || 0), 0);
+                  const alreadySyncedToday =
+                    Boolean(process.env.TODAY_YMD) &&
+                    liveStats.latestRegisteredDate === process.env.TODAY_YMD;
                   const upToDate =
-                    liveStats.latestRegisteredDate === localStats.latestRegisteredDate &&
-                    Number(liveStats.saleTxCount || 0) >= Number(localStats.saleTxCount || 0) &&
-                    liveRent >= localRent;
+                    alreadySyncedToday ||
+                    (liveStats.latestRegisteredDate === localStats.latestRegisteredDate &&
+                      Number(liveStats.saleTxCount || 0) >= Number(localStats.saleTxCount || 0) &&
+                      liveRent >= localRent);
                   console.log(upToDate ? "true" : "false");
                 } catch {
                   console.log("false");
@@ -201,9 +260,9 @@ jobs:
           NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
 
-      # Step 4: Vercel 배포 정리 (최신 배포 2개 유지)
+      # Step 4: Vercel 배포 정리 (최신 배포 2개 유지 — 실제 크롤링/동기화 수행 시에만 실행)
       - name: Prune Vercel deployments
-        if: always() && github.event_name != 'push'
+        if: always() && github.event_name != 'push' && steps.schedule_gate.outputs.should_crawl == 'true'
         run: node scripts/prune-vercel-deployments.js
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -228,6 +287,7 @@ jobs:
       # Step 5: 실패 시 다채널 장애 통지 (Discord & Slack 듀얼 호환)
       - name: Send notification on failure
         if: failure()
+        working-directory: .
         run: |
           WEBHOOK_URL="${DISCORD_WEBHOOK_URL:-$SLACK_WEBHOOK_URL}"
           if [ -n "${WEBHOOK_URL}" ]; then

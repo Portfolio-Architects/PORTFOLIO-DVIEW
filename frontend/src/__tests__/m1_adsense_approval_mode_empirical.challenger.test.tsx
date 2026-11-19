@@ -337,13 +337,13 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
       expect(aptContainer.querySelector('#apt-related-guides-ssr')).not.toBeNull();
       unmountApt();
 
-      // 3) Sitemap priority >= 0.9 for /guide and all 23 guide articles
+      // 3) Sitemap priority >= 0.9 for /guide and all 25 guide articles
       const sitemapMod = await import('@/app/sitemap');
       const sitemapEntries = await sitemapMod.default();
       const guideHubEntry = sitemapEntries.find((e) => e.url.endsWith('/guide'));
       expect(guideHubEntry?.priority).toBeGreaterThanOrEqual(0.9);
       const guideArticleEntries = sitemapEntries.filter((e) => e.url.includes('/guide/'));
-      expect(guideArticleEntries.length).toBe(23);
+      expect(guideArticleEntries.length).toBe(25);
       guideArticleEntries.forEach((entry) => {
         expect(entry.priority).toBeGreaterThanOrEqual(0.9);
       });
@@ -509,14 +509,14 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
       }
     });
 
-    it('curates sitemap.xml to 79 elite URLs (9 core + 23 guides + 7 zones + 40 verified flagship apartments) in approval mode and restores 280 URLs when disabled', async () => {
+    it('curates sitemap.xml to 81 elite URLs (9 core + 25 guides + 7 zones + 40 verified flagship apartments) in approval mode and restores 183 URLs when disabled', async () => {
       const sitemapFn = (await import('@/app/sitemap')).default;
       const { ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT } = await import('@/lib/services/apartmentPageService');
 
       process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE = 'true';
       const approvalRoutes = await sitemapFn({ id: 0 });
       expect(ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT).toBe(40);
-      expect(approvalRoutes.length).toBe(79);
+      expect(approvalRoutes.length).toBe(81);
       // Zero /technovalley/[slug] detail pages in approval mode (/technovalley hub remains)
       expect(approvalRoutes.some((r) => r.url === 'https://dongtanview.com/technovalley')).toBe(true);
       expect(approvalRoutes.some((r) => r.url.startsWith('https://dongtanview.com/technovalley/'))).toBe(false);
@@ -531,7 +531,7 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
 
       process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE = 'false';
       const fullRoutes = await sitemapFn({ id: 0 });
-      expect(fullRoutes.length).toBe(181);
+      expect(fullRoutes.length).toBe(183);
       expect(fullRoutes.some((r) => r.url.startsWith('https://dongtanview.com/technovalley/'))).toBe(false);
       expect(
         fullRoutes.some((r) => decodeURIComponent(r.url).includes('화성동탄상록리슈빌아파트영구임대'))

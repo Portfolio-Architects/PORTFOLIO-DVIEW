@@ -24,6 +24,7 @@ export const ApartmentModalKakaoCard = React.memo(function ApartmentModalKakaoCa
   return (
     <div
       ref={shareCardRef}
+      aria-hidden="true"
       style={{
         position: 'fixed',
         left: '-9999px',
@@ -88,9 +89,9 @@ export const ApartmentModalKakaoCard = React.memo(function ApartmentModalKakaoCa
               </span>
             )}
           </div>
-          <h1 className="text-[44px] font-black leading-tight tracking-tight text-white drop-shadow-sm">
+          <div className="text-[44px] font-black leading-tight tracking-tight text-white drop-shadow-sm">
             {displayAptName}
-          </h1>
+          </div>
           <div className="flex items-center gap-2 text-slate-400 text-[15px] font-semibold">
             <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-blue-600">
               <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm11.378-3.917c-.08-.417-.507-.65-.913-.485a4.5 4.5 0 00-2.836 2.836c-.166.406.067.833.485.913a.75.75 0 01.614.93L9.61 16.57a.75.75 0 11-1.46-.388l1.378-5.182a.75.75 0 111.46.388L9.61 16.57a.75.75 0 11-1.46-.388l1.378-5.182z" clipRule="evenodd" />

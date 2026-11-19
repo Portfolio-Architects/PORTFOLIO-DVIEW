@@ -160,6 +160,9 @@ export interface FlagshipRivalMatchup {
   avgPriceGapWon: number;
   avgPriceGapEokText: string;
   pyeongPriceGapManwon: number;
+  pyeongPriceGapText: string;
+  areaDiffM2: number;
+  hasMaterialAreaDiff: boolean;
   relatedGuideSlug: string;
   relatedGuideTitle: string;
 }
@@ -427,9 +430,9 @@ export function computeDongtan1Vs2Delta(
     let headlineAnswer = '선택한 조건에 해당하는 실거래 표본 단지가 없습니다.';
     if (!bothEmpty) {
       if (dongtan1.complexCount === 0) {
-        headlineAnswer = `선택한 평형 구간에는 동탄1신도시 해당 단지가 없으며(단지 평균 전용 63.4㎡ 이상), 동탄2신도시(${dongtan2.complexCount}개 단지) 1년 평균 집값은 ${dongtan2.weightedAvgPriceEokText}(평당 ${dongtan2.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만)입니다.`;
+        headlineAnswer = `해당 평형은 동탄1신도시 해당 단지가 없으며, 동탄2(${dongtan2.complexCount}개 단지) 평균 ${dongtan2.weightedAvgPriceEokText} · 평당 ${dongtan2.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만`;
       } else {
-        headlineAnswer = `선택한 평형 구간에는 동탄2신도시 해당 단지가 없으며, 동탄1신도시(${dongtan1.complexCount}개 단지) 1년 평균 집값은 ${dongtan1.weightedAvgPriceEokText}(평당 ${dongtan1.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만)입니다.`;
+        headlineAnswer = `해당 평형은 동탄2신도시 해당 단지가 없으며, 동탄1(${dongtan1.complexCount}개 단지) 평균 ${dongtan1.weightedAvgPriceEokText} · 평당 ${dongtan1.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만`;
       }
     }
 
@@ -493,7 +496,7 @@ export function computeDongtan1Vs2Delta(
     maxPriceDiffEokText: formatSignedPriceEok(maxPriceDiffWon),
     builtYearDiffYears,
     headlineQuestion,
-    headlineAnswer: `동탄1 1년 평균 ${dongtan1.weightedAvgPriceEokText}(평당 ${dongtan1.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만) vs 동탄2 ${dongtan2.weightedAvgPriceEokText}(평당 ${dongtan2.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만)으로 ${higherRegion}가 평균 ${absGapText} 높게 형성되어 있습니다.`,
+    headlineAnswer: `동탄1 1년 평균 ${dongtan1.weightedAvgPriceEokText}(평당 ${dongtan1.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만) vs 동탄2 ${dongtan2.weightedAvgPriceEokText}(평당 ${dongtan2.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만) · ${higherRegion} 평균 ${absGapText} 우위`,
   };
 }
 
@@ -694,47 +697,43 @@ const RIVAL_MATCHUP_SPECS: ReadonlyArray<{
 }> = [
   {
     matchupId: 'landmark-flagship',
-    themeBadge: '권역 최고가 랜드마크 대결',
-    matchupTitle: '메타폴리스 (동탄1 대장) vs 동탄역 롯데캐슬 (동탄2 대장)',
-    matchupDescription:
-      '동탄1 센트럴파크·타임테라스 초고층 주상복합 랜드마크와 동탄2 GTX-A 초역세권 백화점 직결 대장주의 실거래 집값 비교',
+    themeBadge: '권역 대장주',
+    matchupTitle: '초고층 랜드마크 vs GTX 초역세권',
+    matchupDescription: '센트럴파크 주상복합 vs 백화점 직결 역세권',
     dongtan1Name: '메타폴리스',
     dongtan2Name: '동탄역 롯데캐슬',
     relatedGuideSlug: 'dongtan-1-vs-2-comparison',
-    relatedGuideTitle: '동탄1신도시 vs 동탄2신도시 전방위 입지·실거래 비교 리포트',
+    relatedGuideTitle: '동탄1 vs 동탄2 입지·실거래 비교 리포트',
   },
   {
     matchupId: 'sibeom-prime',
-    themeBadge: '시범단지 핵심 입지 대결',
-    matchupTitle: '솔빛마을 서해그랑블 (동탄1) vs 동탄역 시범 우남퍼스트빌 (동탄2)',
-    matchupDescription:
-      '동탄1 학원가·솔빛학군 대장주와 동탄2 청계동 시범단지 초역세권 대표 단지의 실거래 매매가·평당가 격차',
+    themeBadge: '시범 핵심 입지',
+    matchupTitle: '솔빛 학원가 vs 청계 시범 초역세권',
+    matchupDescription: '동탄1 대형 학원가 vs 동탄2 시범 초역세권',
     dongtan1Name: '솔빛마을 서해그랑블',
     dongtan2Name: '동탄역 시범 우남퍼스트빌',
     relatedGuideSlug: 'dongtan-station-gbcx-vs-sibeom-comparison',
-    relatedGuideTitle: '동탄역 광역비즈니스콤플렉스 vs 시범단지 심층 비교 리포트',
+    relatedGuideTitle: '동탄역 광역비즈니스콤플렉스 vs 시범단지 비교',
   },
   {
     matchupId: 'school-zone-rival',
-    themeBadge: '초품아·명문 학군지 대결',
-    matchupTitle: '시범한빛마을 동탄아이파크 (동탄1) vs 동탄역 시범 리슈빌 (동탄2)',
-    matchupDescription:
-      '반송동 한빛초·중·고 트리플 학군 핵심 단지와 청계동 중앙공원·시범 학군 단지의 30평대 실수요 집값 비교',
+    themeBadge: '초품아·학군',
+    matchupTitle: '한빛 트리플 학군 vs 청계 시범 학군',
+    matchupDescription: '한빛초·중·고 학군 vs 중앙공원 인접 시범',
     dongtan1Name: '시범한빛마을 동탄아이파크',
     dongtan2Name: '동탄역 시범 리슈빌',
     relatedGuideSlug: 'dongtan-school-zone-top-apartments',
-    relatedGuideTitle: '동탄 학군·초품아 핵심 단지 시세 및 통학 입지 분석',
+    relatedGuideTitle: '동탄 학군·초품아 시세 및 통학 입지 분석',
   },
   {
     matchupId: 'park-lake-lifestyle',
-    themeBadge: '센트럴파크 vs 호수공원 대결',
-    matchupTitle: '시범다은마을 월드메르디앙 반도유보라 (동탄1) vs 동탄 더샵 레이크에듀타운 (동탄2)',
-    matchupDescription:
-      '동탄1 센트럴파크 평지 대단지와 동탄2 동탄호수공원 초품아 대장주 간 실거주 매매가 및 거래 회전율 비교',
+    themeBadge: '공원 생활권',
+    matchupTitle: '센트럴파크 대단지 vs 호수공원 초품아',
+    matchupDescription: '동탄1 평지 공원권 vs 동탄2 수변 대장주',
     dongtan1Name: '시범다은마을 월드메르디앙 반도유보라',
     dongtan2Name: '동탄 더샵 레이크에듀타운',
     relatedGuideSlug: 'dongtan-lake-vs-station-comparison',
-    relatedGuideTitle: '동탄호수공원권 vs 동탄역세권 실거래 및 라이프스타일 비교',
+    relatedGuideTitle: '동탄호수공원권 vs 동탄역세권 실거래 비교',
   },
 ];
 
@@ -788,6 +787,12 @@ export function computeFlagshipRivalMatchups(
     const latestPriceGapWon = d2Side.latestPriceWon - d1Side.latestPriceWon;
     const avgPriceGapWon = d2Side.avgPriceWon - d1Side.avgPriceWon;
     const pyeongPriceGapManwon = d2Side.pyeongPriceManwon - d1Side.pyeongPriceManwon;
+    const pyeongPriceGapText =
+      pyeongPriceGapManwon === 0
+        ? '0만/평'
+        : `${pyeongPriceGapManwon > 0 ? '+' : '-'}${Math.abs(pyeongPriceGapManwon).toLocaleString('ko-KR')}만/평`;
+    const areaDiffM2 = Math.round(d2Side.exclusiveAreaAvgM2 - d1Side.exclusiveAreaAvgM2);
+    const hasMaterialAreaDiff = Math.abs(areaDiffM2) >= 10;
 
     matchups.push({
       matchupId: spec.matchupId,
@@ -801,6 +806,9 @@ export function computeFlagshipRivalMatchups(
       avgPriceGapWon,
       avgPriceGapEokText: formatSignedPriceEok(avgPriceGapWon),
       pyeongPriceGapManwon,
+      pyeongPriceGapText,
+      areaDiffM2,
+      hasMaterialAreaDiff,
       relatedGuideSlug: spec.relatedGuideSlug,
       relatedGuideTitle: spec.relatedGuideTitle,
     });
@@ -853,7 +861,7 @@ export function buildComparisonGuideBridgeItems(
       category: '지역비교',
       title: '동탄1신도시 vs 동탄2신도시 전방위 입지·실거래 비교: 내 예산과 라이프스타일에 맞는 선택은?',
       summary:
-        '반송·석우·능동 완성형 인프라와 청계·여울·송동·산척 GTX-A 신축 생활권의 실거래 집값, 연식, 학군, 출퇴근 동선을 1:1로 해부한 심층 가이드입니다.',
+        '반송·석우·능동 인프라와 동탄2 GTX-A 신축 실거래·연식·학군 1:1 비교',
       highlightStatLabel: `동탄1 평균 ${masterD1.weightedAvgPriceEokText} vs 동탄2 평균 ${masterD2.weightedAvgPriceEokText} (${masterDelta.weightedPriceDiffEokText} 격차)`,
       isPrimaryComparison: true,
     },
@@ -863,7 +871,7 @@ export function buildComparisonGuideBridgeItems(
       category: '지역비교',
       title: '동탄호수공원권 vs 동탄역세권 완벽 비교: 수변 라이프와 GTX 초역세권 중 어디가 유리할까?',
       summary:
-        '동탄2 내부에서도 가장 치열하게 대립하는 동탄역 도보권(청계·여울)과 호수공원 수변권(송동·산척·장지)의 집값 및 실거주 만족도를 비교합니다.',
+        '동탄역 도보권(청계·여울)과 호수공원 수변권(송동·산척·장지) 집값·실거주 만족도 대조',
       highlightStatLabel: stationLakeLabel,
       isPrimaryComparison: false,
     },
@@ -873,7 +881,7 @@ export function buildComparisonGuideBridgeItems(
       category: '지역비교',
       title: '동탄역 광역비즈니스콤플렉스 vs 시범단지 심층 비교: 주상복합과 초품아 학군지의 선택 기준',
       summary:
-        '동탄역 초근접 주상복합 벨트와 청계중앙공원 시범단지 간 평당가, 관리비, 대지지분, 초등학교 통학 환경을 객관적 수치로 대조합니다.',
+        '동탄역 초근접 주상복합 벨트와 청계중앙공원 시범단지의 평당가·대지지분·통학 환경 비교',
       highlightStatLabel: '여울동·청계동 초역세권 핵심 단지 1:1 시세 대조',
       isPrimaryComparison: false,
     },
@@ -883,7 +891,7 @@ export function buildComparisonGuideBridgeItems(
       category: '실거래분석',
       title: '예산별(6억·9억·12억+) 동탄 아파트 매수 전략: 자금 규모별 최선호 단지 실거래 집중 분석',
       summary:
-        '가용 예산 구간별로 동탄1 실속 대단지와 동탄2 신축 역세권 중 어떤 단지를 선택할 수 있는지 실거래가 분포로 안내합니다.',
+        '가용 예산 구간별 동탄1 실속 대단지와 동탄2 신축 역세권의 실거래 분포 분석',
       highlightStatLabel: `동탄1 최저 ${masterD1.minLatestPriceEokText}~ vs 동탄2 최저 ${masterD2.minLatestPriceEokText}~ 구간별 분석`,
       isPrimaryComparison: false,
     },

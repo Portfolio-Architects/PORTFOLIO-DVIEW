@@ -1955,12 +1955,12 @@ const DashboardClient = React.memo(function DashboardClient({
         <div
           data-testid="master-detail-workspace"
           data-split-open={String(isSplitDetailOpen)}
-          className="flex-1 flex flex-col md:flex-row items-start w-full max-w-[2000px] mx-auto min-w-0 relative transition-all duration-300 ease-out"
+          className="flex-1 flex flex-col md:flex-row items-start w-full max-w-[2000px] mx-auto min-w-0 relative transition-opacity duration-200 ease-out"
         >
           {/* Left Master Pane (Dashboard / Inline Apartment Page) */}
           <div
             data-testid="master-workspace-pane"
-            className={`flex-1 min-w-0 max-w-full flex flex-col transition-all duration-300 ease-out ${
+            className={`flex-1 min-w-0 max-w-full flex flex-col transition-opacity duration-200 ease-out ${
               isSplitDetailOpen
                 ? 'w-full md:w-[calc(100%-52vw)] lg:w-[calc(100%-780px)] xl:w-[calc(100%-880px)]'
                 : 'w-full'
@@ -1969,7 +1969,7 @@ const DashboardClient = React.memo(function DashboardClient({
             {/* Main Container */}
             <main 
               id="main-content" 
-              className="flex-1 w-full max-w-full mx-auto min-w-0 min-h-[85vh] min-h-[750px] transition-all duration-300 ease-out"
+              className="flex-1 w-full max-w-full mx-auto min-w-0 min-h-[85vh] min-h-[750px] transition-opacity duration-200 ease-out"
             >
               {isInlineApartmentPage && effectiveInlineReport ? (
                 <div
@@ -2065,7 +2065,7 @@ const DashboardClient = React.memo(function DashboardClient({
               data-testid="detail-workspace-pane"
               aria-label="아파트 상세 리포트 인스펙터"
               aria-hidden={!isSplitDetailOpen}
-              className={`shrink-0 transition-all duration-300 ease-out ${
+              className={`shrink-0 transition-opacity duration-200 ease-out ${
                 isSplitDetailOpen
                   ? 'w-full md:w-[52vw] lg:w-[780px] xl:w-[880px] md:max-w-[780px] xl:max-w-[880px] md:h-dvh md:max-h-[calc(100dvh-80px)] md:sticky md:top-[80px] md:overflow-hidden opacity-100 z-[60] md:z-40'
                   : 'w-0 max-w-0 h-0 md:h-dvh md:max-h-[calc(100dvh-80px)] md:sticky md:top-[80px] opacity-0 md:translate-x-8 overflow-hidden pointer-events-none border-0'

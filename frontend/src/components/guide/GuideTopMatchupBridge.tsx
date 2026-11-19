@@ -2,14 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
-import {
-  Scale,
-  ArrowUpRight,
-  BarChart3,
-  Building2,
-  Calendar,
-  BookOpen,
-} from 'lucide-react';
+import { DviewIcon } from '@/components/common/DviewIcon';
 import type { GuideAptMiniPreviewItem } from '@/lib/data/guides';
 import { GuideAptCtaLink, resolveSafePreviewIdentity } from '@/components/guide/GuideAptPreviewCard';
 import { QuickNonLoginRetentionAction } from '@/components/common/QuickNonLoginRetentionAction';
@@ -257,7 +250,7 @@ export function GuideTopMatchupBridge({
         <div className="space-y-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className={getVisualSignalPillClass({ tone: 'safe', size: 'xs' })}>
-              <Scale className="w-3 h-3 shrink-0" />
+              <DviewIcon name="scale" size={12} />
               <span>상단 1:1 실거래 매치업</span>
             </span>
             <span className={getVisualSignalPillClass({ tone: 'neutral', size: 'xs' })}>
@@ -371,7 +364,7 @@ export function GuideTopMatchupBridge({
                       extraClass: 'min-w-0 !shrink max-w-full overflow-hidden',
                     })}
                   >
-                    <Building2 className="w-3 h-3 shrink-0" />
+                    <DviewIcon name="building-2" size={12} />
                     <span className="truncate">{side.label}</span>
                   </span>
                   <span className="text-[11px] font-bold text-tertiary shrink-0">
@@ -384,7 +377,7 @@ export function GuideTopMatchupBridge({
                     {apt.displayName}
                   </div>
                   <span className="w-6 h-6 rounded-lg bg-[#f9fafb] dark:bg-[#17171c] text-secondary group-hover:text-primary inline-flex items-center justify-center shrink-0">
-                    <ArrowUpRight className="w-3.5 h-3.5" />
+                    <DviewIcon name="arrow-up-right" size={14} />
                   </span>
                 </div>
 
@@ -416,14 +409,14 @@ export function GuideTopMatchupBridge({
 
               <div className="pt-2 border-t border-[#f2f4f6] dark:border-[#2c2c35] flex items-center justify-between gap-2 text-[11px] min-w-0">
                 <span className="inline-flex items-center gap-1 text-tertiary font-semibold tabular-nums truncate min-w-0">
-                  <Calendar className="w-3 h-3 shrink-0" />
+                  <DviewIcon name="calendar" size={12} />
                   <span className="truncate">{contractMetaParts.join(' · ') || '국토부 실거래 검증'}</span>
                 </span>
                 <span
                   className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-extrabold transition-colors shrink-0 ${side.ctaClass}`}
                 >
                   <span>실거래 상세</span>
-                  <ArrowUpRight className="w-3 h-3" />
+                  <DviewIcon name="arrow-up-right" size={12} />
                 </span>
               </div>
             </GuideAptCtaLink>
@@ -476,9 +469,9 @@ export function GuideTopMatchupBridge({
             }
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors"
           >
-            <Scale className="w-3.5 h-3.5 shrink-0" />
+            <DviewIcon name="scale" size={14} />
             <span>두 단지 1:1 비교표 열기</span>
-            <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
+            <DviewIcon name="arrow-up-right" size={14} />
           </Link>
 
           <Link
@@ -488,7 +481,7 @@ export function GuideTopMatchupBridge({
             onClick={handleStatsBridgeClick}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-colors"
           >
-            <BarChart3 className="w-3.5 h-3.5 shrink-0" />
+            <DviewIcon name="bar-chart-3" size={14} />
             <span>{statsTarget.ctaLabel}</span>
           </Link>
 
@@ -499,7 +492,7 @@ export function GuideTopMatchupBridge({
               data-testid="guide-top-h2h-budget-cta"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#282832] border border-[#f2f4f6] dark:border-[#2c2c35] text-primary text-xs font-extrabold transition-colors"
             >
-              <BookOpen className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <DviewIcon name="book-open" size={14} className="text-emerald-600 dark:text-emerald-400" />
               <span>6·9·12억 예산별 랭킹</span>
             </Link>
           )}

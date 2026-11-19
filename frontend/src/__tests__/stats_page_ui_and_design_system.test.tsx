@@ -28,6 +28,7 @@ import { DistanceRegressionScatterPlot } from '@/components/stats/DistanceRegres
 import { ComplexDrillDownTable } from '@/components/stats/ComplexDrillDownTable';
 import { StatsSkeleton } from '@/components/stats/StatsSkeleton';
 import { StatsPageClient } from '@/app/stats/StatsPageClient';
+import { ThematicPriceComparisonSection } from '@/components/stats/ThematicPriceComparisonSection';
 import StatsPage from '@/app/stats/page';
 
 // Engine & Types
@@ -529,6 +530,55 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('아파트 통계');
       expect(container.querySelector('header')).not.toBeNull();
       expect(container.querySelector('a[href="/stats"]')).not.toBeNull();
+    });
+
+    test('R3/F6-F7 UX invariants: sticky scroll-mt clearance and Dual-Layer #stats-ssr-regression-summary', () => {
+      const { container } = render(<StatsPage />);
+
+      // S3-01: Drilldown anchor clears sticky header
+      const drilldownAnchor = container.querySelector('#stats-complex-drilldown-anchor');
+      expect(drilldownAnchor).not.toBeNull();
+      expect(drilldownAnchor?.className).toContain('scroll-mt-24');
+      expect(drilldownAnchor?.className).toContain('md:scroll-mt-[96px]');
+
+      // S3-01: Thematic section anchors clear sticky header
+      (['school-district-premium', 'lake-park-view-premium', 'building-age-depreciation'] as const).forEach(
+        (topicId) => {
+          const { container: tContainer } = render(
+            <ThematicPriceComparisonSection topicId={topicId} />
+          );
+          const sec = tContainer.querySelector(`#${topicId}`);
+          expect(sec?.className).toContain('scroll-mt-24');
+          expect(sec?.className).toContain('md:scroll-mt-[96px]');
+        }
+      );
+
+      // S4-01..S4-03: Dual-Layer #stats-ssr-regression-summary
+      const ssrSummary = container.querySelector('#stats-ssr-regression-summary');
+      expect(ssrSummary).not.toBeNull();
+      expect(ssrSummary?.className).toContain('scroll-mt-24');
+      expect(ssrSummary?.className).toContain('md:scroll-mt-[96px]');
+      expect(ssrSummary?.querySelectorAll('li')).toHaveLength(5);
+
+      // Layer 2 <details> closed by default, contains OLS summary, 0 <li>, 0 AdSlot
+      const detailsEl = ssrSummary?.querySelector('details');
+      expect(detailsEl).not.toBeNull();
+      expect(detailsEl?.hasAttribute('open')).toBe(false);
+      expect(detailsEl?.textContent).toContain('동탄역 거리별 아파트 실거래가 OLS 선형회귀 요약');
+      expect(detailsEl?.querySelectorAll('li')).toHaveLength(0);
+      expect(detailsEl?.querySelectorAll('[data-testid="ad-slot"]')).toHaveLength(0);
+
+      // Layer 1 has comma-formatted numbers, % instead of 퍼센트, and no Issue #2/#3/#4 tags in visible rows
+      const fullText = ssrSummary?.textContent ?? '';
+      expect(fullText).not.toContain('퍼센트');
+      expect(fullText).not.toMatch(/\b\d{4,}건/);
+
+      const schoolRow = container.querySelector('#stats-ssr-school-district-summary');
+      const lakeRow = container.querySelector('#stats-ssr-lake-park-summary');
+      const ageRow = container.querySelector('#stats-ssr-building-age-summary');
+      expect(schoolRow?.textContent).not.toContain('Issue #2');
+      expect(lakeRow?.textContent).not.toContain('Issue #3');
+      expect(ageRow?.textContent).not.toContain('Issue #4');
     });
   });
 

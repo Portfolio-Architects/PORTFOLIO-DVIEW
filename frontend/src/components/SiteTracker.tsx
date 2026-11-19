@@ -7,6 +7,7 @@ import {
   type AdminToggleNotice,
   applyGaDisableFlag,
   isAdminTrackingExcludedClient,
+  isNonProductionTrackingHost,
   setAdminTrackingExclusion,
   syncAdminTrackingStateClient,
 } from '@/lib/utils/adminExclusion';
@@ -86,7 +87,7 @@ const SiteTracker = React.memo(function SiteTracker() {
         if (excluded) {
           diagnosticHoldRef.current = false;
           setAdminTrackingExclusion(true, process.env.NEXT_PUBLIC_GA_ID);
-        } else if (diagnosticHoldRef.current) {
+        } else if (diagnosticHoldRef.current || isNonProductionTrackingHost()) {
           applyGaDisableFlag(true, process.env.NEXT_PUBLIC_GA_ID);
         } else {
           applyGaDisableFlag(false, process.env.NEXT_PUBLIC_GA_ID);

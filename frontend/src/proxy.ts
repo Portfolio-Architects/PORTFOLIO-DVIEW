@@ -277,6 +277,15 @@ export async function proxy(request: NextRequest) {
 
   // 2. HTTP Security 헤더 주입 파이프라인
   // /api/bypass-notice 외 일반 페이지·API 요청은 request.headers 변조를 생략하여 ISR/CDN 캐시 적중률 및 CPU 효율 보장
+  const hostHeader = request.headers.get('host') || '';
+  const isLocalHttpHost =
+    /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(hostHeader) ||
+    request.nextUrl.hostname === 'localhost' ||
+    request.nextUrl.hostname === '127.0.0.1';
+  const effectiveCsp = isLocalHttpHost
+    ? STATIC_CSP_HEADER.replace(/\s*upgrade-insecure-requests;?/gi, '').trim()
+    : STATIC_CSP_HEADER;
+
   let response: NextResponse;
   if (pathname === '/api/bypass-notice') {
     const nonceArray = new Uint8Array(16);
@@ -287,7 +296,7 @@ export async function proxy(request: NextRequest) {
         : Buffer.from(nonceArray).toString('base64');
 
     const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('Content-Security-Policy', STATIC_CSP_HEADER);
+    requestHeaders.set('Content-Security-Policy', effectiveCsp);
     requestHeaders.set('x-nonce', nonce);
     response = NextResponse.next({
       request: {
@@ -300,13 +309,15 @@ export async function proxy(request: NextRequest) {
   }
 
   // 공통 보안 헤더 (CSP frame-ancestors에서 AdSense 미리보기 도메인만 허용하며 X-Frame-Options: DENY 충돌 제거)
-  response.headers.set('Content-Security-Policy', STATIC_CSP_HEADER);
+  response.headers.set('Content-Security-Policy', effectiveCsp);
   response.headers.set('X-Content-Type-Options', 'nosniff'); // MIME 타입 변조 방지 
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin'); // 리퍼러 보호
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)'); // 하드웨어 권한 탈취 방지
 
-  // A+ 등급 승급용 심화 보안 헤더
-  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload'); // 전 구간 강제 HTTPS화
+  // A+ 등급 승급용 심화 보안 헤더 (localhost HTTP 테스트 시 WebKit HSTS/HTTPS 업그레이드 차단 방지)
+  if (!isLocalHttpHost) {
+    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload'); // 전 구간 강제 HTTPS화
+  }
   response.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups'); // Spectre 공격 방어 (Firebase OAuth 팝업을 위해 allow-popups 필수)
   response.headers.set('Cross-Origin-Resource-Policy', 'cross-origin'); // 구글 애드센스 등 외부 도메인 자원 로딩 허용
 

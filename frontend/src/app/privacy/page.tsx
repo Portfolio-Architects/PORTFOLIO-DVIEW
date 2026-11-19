@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     'D-VIEW(디뷰 · 동뷰 · 동탄뷰) 동탄 부동산 데이터 분석 플랫폼의 개인정보 수집 항목, 입주민 GPS 인증 정보 비저장 원칙, 웹 푸시 알림 및 Google AdSense 쿠키 운용 방침을 안내합니다.',
   alternates: {
     canonical: 'https://dongtanview.com/privacy',
+    types: {
+      'application/rss+xml': 'https://dongtanview.com/feed.xml',
+    },
   },
   openGraph: {
     title: '개인정보처리방침 · 위치기반 인증 및 쿠키 정책 | D-VIEW (디뷰 · 동뷰 · 동탄뷰)',

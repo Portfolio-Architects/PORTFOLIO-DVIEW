@@ -52,8 +52,8 @@ export function parseSitemapDate(
 }
 
 /**
- * Generates unified programmatic sitemap for D-VIEW (181 verified indexable URLs; 99 empty/zero-sale templates isolated via noindex).
- * @complexity Time: O(N), Space: O(N) where N = 181 indexable entities
+ * Generates unified programmatic sitemap for D-VIEW (183 verified indexable URLs; 99 empty/zero-sale templates isolated via noindex).
+ * @complexity Time: O(N), Space: O(N) where N = 183 indexable entities
  * @sideEffects Read-only file cache and optional Firestore metadata read
  */
 export default async function sitemap(
@@ -92,7 +92,7 @@ export default async function sitemap(
     });
   });
 
-  // 1. Guide Articles (23 programmatic long-form comparison & valuation articles)
+  // 1. Guide Articles (25 programmatic long-form comparison & valuation articles)
   GUIDE_ARTICLES.forEach((article) => {
     routes.push({
       url: `${baseUrl}/guide/${article.slug}`,

@@ -1017,8 +1017,8 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
   describe('5. Comparison Guide Rich Snippets: Full 20-Guide SSR Rendering, 1:1 Real-Data Matchups, Internal Link Mesh, FAQPage JSON-LD & CLI Quiet Guardrails', () => {
     const EMOJI_REGEX = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
 
-    it('verifies all 23 guides resolve 100% of headToHeadComparisons, featuredApartments & featuredZones against real data with zero unicode emojis', async () => {
-      expect(GUIDE_ARTICLES).toHaveLength(23);
+    it('verifies all 25 guides resolve 100% of headToHeadComparisons, featuredApartments & featuredZones against real data with zero unicode emojis', async () => {
+      expect(GUIDE_ARTICLES).toHaveLength(25);
       const txSummary = await getTxSummaryData();
 
       for (const article of GUIDE_ARTICLES) {
@@ -1204,10 +1204,10 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       }
     });
 
-    it('renders GuideIndexPage (/guide) with all 23 comparison guides, CollectionPage JSON-LD hasPart=23, and zero font-mono in guide cards', () => {
+    it('renders GuideIndexPage (/guide) with all 25 comparison guides, CollectionPage JSON-LD hasPart=25, and zero font-mono in guide cards', () => {
       const { container, unmount } = render(<GuideIndexPage />);
       const cards = container.querySelectorAll('article');
-      expect(cards).toHaveLength(23);
+      expect(cards).toHaveLength(25);
       cards.forEach((card) => {
         expect(card.querySelectorAll('.font-mono').length).toBe(0);
       });
@@ -1216,7 +1216,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       expect(ldScript).not.toBeNull();
       const parsedLd = JSON.parse(ldScript?.innerHTML || '{}');
       expect(parsedLd['@type']).toBe('CollectionPage');
-      expect(parsedLd.hasPart).toHaveLength(23);
+      expect(parsedLd.hasPart).toHaveLength(25);
       expect(
         parsedLd.hasPart.some(
           (item: { url: string }) =>
@@ -1248,9 +1248,9 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       expect(ycHrefs).toContain('/guide/dongtan-job-proximity-commuter-comparison');
       ycRender.unmount();
 
-      // 2. Non-featured 신동 apartment ('동탄2디에트르포레') resolves 'newtown' zone guide cleanly
+      // 2. Non-featured 신동 apartment ('호반써밋동탄') resolves 'newtown' zone guide cleanly
       const SindongAptJsx = await ApartmentPage({
-        params: Promise.resolve({ aptName: '동탄2디에트르포레' }),
+        params: Promise.resolve({ aptName: '호반써밋동탄' }),
       });
       const sdRender = render(SindongAptJsx);
       const sdGuideSection = sdRender.container.querySelector('#apt-related-guides-ssr');
@@ -1259,7 +1259,8 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       const sdHrefs = Array.from(sdGuideSection?.querySelectorAll('a') || []).map((a) =>
         a.getAttribute('href')
       );
-      expect(sdHrefs).toContain('/guide/dongtan-budget-tier-ranking');
+      expect(sdHrefs).toContain('/guide/dongtan-new-town-culture-sin-dong-valuation');
+      expect(sdHrefs).toContain('/guide/dongtan-bundang-sinbundang-semiconductor-line-5th-rail-plan');
       sdRender.unmount();
 
       // 3. Ghost / non-existent apartment degrades gracefully AND does NOT leak false 'gbcx' guide links

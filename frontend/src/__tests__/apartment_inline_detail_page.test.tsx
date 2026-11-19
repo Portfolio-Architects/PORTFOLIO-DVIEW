@@ -940,7 +940,7 @@ describe('Option 1: Inline Apartment Detail Page Architecture Verification', () 
       // Initial state: unsplit full-width Master pane, collapsed Detail pane (preserving md:h-dvh to prevent diagonal height animation)
       expect(workspace).toHaveAttribute('data-split-open', 'false');
       expect(masterPane.className).toContain('w-full');
-      expect(masterPane.className).toContain('transition-all');
+      expect(masterPane.className).toContain('transition-opacity');
       expect(masterPane.className).not.toContain('lg:w-[calc(100%-780px)]');
       expect(detailPane).toHaveAttribute('aria-hidden', 'true');
       expect(detailPane.className).toContain('w-0');

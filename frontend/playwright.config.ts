@@ -34,7 +34,11 @@ export default defineConfig({
     },
     {
       name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
+      use: {
+        ...devices['iPhone 12'],
+        // Windows WebKit HiDPI scales clientWidth under isMobile:true while leaving scrollWidth at 391px even on about:blank
+        ...(process.platform === 'win32' ? { isMobile: false } : {}),
+      },
     },
   ],
   webServer: {

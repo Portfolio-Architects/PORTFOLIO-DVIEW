@@ -33,6 +33,8 @@ describe('analytics.trackEvent & trackVirtualPageView Utility', () => {
     localStorage.clear();
     resetVirtualPageViewLedger();
     resetAnalyticsInteractionState();
+    delete window['ga-disable-G-Y17BHJ77W6'];
+    delete window['ga-disable-G-TEST'];
     window.dataLayer = undefined;
     window.gtag = undefined;
     jest.clearAllMocks();
@@ -41,6 +43,8 @@ describe('analytics.trackEvent & trackVirtualPageView Utility', () => {
   afterEach(() => {
     process.env = originalEnv;
     consoleSpy.mockRestore();
+    delete window['ga-disable-G-Y17BHJ77W6'];
+    delete window['ga-disable-G-TEST'];
     window.dataLayer = undefined;
     window.gtag = undefined;
   });

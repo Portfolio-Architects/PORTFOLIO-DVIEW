@@ -73,6 +73,9 @@ export async function generateMetadata(props: {
     keywords: `동탄 ${zone.name}, ${zone.dongLabel} 아파트, ${dongs.map((d) => `동탄 ${d} 실거래가`).join(', ')}, 동탄 학군, 전세가율, D-VIEW`,
     alternates: {
       canonical: `https://dongtanview.com/zone/${params.id}`,
+      types: {
+        'application/rss+xml': `${baseUrl}/feed.xml`,
+      },
     },
     openGraph: {
       title,

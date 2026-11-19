@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://dongtanview.com/about',
+    types: {
+      'application/rss+xml': 'https://dongtanview.com/feed.xml',
+    },
   },
   openGraph: {
     title: '디뷰 · 동뷰 · 동탄뷰 (D-VIEW) 공식 포털 | 동탄 184개 아파트 실거래 시세·전세가율 분석',

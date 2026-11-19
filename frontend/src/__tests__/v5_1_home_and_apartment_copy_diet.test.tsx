@@ -282,6 +282,21 @@ describe('Ad Money v5.1: Main Home, Hero & Apartment Detail Copy Diet + Semantic
       const editorial = container.querySelector('#home-ssr-market-editorial') as HTMLElement;
       expect(editorial).not.toBeNull();
       expect(editorial.querySelectorAll('a[href^="/apartment/"]').length).toBeGreaterThanOrEqual(20);
+      // F3: Unified Report Hub (single /guide CTA banner, no duplicate '심층 분석 리포트 23편' H3)
+      expect(editorial.textContent).not.toContain('심층 분석 리포트 23편');
+      // F4: 7 zones widen to lg:grid-cols-4 with unclipped <=19-char tagline and real SSR zone averages
+      expect(editorial.querySelectorAll('a[href^="/zone/"]').length).toBe(7);
+      const zoneGrid = editorial.querySelector('a[href^="/zone/"]')?.parentElement;
+      expect(zoneGrid?.className).toContain('lg:grid-cols-4');
+      expect(zoneGrid?.className).not.toContain('lg:grid-cols-7');
+      expect(editorial.textContent).toContain('최근 실거래 평균');
+      // F5: TOP 10 widens to md:grid-cols-5, uses getDisplayAptName without truncate, and deduplicates bottom /explore nav
+      const top10FirstCard = editorial.querySelector('a[href^="/apartment/"]');
+      expect(top10FirstCard?.parentElement?.className).toContain('md:grid-cols-5');
+      expect(top10FirstCard?.parentElement?.className).not.toContain('lg:grid-cols-10');
+      expect(editorial.textContent).toContain('최근 실거래가');
+      const bottomNavExploreLinks = editorial.querySelectorAll('nav a[href="/explore"]');
+      expect(bottomNavExploreLinks.length).toBe(1);
       // HomePage bottom methodology & catalog <details> stay collapsed for compact UX while preserving full SSR text
       for (const detailsEl of Array.from(editorial.querySelectorAll('details'))) {
         expect(detailsEl.hasAttribute('open')).toBe(false);
@@ -383,6 +398,80 @@ describe('Ad Money v5.1: Main Home, Hero & Apartment Detail Copy Diet + Semantic
         expect(checkCopyBudget(pill.textContent || '', 'signalBadge').withinBudget).toBe(true);
       }
       unmountOverview();
+    });
+
+    it('guards HomePage 7-zone averages and TOP 10 cards against NaN and Infinity latestPrice entries without emitting 정보 없음', async () => {
+      const malformedData = {
+        txSummary: {
+          정상시범단지: {
+            latestPrice: 125000,
+            dong: '청계동',
+            latestArea: 34,
+            latestDate: '20261110',
+          },
+          비정상NaN단지: {
+            latestPrice: Number.NaN,
+            dong: '청계동',
+            latestArea: Number.NaN,
+            latestDate: 'invalid',
+          },
+          비정상Infinity단지: {
+            latestPrice: Infinity,
+            dong: '영천동',
+            latestArea: 34,
+            latestDate: '20261112',
+          },
+          비정상음수단지: {
+            latestPrice: -5000,
+            dong: '여울동',
+            latestArea: 0,
+            latestDate: '',
+          },
+        },
+        recentTransactions: [],
+        sheetApartments: {},
+        macroTrend: [],
+        fieldReports: [],
+        railNotices: [],
+        tramNotices: [],
+        dongtanNotices: [],
+      } as unknown as Awaited<ReturnType<typeof dashboardDataService.getInitialData>>;
+
+      jest.spyOn(dashboardDataService, 'getInitialData').mockResolvedValueOnce(malformedData);
+
+      const { container, unmount } = await renderResolvedHomePage();
+      const editorial = container.querySelector('#home-ssr-market-editorial') as HTMLElement;
+      expect(editorial).not.toBeNull();
+
+      // 7-zone cards: valid 청계동 (community) average is preserved and not poisoned by NaN; Infinity in 영천동 (techno) is excluded
+      const zoneLinks = Array.from(editorial.querySelectorAll('a[href^="/zone/"]'));
+      expect(zoneLinks).toHaveLength(7);
+      for (const zoneCard of zoneLinks) {
+        const text = zoneCard.textContent || '';
+        expect(text).not.toContain('NaN');
+        expect(text).not.toContain('Infinity');
+        expect(text).not.toContain('정보 없음');
+      }
+
+      const communityCard = editorial.querySelector('a[href="/zone/community"]');
+      expect(communityCard?.textContent).toContain('1단지');
+      expect(communityCard?.textContent).toContain('12억 5,000만');
+
+      const technoCard = editorial.querySelector('a[href="/zone/techno"]');
+      expect(technoCard?.textContent).not.toContain('최근 실거래 평균');
+
+      // TOP 10 leader cards (outside <details>): only the finite positive entry renders
+      const top10Cards = Array.from(editorial.querySelectorAll('a[href^="/apartment/"]')).filter(
+        (el) => !el.closest('details')
+      );
+      expect(top10Cards).toHaveLength(1);
+      expect(top10Cards[0].textContent).toContain('정상시범단지');
+      expect(top10Cards[0].textContent).toContain('12억 5,000만');
+      expect(top10Cards[0].textContent).not.toContain('NaN');
+      expect(top10Cards[0].textContent).not.toContain('Infinity');
+      expect(top10Cards[0].textContent).not.toContain('정보 없음');
+
+      unmount();
     });
 
     it('collapses #explore-ssr-semantic-catalog into a clean Layer 2 accordion, formats YYYYMM yearBuilt, preserves 184-complex SEO links, and handles empty data safely on ExplorePage', async () => {

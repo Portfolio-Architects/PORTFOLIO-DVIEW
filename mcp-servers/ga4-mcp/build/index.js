@@ -1287,8 +1287,20 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
             const resolvedViewTypeDim = viewTypeSpec ? resolveDim(viewTypeSpec) : null;
             const resolvedTriggerDim = triggerSpec ? resolveDim(triggerSpec) : null;
             const resolvedTabNameDim = tabNameSpec ? resolveDim(tabNameSpec) : null;
-            if (resolvedSearchTermDim)
+            // Always include both `customEvent:search_term` (post-registration) and built-in `searchTerm`
+            // (retroactively populated by GA4 from the `search_term` event parameter) so pre-registration
+            // search_query events recover real terms instead of collapsing to `(not set)`.
+            const hasCustomSearchTermDim = registeredMetaDimNames.has("customEvent:search_term");
+            const hasBuiltInSearchTermDim = registeredMetaDimNames.has("searchTerm");
+            if (hasCustomSearchTermDim)
+                searchQueryDims.push("customEvent:search_term");
+            if (hasBuiltInSearchTermDim && !searchQueryDims.includes("searchTerm")) {
+                searchQueryDims.push("searchTerm");
+            }
+            if (searchQueryDims.length === 0 &&
+                resolvedSearchTermDim) {
                 searchQueryDims.push(resolvedSearchTermDim);
+            }
             if (resolvedSurfaceDim)
                 searchQueryDims.push(resolvedSurfaceDim);
             const aptViewDims = [];
@@ -1319,7 +1331,7 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                             },
                         },
                         orderBys: [{ metric: { metricName: "eventCount" }, desc: true }],
-                        limit: 30,
+                        limit: 100,
                     })
                     : Promise.resolve(null),
                 aptViewDims.length > 0
@@ -1353,9 +1365,78 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                     })
                     : Promise.resolve(null),
             ]);
-            const topSearchTerms = searchRes
+            const rawSearchRows = searchRes
                 ? normalizeReportRows(searchRes.dimensionHeaders, searchRes.metricHeaders, searchRes.rows)
                 : [];
+            const extractValidSearchTerm = (val) => {
+                if (typeof val !== "string")
+                    return null;
+                const trimmed = val.trim();
+                if (!trimmed || trimmed === "(not set)" || trimmed === "(not provided)" || trimmed === "(other)") {
+                    return null;
+                }
+                return trimmed;
+            };
+            let recoveredFromBuiltInEvents = 0;
+            let unresolvedNotSetEvents = 0;
+            const coalescedSearchMap = new Map();
+            for (const row of rawSearchRows) {
+                const rawCount = Number(row.eventCount ?? 0);
+                const count = Number.isFinite(rawCount) && rawCount > 0 ? Math.round(rawCount) : 0;
+                if (count === 0)
+                    continue;
+                const rawUsers = Number(row.totalUsers ?? 0);
+                const users = Number.isFinite(rawUsers) && rawUsers > 0 ? Math.round(rawUsers) : 0;
+                const customTerm = extractValidSearchTerm(row["customEvent:search_term"]);
+                const builtInTerm = extractValidSearchTerm(row.searchTerm);
+                const rawSurface = typeof row["customEvent:surface"] === "string" && row["customEvent:surface"].trim()
+                    ? row["customEvent:surface"].trim()
+                    : "(not set)";
+                let resolvedTerm;
+                let termSource;
+                if (customTerm) {
+                    resolvedTerm = customTerm;
+                    termSource = "custom_dimension";
+                }
+                else if (builtInTerm) {
+                    resolvedTerm = builtInTerm;
+                    termSource = "built_in_searchTerm";
+                    recoveredFromBuiltInEvents += count;
+                }
+                else {
+                    resolvedTerm = "(not set)";
+                    termSource = "not_set";
+                    unresolvedNotSetEvents += count;
+                }
+                const key = `${resolvedTerm}\u0000${rawSurface}`;
+                const existing = coalescedSearchMap.get(key);
+                if (existing) {
+                    existing.eventCount += count;
+                    existing.totalUsers = Math.min(existing.eventCount, existing.totalUsers + users);
+                    if (existing.termSource !== "custom_dimension" && termSource === "custom_dimension") {
+                        existing.termSource = "custom_dimension";
+                    }
+                    if (customTerm)
+                        existing["customEvent:search_term"] = customTerm;
+                    if (builtInTerm)
+                        existing.searchTerm = builtInTerm;
+                }
+                else {
+                    coalescedSearchMap.set(key, {
+                        search_term: resolvedTerm,
+                        surface: rawSurface,
+                        eventCount: count,
+                        totalUsers: Math.min(count, users),
+                        termSource,
+                        "customEvent:search_term": customTerm ?? "(not set)",
+                        searchTerm: builtInTerm ?? "",
+                        "customEvent:surface": rawSurface,
+                    });
+                }
+            }
+            const topSearchTerms = Array.from(coalescedSearchMap.values())
+                .sort((a, b) => b.eventCount - a.eventCount || a.search_term.localeCompare(b.search_term))
+                .slice(0, 30);
             const apartmentViewsBySurfaceAndType = aptViewRes
                 ? normalizeReportRows(aptViewRes.dimensionHeaders, aptViewRes.metricHeaders, aptViewRes.rows)
                 : [];
@@ -1386,10 +1467,17 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                             eventBreakdown,
                             interactionDimensionsResolved: {
                                 search_term: resolvedSearchTermDim,
+                                search_term_query_dimensions: searchQueryDims,
                                 surface: resolvedSurfaceDim,
                                 view_type: resolvedViewTypeDim,
                                 trigger: resolvedTriggerDim,
                                 tab_name: resolvedTabNameDim,
+                            },
+                            searchTermDiagnostics: {
+                                customDimensionRegistered: hasCustomSearchTermDim,
+                                builtInDimensionAvailable: hasBuiltInSearchTermDim,
+                                recoveredFromBuiltInEvents,
+                                unresolvedNotSetEvents,
                             },
                             topSearchTerms,
                             apartmentViewsBySurfaceAndType,

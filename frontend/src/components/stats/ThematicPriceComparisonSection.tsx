@@ -623,7 +623,7 @@ export function ThematicPriceComparisonSection({
         id="school-district-premium"
         data-testid="school-district-premium-section"
         aria-label="초품아 및 명문 학군 아파트 집값 프리미엄 비교 분석"
-        className="w-full flex flex-col gap-5"
+        className="w-full flex flex-col gap-5 scroll-mt-24 md:scroll-mt-[96px]"
       >
         <div className="w-full p-5 sm:p-6 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]">
           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 pb-5 border-b border-slate-200/70 dark:border-slate-800/80">
@@ -894,7 +894,7 @@ export function ThematicPriceComparisonSection({
         id="lake-park-view-premium"
         data-testid="lake-park-view-premium-section"
         aria-label="동탄호수공원 조망권 및 수변 입지 집값 비교 분석"
-        className="w-full flex flex-col gap-5"
+        className="w-full flex flex-col gap-5 scroll-mt-24 md:scroll-mt-[96px]"
       >
         <div className="w-full p-5 sm:p-6 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]">
           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 pb-5 border-b border-slate-200/70 dark:border-slate-800/80">
@@ -1103,7 +1103,7 @@ export function ThematicPriceComparisonSection({
       id="building-age-depreciation"
       data-testid="building-age-depreciation-section"
       aria-label="동탄 아파트 연식별 감가상각 및 전고점 대비 시세 방어율 비교 분석"
-      className="w-full flex flex-col gap-5"
+      className="w-full flex flex-col gap-5 scroll-mt-24 md:scroll-mt-[96px]"
     >
       <div className="w-full p-5 sm:p-6 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]">
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 pb-5 border-b border-slate-200/70 dark:border-slate-800/80">

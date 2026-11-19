@@ -192,7 +192,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
   });
 
   describe('2. Dual View Mode Controller (Card Grid vs Compact List)', () => {
-    it('renders 3-column responsive card grid by default or when viewMode is "card"', () => {
+    it('renders 2-column responsive card grid by default or when viewMode is "card"', () => {
       const { container } = render(
         <MacroTimelineView
           timelineGroups={sampleGroups}
@@ -200,7 +200,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
         />
       );
 
-      const gridContainer = container.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3');
+      const gridContainer = container.querySelector('.grid.grid-cols-1.md\\:grid-cols-2');
       expect(gridContainer).toBeInTheDocument();
 
       expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
@@ -891,6 +891,46 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       fireEvent.change(dateSelect, { target: { value: '2026.08.20 (수)' } });
       expect(screen.getByTestId('timeline-card-동탄린스트라우스 더레이크')).toBeInTheDocument();
       expect(screen.queryByTestId('timeline-summary-kpi-bar')).not.toBeInTheDocument();
+    });
+
+    it('renders unclipped 2-row left date rail with volume legend, valid sm: avg pill, and 0-tx safety', () => {
+      const { rerender, container } = render(
+        <MacroTimelineView
+          timelineGroups={sampleGroups}
+          isInlineExpanded={true}
+          viewMode="card"
+        />
+      );
+
+      const rail = screen.getByTestId('timeline-inline-date-rail');
+      expect(rail).toHaveTextContent('막대: 최다일 대비 거래량');
+      const dayItem = screen.getByTestId('timeline-date-rail-item-2026.08.21 (목)');
+      expect(dayItem).toHaveTextContent('2026.08.21 (목)');
+      expect(dayItem).toHaveTextContent('2건');
+      expect(dayItem).toHaveTextContent('평균 15억 3,500만');
+      expect(dayItem.textContent).not.toContain('최고 ');
+
+      // Sticky header average price uses valid sm: breakpoint instead of dead xs:
+      const avgPill = screen.getByText('평균 15억 3,500만', { selector: 'span.hidden' });
+      expect(avgPill.className).toContain('sm:inline-flex');
+      expect(avgPill.className).not.toContain('xs:');
+
+      // Grid uses md:grid-cols-2 (never lg:grid-cols-3)
+      expect(container.querySelector('.md\\:grid-cols-2')).toBeInTheDocument();
+      expect(container.querySelector('.lg\\:grid-cols-3')).toBeNull();
+
+      // 0-tx edge case: no NaN or division-by-zero
+      rerender(
+        <MacroTimelineView
+          timelineGroups={[]}
+          isInlineExpanded={true}
+          viewMode="card"
+        />
+      );
+      const emptyRail = screen.getByTestId('timeline-inline-date-rail');
+      expect(emptyRail).toHaveTextContent('일자별 요약 (0일)');
+      expect(emptyRail).toHaveTextContent('총 0건');
+      expect(emptyRail.textContent).not.toContain('NaN');
     });
   });
 });

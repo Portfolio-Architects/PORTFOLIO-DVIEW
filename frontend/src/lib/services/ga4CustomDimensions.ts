@@ -448,6 +448,140 @@ export function buildInteractionFunnelReportPlan(
   };
 }
 
+export type CoalescedSearchTermSource = 'custom_dimension' | 'built_in_searchTerm' | 'not_set';
+
+export interface CoalescedSearchQueryRow {
+  search_term: string;
+  surface: string;
+  eventCount: number;
+  totalUsers: number;
+  termSource: CoalescedSearchTermSource;
+  'customEvent:search_term'?: string;
+  searchTerm?: string;
+  'customEvent:surface'?: string;
+}
+
+export interface CoalescedSearchQueryResult {
+  rows: CoalescedSearchQueryRow[];
+  totalEvents: number;
+  recoveredFromBuiltInEvents: number;
+  unresolvedNotSetEvents: number;
+}
+
+function extractValidGa4SearchTerm(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed === '(not set)' || trimmed === '(not provided)' || trimmed === '(other)') {
+    return null;
+  }
+  return trimmed;
+}
+
+/**
+ * Builds the metadata-safe GA4 dimension list for `eventName === 'search_query'` reports,
+ * including BOTH `customEvent:search_term` (post-registration) and built-in `searchTerm`
+ * (automatically populated retroactively from the `search_term` parameter) so pre-registration
+ * queries never collapse into `(not set)`.
+ */
+export function buildSearchQueryReportDimensions(
+  metadataDimensions: ReadonlyArray<Ga4MetadataFieldLike> = []
+): string[] {
+  const registered = new Set(
+    metadataDimensions
+      .map((d) => (typeof d.apiName === 'string' ? d.apiName.trim() : ''))
+      .filter((name) => name.length > 0)
+  );
+  const dims: string[] = [];
+  for (const candidate of ['customEvent:search_term', 'searchTerm', 'customEvent:surface']) {
+    if (registered.has(candidate) && dims.length < MAX_GA4_REPORT_DIMENSIONS) {
+      dims.push(candidate);
+    }
+  }
+  return dims;
+}
+
+/**
+ * Coalesces GA4 `search_query` rows across `customEvent:search_term` and built-in `searchTerm`
+ * so historical events recorded before `customEvent:search_term` registration (which GA4 does not
+ * backfill retroactively) recover their real search terms instead of reporting `(not set)`.
+ */
+export function coalesceSearchQueryRows(
+  rows: ReadonlyArray<Record<string, string | number>>
+): CoalescedSearchQueryResult {
+  let totalEvents = 0;
+  let recoveredFromBuiltInEvents = 0;
+  let unresolvedNotSetEvents = 0;
+
+  const bucketMap = new Map<string, CoalescedSearchQueryRow>();
+
+  for (const row of rows || []) {
+    const rawCount = Number(row.eventCount ?? 0);
+    const count = Number.isFinite(rawCount) && rawCount > 0 ? Math.round(rawCount) : 0;
+    if (count === 0) continue;
+
+    const rawUsers = Number(row.totalUsers ?? 0);
+    const users = Number.isFinite(rawUsers) && rawUsers > 0 ? Math.round(rawUsers) : 0;
+
+    const customTerm = extractValidGa4SearchTerm(row['customEvent:search_term']);
+    const builtInTerm = extractValidGa4SearchTerm(row.searchTerm);
+    const surface = normalizeDimVal(
+      (row['customEvent:surface'] as string | number | undefined) ??
+        (row.surface as string | number | undefined)
+    );
+
+    let resolvedTerm: string;
+    let termSource: CoalescedSearchTermSource;
+    if (customTerm) {
+      resolvedTerm = customTerm;
+      termSource = 'custom_dimension';
+    } else if (builtInTerm) {
+      resolvedTerm = builtInTerm;
+      termSource = 'built_in_searchTerm';
+      recoveredFromBuiltInEvents += count;
+    } else {
+      resolvedTerm = '(not set)';
+      termSource = 'not_set';
+      unresolvedNotSetEvents += count;
+    }
+
+    totalEvents += count;
+
+    const key = `${resolvedTerm}\u0000${surface}`;
+    const existing = bucketMap.get(key);
+    if (existing) {
+      existing.eventCount += count;
+      existing.totalUsers = Math.min(existing.eventCount, existing.totalUsers + users);
+      if (existing.termSource !== 'custom_dimension' && termSource === 'custom_dimension') {
+        existing.termSource = 'custom_dimension';
+      }
+      if (customTerm) existing['customEvent:search_term'] = customTerm;
+      if (builtInTerm) existing.searchTerm = builtInTerm;
+    } else {
+      bucketMap.set(key, {
+        search_term: resolvedTerm,
+        surface,
+        eventCount: count,
+        totalUsers: Math.min(count, users),
+        termSource,
+        'customEvent:search_term': customTerm ?? '(not set)',
+        searchTerm: builtInTerm ?? '',
+        'customEvent:surface': surface,
+      });
+    }
+  }
+
+  const coalescedRows = Array.from(bucketMap.values()).sort(
+    (a, b) => b.eventCount - a.eventCount || a.search_term.localeCompare(b.search_term)
+  );
+
+  return {
+    rows: coalescedRows,
+    totalEvents,
+    recoveredFromBuiltInEvents,
+    unresolvedNotSetEvents,
+  };
+}
+
 export interface AdTelemetryPageDeviceBucket {
   pagePath: string;
   deviceCategory: string;

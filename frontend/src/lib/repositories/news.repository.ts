@@ -93,11 +93,17 @@ export async function fetchRawLocalNotices(filterDongtan: boolean = true): Promi
             return;
           }
           // Exclude western Hwaseong rail notices when filtering for Dongtan
+          // (Preserve Byeongjeom-gu legal dong '송산동' when accompanied by '병점' or '진안')
+          const isByeongjeomSongsanDong =
+            title.includes('송산동') && (title.includes('병점') || title.includes('진안'));
           if (
             filterDongtan &&
             data.source === 'rail' &&
             !title.includes('동탄') &&
-            NON_DONGTAN_RAIL_KEYWORDS.some((kw) => title.includes(kw))
+            NON_DONGTAN_RAIL_KEYWORDS.some((kw) => {
+              if (kw === '송산' && isByeongjeomSongsanDong) return false;
+              return title.includes(kw);
+            })
           ) {
             return;
           }

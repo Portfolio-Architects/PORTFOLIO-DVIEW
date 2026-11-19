@@ -61,7 +61,7 @@ test.describe('Ad Money v5.1 Runtime Audit: CLS, <details> Accordion Geometry & 
     }
 
     // Toggle <details.dview-seo-accordion> on Home and verify chevron 180deg rotation + zero AdSlot inside
-    const homeAccordion = page.locator('#home-ssr-semantic-catalog details.dview-seo-accordion').first();
+    const homeAccordion = page.locator('#home-ssr-recent-tx-accordion').first();
     await expect(homeAccordion).toBeAttached();
     expect(await homeAccordion.evaluate((el) => (el as HTMLDetailsElement).open)).toBe(false);
 
@@ -146,7 +146,7 @@ test.describe('Ad Money v5.1 Runtime Audit: CLS, <details> Accordion Geometry & 
 
       // Verify SSR comprehensive report <details> toggle + 180deg chevron
       const firstAccordion = page
-        .locator('#apt-ssr-comprehensive-report details.dview-seo-accordion')
+        .locator('#apt-ssr-comprehensive-report details.dview-seo-accordion:not([data-editorial-open="true"])')
         .first();
       await expect(firstAccordion).toBeAttached();
       expect(await firstAccordion.evaluate((el) => (el as HTMLDetailsElement).open)).toBe(false);

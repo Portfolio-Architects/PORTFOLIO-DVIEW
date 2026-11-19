@@ -259,6 +259,10 @@ export function AdSlot({
   );
 
   const minHeightClass = propMinHeightClass || getAdSlotMinHeightClass(format);
+  const lockedStripHeightClass =
+    !propMinHeightClass && format === 'horizontal-strip'
+      ? 'h-[90px] max-h-[90px] sm:h-[100px] sm:max-h-[100px]'
+      : '';
 
   const defaultSlotId = resolveDefaultAdSenseSlotId(format);
   const effectiveSlotId = trimNonEmptySlotId(slotId) || defaultSlotId;
@@ -656,7 +660,7 @@ export function AdSlot({
       data-refresh-key={effectiveRefreshKey}
       data-cascade-status={cascadeStatus}
       style={{ contain: 'layout paint' }}
-      className={`w-full relative overflow-hidden flex flex-col justify-center items-center transition-all ${minHeightClass} ${className}`}
+      className={`w-full relative overflow-hidden flex flex-col justify-center items-center transition-all ${minHeightClass} ${lockedStripHeightClass} ${className}`.trim()}
     >
       <span
         data-testid="ad-slot-label"
@@ -666,6 +670,7 @@ export function AdSlot({
       </span>
       {isAdBlockActive ? (
         <AdSlotAdBlockView
+          format={format}
           fallbackType={fallbackType}
           cpaPayload={cpaPayload}
           cpaTemplate={cpaTemplate}
@@ -679,11 +684,14 @@ export function AdSlot({
           minHeightClass={minHeightClass}
         />
       ) : (
-        <div className={`w-full h-full relative flex items-center justify-center ${minHeightClass}`}>
+        <div
+          className={`w-full h-full relative flex items-center justify-center overflow-hidden ${minHeightClass} ${lockedStripHeightClass}`.trim()}
+        >
           {!isAdLoaded && !isCascadeFallbackActive && <AdSlotSkeletonView />}
 
           {isCascadeFallbackActive && (
             <AdSlotCascadeFallbackView
+              format={format}
               cpaPayload={cpaPayload}
               cpaTemplate={cpaTemplate}
               cascadeStatus={cascadeStatus}
@@ -701,6 +709,8 @@ export function AdSlot({
             style={
               isCascadeFallbackActive
                 ? { display: 'none', width: 0, height: 0, minHeight: 0 }
+                : format === 'horizontal-strip'
+                ? { display: 'block', width: '100%', minHeight: 'inherit', maxHeight: '100%', overflow: 'hidden' }
                 : { display: 'block', width: '100%', minHeight: 'inherit' }
             }
             aria-hidden={isCascadeFallbackActive ? 'true' : undefined}
@@ -717,7 +727,9 @@ export function AdSlot({
                 : 'auto'
             }
             data-ad-layout-key={format === 'in-feed' ? '-fb+5w+4e-db+86' : undefined}
-            data-full-width-responsive={responsive ? 'true' : 'false'}
+            data-full-width-responsive={
+              format === 'horizontal-strip' ? 'false' : responsive ? 'true' : 'false'
+            }
           />
         </div>
       )}

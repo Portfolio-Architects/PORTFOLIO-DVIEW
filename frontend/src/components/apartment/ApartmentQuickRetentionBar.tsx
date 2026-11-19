@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import { BellRing, Smartphone, Star } from 'lucide-react';
+import { Smartphone } from 'lucide-react';
+import { DviewIcon } from '@/components/common/DviewIcon';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { QuickNonLoginRetentionAction } from '@/components/common/QuickNonLoginRetentionAction';
 import { getVisualSignalPillClass } from '@/lib/design-system/copyDiet';
@@ -52,11 +53,11 @@ export const ApartmentQuickRetentionBar = React.memo(function ApartmentQuickRete
       <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2.5 min-w-0">
         <div className="flex items-center gap-1.5 shrink-0">
           <span className={getVisualSignalPillClass('safe')}>
-            <Star size={11} className="shrink-0" />
+            <DviewIcon name="star" size={11} />
             <span>비로그인 찜</span>
           </span>
           <span className={getVisualSignalPillClass('down')}>
-            <BellRing size={11} className="shrink-0" />
+            <DviewIcon name="bell-ring" size={11} />
             <span>평일 07시</span>
           </span>
         </div>

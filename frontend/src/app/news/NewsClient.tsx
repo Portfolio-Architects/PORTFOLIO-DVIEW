@@ -215,10 +215,18 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
 
   const filteredNewsList = useMemo(() => {
     return newsList.filter((item: NewsItem) => {
-      const isIndustry = item.category === 'COMMERCIAL' || 
-        /(?:테크노밸리|지산|지식산업센터|기업|반도체|삼성전자|공장|산업|일자리|창업|스타트업|사무실|오피스|상가|상권|임대|공실|세제|과밀|이전|공동임차|소호|SOHO|금강|실리콘앨리|에이팩|skv1)/i.test(item.title) || 
-        /(지산|오피스|반도체|삼성전자|현대|SK)/i.test(item.sub);
-      
+      const isRailProjectNews =
+        /(?:반도체선|동서횡단선|국가철도망|분당선|신분당선|GTX|동탄트램|동인선|인덕원선|JTX)/i.test(
+          item.title
+        );
+      const isIndustry =
+        item.category === 'COMMERCIAL' ||
+        (!isRailProjectNews &&
+          (/(?:테크노밸리|지산|지식산업센터|기업|반도체|삼성전자|공장|산업|일자리|창업|스타트업|사무실|오피스|상가|상권|임대|공실|세제|과밀|이전|공동임차|소호|SOHO|금강|실리콘앨리|에이팩|skv1)/i.test(
+            item.title
+          ) ||
+            /(지산|오피스|반도체|삼성전자|현대|SK)/i.test(item.sub)));
+
       return activeNewsSubTab === 'industry' ? isIndustry : !isIndustry;
     });
   }, [newsList, activeNewsSubTab]);

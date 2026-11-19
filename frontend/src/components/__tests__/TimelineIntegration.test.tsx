@@ -84,8 +84,8 @@ describe('Milestone 3 Integration Tests: TimelineItemCard & TimelineItemRow', ()
       expect(favButton).not.toBeInTheDocument();
     });
 
-    it('renders Price per Pyeong and previous price strikethrough correctly', () => {
-      render(
+    it('renders Price per Pyeong, formatted price, delta pill, and omits strikethrough under SINGLE_CARD_SIGNAL_CAP', () => {
+      const { container } = render(
         <TimelineItemCard
           item={sampleCardItem}
           isSelected={false}
@@ -100,8 +100,10 @@ describe('Milestone 3 Integration Tests: TimelineItemCard & TimelineItemRow', ()
       // Price per pyeong: (16.5 * 10000) / 34 = 4853 -> 평당 4,853만
       expect(screen.getByText(/평당 4,853만/)).toBeInTheDocument();
 
-      // Previous price strikethrough: 15억
-      expect(screen.getByText('15억')).toBeInTheDocument();
+      // Formatted price & delta pill without strikethrough clutter
+      expect(screen.getByTestId('timeline-card-price')).toHaveTextContent('16억 5,000만');
+      expect(screen.getByTestId('timeline-card-delta')).toHaveTextContent('+ 1억 5,000만 (+10%)');
+      expect(container.querySelector('.line-through')).toBeNull();
     });
 
     it('renders "상세" button and triggers onDetailsClick without triggering onCardClick', () => {
@@ -148,11 +150,11 @@ describe('Milestone 3 Integration Tests: TimelineItemCard & TimelineItemRow', ()
 
       const row = screen.getByTestId('timeline-row-동탄역 시범 더샵 센트럴시티');
       expect(row).toBeInTheDocument();
-      expect(row).toHaveClass('bg-emerald-50/40');
+      expect(row).toHaveClass('bg-blue-50/60');
 
-      // Apt name and dong/floor/area
+      // Apt name and dong/area/floor
       expect(screen.getByText('동탄역 시범 더샵 센트럴시티')).toBeInTheDocument();
-      expect(screen.getByText(/청계동 · 10층 · 34평/)).toBeInTheDocument();
+      expect(screen.getByText(/청계동 · 34평 · 10층/)).toBeInTheDocument();
 
       // Price & delta
       expect(screen.getByText('12억')).toBeInTheDocument();

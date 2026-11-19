@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, ShieldCheck, Building2 } from 'lucide-react';
+import type { AdSlotFormat } from '@/components/ads/core/adSlotGeometry';
 import {
   type NativeCpaFallbackPayload,
   type CpaCampaignTemplate,
@@ -10,6 +11,7 @@ import {
 } from '@/lib/ads/cascadeFallback';
 
 export interface AdSlotAdBlockViewProps {
+  format?: AdSlotFormat;
   fallbackType?: 'mbti-promo' | 'dashboard-promo' | 'minimal' | 'cpa';
   cpaPayload: NativeCpaFallbackPayload;
   cpaTemplate?: CpaCampaignTemplate;
@@ -18,6 +20,7 @@ export interface AdSlotAdBlockViewProps {
 }
 
 export function AdSlotAdBlockView({
+  format,
   fallbackType,
   cpaPayload,
   cpaTemplate: propTemplate,
@@ -28,6 +31,58 @@ export function AdSlotAdBlockView({
     propTemplate ||
     CPA_CAMPAIGN_CATALOG[cpaPayload.cpaCampaignId] ||
     CPA_CAMPAIGN_CATALOG['jeonse-sentinel'];
+
+  if (format === 'horizontal-strip') {
+    return (
+      <div
+        data-testid="ad-slot-adblock-fallback"
+        data-cpa-campaign-id={cpaPayload.cpaCampaignId}
+        data-source-trigger="ADBLOCK_ACTIVE"
+        data-estimated-cpa-won={cpaPayload.estimatedCpaValueWon}
+        className={`w-full h-full flex flex-row items-center justify-between gap-2 px-3 py-1.5 pl-10 pr-8 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] bg-elevated text-left z-10 tabular-nums overflow-hidden ${minHeightClass}`}
+      >
+        {fallbackType === 'minimal' ? (
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs truncate min-w-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
+            <span className="truncate">D-VIEW 스폰서십 | 쾌적한 주거 데이터 분석 경험을 제공합니다.</span>
+          </div>
+        ) : (
+          <Link
+            href={cpaPayload.targetUrl}
+            prefetch={false}
+            data-testid="ad-slot-adblock-cta"
+            onClick={onAdBlockFallbackClick}
+            className="group flex flex-row items-center justify-between gap-2 w-full min-w-0 hover:opacity-95 transition-opacity"
+          >
+            <div className="min-w-0 flex-1 flex flex-col justify-center">
+              <h4
+                className={
+                  cpaTemplate.accentTone === 'emerald'
+                    ? 'text-xs font-black text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors truncate'
+                    : 'text-xs font-black text-slate-900 dark:text-slate-50 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors truncate'
+                }
+              >
+                {cpaPayload.title}
+              </h4>
+              <p className="hidden sm:block text-[11px] text-slate-600 dark:text-slate-400 truncate">
+                {cpaPayload.subtitle}
+              </p>
+            </div>
+            <span
+              className={
+                cpaTemplate.accentTone === 'emerald'
+                  ? 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-slate-50 text-[11px] font-bold transition-colors shrink-0 whitespace-nowrap'
+                  : 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 text-slate-50 text-[11px] font-bold transition-colors shrink-0 whitespace-nowrap'
+              }
+            >
+              <span>{cpaPayload.ctaText}</span>
+              <ArrowRight size={12} />
+            </span>
+          </Link>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div

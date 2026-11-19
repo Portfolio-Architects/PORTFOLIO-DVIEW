@@ -13,6 +13,7 @@ import TechnoValleyClient from './TechnoValleyClient';
 import LoungeHeader from '@/components/LoungeHeader';
 import { AdSlot } from '@/components/ads/AdSlot';
 import GuideAptPreviewCard from '@/components/guide/GuideAptPreviewCard';
+import TopLandingCalculatorQuickBar from '@/components/finance/TopLandingCalculatorQuickBar';
 import TechnoValleyBounceDefenseBridge from '@/components/technovalley/TechnoValleyBounceDefenseBridge';
 import { selectPeerTechnoValleyJisans } from '@/lib/utils/technovalleyPeerUtils';
 import {
@@ -183,6 +184,17 @@ export default async function TechnoValleyPage(
                 </Link>
               </div>
             </div>
+
+            <TopLandingCalculatorQuickBar
+              variant="technovalley"
+              surface="technovalley_query_top_quick_bar"
+              targetName={selectedJisan.name}
+              benchmarkPriceManwon={
+                latestMatchedTx?.priceRaw && latestMatchedTx.priceRaw > 0
+                  ? latestMatchedTx.priceRaw
+                  : undefined
+              }
+            />
 
             <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[13px] tabular-nums">
               <div className="bg-body rounded-xl border border-border/60 p-3.5">

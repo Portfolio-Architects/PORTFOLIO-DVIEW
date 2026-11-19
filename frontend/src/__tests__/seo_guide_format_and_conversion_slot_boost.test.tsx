@@ -548,7 +548,7 @@ describe('High-Efficiency SEO Guide Format Expansion & Top/Mid Conversion Slot B
         })
       );
 
-      expect(container.querySelectorAll('article')).toHaveLength(23);
+      expect(container.querySelectorAll('article')).toHaveLength(25);
       expect(container.querySelectorAll('.font-mono')).toHaveLength(0);
 
       trackEventSpy.mockRestore();

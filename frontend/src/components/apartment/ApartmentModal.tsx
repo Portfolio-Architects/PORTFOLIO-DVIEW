@@ -107,7 +107,7 @@ const TransactionTableSkeleton = () => (
 );
 
 const TransactionChartSkeleton = () => (
-  <div className="w-full h-[470px] md:h-[530px] flex flex-col gap-6 p-6 border border-border/40 rounded-[20px]">
+  <div className="w-full flex-1 h-full min-h-[390px] md:min-h-0 flex flex-col gap-6 p-6 border border-border/40 rounded-[20px]">
     <div className="flex justify-between items-center">
       <div className="h-6 w-32 rounded bg-slate-200 dark:bg-slate-800 animate-shimmer" />
       <div className="flex gap-2">

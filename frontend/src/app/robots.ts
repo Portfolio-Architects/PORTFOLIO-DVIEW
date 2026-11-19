@@ -1,53 +1,37 @@
 import { MetadataRoute } from 'next';
+import {
+  ADSENSE_CRAWLER_BOT,
+  ALLOWED_REVENUE_SEARCH_BOTS,
+  BLOCKED_AI_AND_SEO_SCRAPER_BOTS,
+  ROBOTS_ALLOWED_PATHS,
+  ROBOTS_DISALLOWED_INTERNAL_APIS,
+} from '@/lib/seo/robotsPolicy';
 
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
-  const allowedPaths = [
-    '/',
-    '/api/og',
-    '/api/dashboard-init',
-    '/api/explore/',
-    '/api/technovalley/',
-    '/api/macro/',
-    '/api/local-notices',
-    '/api/location-scores',
-  ];
-
-  const disallowedInternalApis = [
-    '/api/cron/',
-    '/api/push/',
-    '/api/subscribe',
-    '/api/unsubscribe',
-    '/api/ads/',
-    '/api/favorite',
-    '/api/apartments/vote',
-    '/api/indexing/',
-  ];
-
   return {
     rules: [
       {
-        userAgent: '*',
-        allow: allowedPaths,
-        disallow: disallowedInternalApis,
-      },
-      {
-        // Prioritize Google AdSense crawler for immediate site verification and indexing
-        userAgent: 'Mediapartners-Google',
+        // Prioritize Google AdSense crawler for immediate site verification and ad targeting
+        userAgent: ADSENSE_CRAWLER_BOT,
         allow: '/',
       },
       {
-        // Prioritize and welcome major search engine bots for domestic and global traffic
-        userAgent: ['Googlebot', 'Yeti', 'Daumoa', 'Bingbot'],
-        allow: allowedPaths,
-        disallow: disallowedInternalApis,
+        // Strict allowlist: ONLY revenue-driving search engine bots (Google, Naver, Daum, Bing)
+        userAgent: [...ALLOWED_REVENUE_SEARCH_BOTS],
+        allow: [...ROBOTS_ALLOWED_PATHS],
+        disallow: [...ROBOTS_DISALLOWED_INTERNAL_APIS],
       },
       {
-        // Prioritize and welcome major AI/LLM Search scrapers for search citation indexing
-        userAgent: ['GPTBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-Web', 'PerplexityBot', 'Google-Extended', 'Applebot-Extended'],
-        allow: allowedPaths,
-        disallow: disallowedInternalApis,
+        // Explicitly block foreign AI training & SEO scraper bots to protect ISR Read Units & Origin Transfer
+        userAgent: [...BLOCKED_AI_AND_SEO_SCRAPER_BOTS],
+        disallow: '/',
+      },
+      {
+        // Default-deny policy for all other unspecified crawlers/scrapers (internal APIs remain explicitly listed)
+        userAgent: '*',
+        disallow: ['/', ...ROBOTS_DISALLOWED_INTERNAL_APIS],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

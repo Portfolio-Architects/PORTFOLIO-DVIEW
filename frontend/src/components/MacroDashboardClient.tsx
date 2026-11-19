@@ -253,6 +253,21 @@ export const formatDeltaPercent = (val: number | undefined): string => {
   return ` (${rounded > 0 ? '+' : ''}${rounded}%)`;
 };
 
+export const formatTimelinePriceText = (raw?: string): string => {
+  if (!raw) return '';
+  const trimmed = raw.trim();
+  const eokManMatch = trimmed.match(/^(\d+)억\s*([0-9,]+)(?:만(?:원)?)?$/);
+  if (eokManMatch) {
+    const manClean = eokManMatch[2].trim();
+    return manClean === '0' ? `${eokManMatch[1]}억` : `${eokManMatch[1]}억 ${manClean}만`;
+  }
+  const eokOnlyMatch = trimmed.match(/^(\d+)억(?:원)?$/);
+  if (eokOnlyMatch) return `${eokOnlyMatch[1]}억`;
+  const manOnlyMatch = trimmed.match(/^([0-9,]+)(?:만(?:원)?)?$/);
+  if (manOnlyMatch) return `${manOnlyMatch[1]}만`;
+  return trimmed;
+};
+
 const parseDateHelper = (dateStr: string | number, parentLatestDate?: string): Date | null => {
   if (dateStr === null || dateStr === undefined) return null;
   const clean = String(dateStr).replace(/[^0-9]/g, '');
@@ -320,142 +335,127 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
   const pyeong = item.areaPyeong || (item.area ? item.area / 3.3058 : 34);
   const pyeongPriceMan = Math.round((item.priceVal * 10000) / pyeong);
 
+  const normalizePriceText = (raw?: string): string => {
+    if (!raw) return '';
+    const trimmed = raw.trim();
+    const eokManMatch = trimmed.match(/^(\d+)억\s*([0-9,]+)(?:만(?:원)?)?$/);
+    if (eokManMatch) {
+      const manClean = eokManMatch[2].trim();
+      return manClean === '0' ? `${eokManMatch[1]}억` : `${eokManMatch[1]}억 ${manClean}만`;
+    }
+    const eokOnlyMatch = trimmed.match(/^(\d+)억(?:원)?$/);
+    if (eokOnlyMatch) return `${eokOnlyMatch[1]}억`;
+    const manOnlyMatch = trimmed.match(/^([0-9,]+)(?:만(?:원)?)?$/);
+    if (manOnlyMatch) return `${manOnlyMatch[1]}만`;
+    return trimmed;
+  };
+
+  const normalizedPrice = normalizePriceText(item.priceEok);
+  const displayName = item.displayAptName || item.aptName;
+  const areaLabel = areaUnit === 'm2'
+    ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
+    : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`);
+  const contractShortDate = item.contractDate
+    ? (item.contractDate.length >= 8 ? `${item.contractDate.slice(4, 6)}.${item.contractDate.slice(6, 8)}` : item.contractDate)
+    : '';
+
   return (
     <div
       onMouseEnter={() => onCardHover(item.aptName, item.dong)}
-      className={`relative flex items-center justify-between gap-2 sm:gap-2.5 p-3 xs:p-3.5 sm:px-4 sm:py-2.5 rounded-2xl transition-[background-color,transform] duration-150 ease-out w-full max-w-full box-border ${
+      className={`relative flex flex-col gap-2.5 p-3 sm:p-4 rounded-2xl transition-colors duration-150 ease-out w-full max-w-full box-border ${
         isSelected
           ? "ring-2 ring-blue-600/30 bg-blue-50/70 dark:bg-blue-950/30"
-          : "bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80"
+          : "bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027]"
       } group`}
     >
-      {/* Clickable Card Body Button (stretched overlay covers full card; single horizontal row on wide view) */}
+      {/* Clickable Card Body Button (stretched overlay covers full card; 2-row hierarchy gives full title width) */}
       <button
         type="button"
         onClick={() => onCardClick(item.aptName)}
         aria-label={`실거래 분석 아파트 선택: ${item.aptName}, 위치: ${item.dong}, 가격: ${item.priceEok}`}
-        className="flex-1 flex items-center justify-between gap-2 sm:gap-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 rounded-lg p-0 bg-transparent border-none min-w-0 cursor-pointer after:content-[''] after:absolute after:inset-0 after:rounded-2xl"
+        className="w-full flex flex-col gap-2.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 rounded-xl p-0 bg-transparent border-none min-w-0 cursor-pointer after:content-[''] after:absolute after:inset-0 after:rounded-2xl"
       >
-        {/* Left: Apartment Full Name + Metadata (2-line stacked so metadata never clips mid-character) */}
-        <div className="flex flex-col gap-1 min-w-0 flex-1 overflow-hidden">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span
-              className="text-xs xs:text-[13px] sm:text-sm font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight truncate break-keep min-w-0"
-              title={item.displayAptName || item.aptName}
-            >
-              {item.displayAptName || item.aptName}
+        {/* Row 1: Complex Identity + Flat New-High Pill (reserves space for top-right actions) */}
+        <div className={`flex items-center gap-1 sm:gap-1.5 min-w-0 w-full ${onToggleFavorite ? 'pr-[58px] sm:pr-20' : 'pr-[42px] sm:pr-14'}`}>
+          <span
+            data-testid="timeline-card-title"
+            className="text-[14px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug truncate break-keep min-w-0"
+            title={displayName}
+          >
+            {displayName}
+          </span>
+          {item.type === 'high' && (
+            <span className="px-1.5 py-0.5 rounded-md bg-brand-red-light text-brand-red text-[10px] font-black shrink-0 whitespace-nowrap leading-none">
+              신고가
             </span>
-            {item.type === 'high' && (
-              <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded bg-red-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
-                신고가
-              </span>
-            )}
-          </div>
+          )}
+        </div>
 
-          <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 min-w-0 text-[9.5px] xs:text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight tabular-nums">
-            <span className="shrink-0 font-extrabold text-secondary max-w-[110px] sm:max-w-[140px] truncate min-w-0" title={item.dong}>
+        {/* Row 2: Specs (Left/Top on mobile) + Hero Price & Delta Pill (Right/Bottom on mobile) */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2.5 pt-2 border-t border-[#f2f4f6] dark:border-[#202027] min-w-0 w-full tabular-nums">
+          <div
+            data-testid="timeline-card-specs"
+            className="flex items-center flex-wrap sm:flex-nowrap gap-x-1 gap-y-0.5 min-w-0 w-full sm:w-auto sm:flex-1 sm:overflow-hidden text-[11px] font-semibold text-tertiary"
+          >
+            <span className="shrink-0 font-bold text-secondary max-w-[96px] truncate min-w-0" title={item.dong}>
               {item.dong}
             </span>
             <span className="opacity-35 font-normal shrink-0">·</span>
-            <span className="shrink-0 whitespace-nowrap">
-              {areaUnit === 'm2'
-                ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
-                : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
-            </span>
+            <span className="shrink-0 whitespace-nowrap">{areaLabel}</span>
             <span className="opacity-35 font-normal shrink-0">·</span>
             <span className="shrink-0 whitespace-nowrap">{item.floor}층</span>
-            {item.contractDate && (
+            {contractShortDate && (
               <span className="inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
                 <span className="opacity-35 font-normal">·</span>
-                <span className="text-secondary font-medium">
-                  계약일 {item.contractDate.length >= 8 ? `${item.contractDate.slice(4, 6)}.${item.contractDate.slice(6, 8)}` : item.contractDate}
-                </span>
+                <span className="text-secondary font-medium">{contractShortDate}</span>
               </span>
             )}
             {pyeongPriceMan > 0 && (
-              <span className="inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
+              <span className="hidden sm:inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
                 <span className="opacity-35 font-normal">·</span>
-                <span className="text-slate-500 dark:text-slate-400 font-medium">
+                <span className="text-secondary font-medium">
                   평당 {pyeongPriceMan.toLocaleString()}만
                 </span>
               </span>
             )}
           </div>
-        </div>
 
-        {/* Right of Button: Price & Delta Badges (2-line right-aligned stack matching left 2-line layout) */}
-        <div className="flex flex-col items-end justify-center gap-1 shrink-0 ml-1 sm:ml-2 min-w-0 tabular-nums">
-          <div className="flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
-            {item.delta !== 0 && item.prevPriceVal && item.prevPriceVal > 0 && (
-              <>
-                <span className="text-[10px] sm:text-[11px] text-tertiary font-bold line-through opacity-50 hidden sm:inline">
-                  {formatEokWithUnit(item.prevPriceVal * 10000).value}
-                </span>
-                <span className="text-[10px] text-tertiary opacity-45 hidden sm:inline">→</span>
-              </>
-            )}
+          <div className="flex items-center justify-between sm:justify-end gap-1.5 w-full sm:w-auto shrink-0 whitespace-nowrap tabular-nums">
             <span
-              className={`text-[12.5px] xs:text-[13px] sm:text-[14.5px] font-black tracking-tight leading-none whitespace-nowrap ${
+              data-testid="timeline-card-price"
+              className={`text-[14.5px] sm:text-[15px] font-black tracking-tight leading-none whitespace-nowrap ${
                 isRising
-                  ? "text-red-500 dark:text-red-400"
+                  ? "text-red-600 dark:text-red-400"
                   : isFalling
-                    ? "text-slate-500 dark:text-slate-400"
+                    ? "text-blue-600 dark:text-blue-400"
                     : "text-primary"
               }`}
             >
-              <span className="inline sm:hidden">
-                {item.priceEok
-                  ? item.priceEok.replace(/억\s*([0-9,]+)만?/, (_, m) => {
-                      const num = parseInt(m.replace(/,/g, ''), 10);
-                      if (!num || num <= 0) return '억';
-                      const dec = (num / 10000).toFixed(2).substring(1).replace(/\.?0+$/, '');
-                      return `${dec}억`;
-                    })
-                  : item.priceEok}
-              </span>
-              <span className="hidden sm:inline">{item.priceEok}</span>
+              {normalizedPrice}
             </span>
-          </div>
 
-          <span
-            className={`text-[9px] sm:text-[9.5px] font-black px-1 sm:px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap leading-none ${
-              isRising
-                ? "bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400"
-                : isFalling
-                  ? "bg-slate-100 text-slate-600 dark:bg-slate-800/60 dark:text-slate-400"
-                  : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-            }`}
-          >
-            <span className="inline sm:hidden">
-              {isRising
-                ? `+ ${formatDeltaPrice(item.delta).replace(/억\s*([0-9,]+)만?/, (_match: string, m: string) => {
-                    const num = parseInt(m.replace(/,/g, ''), 10);
-                    if (!num || num <= 0) return '억';
-                    const dec = (num / 10000).toFixed(2).substring(1).replace(/\.?0+$/, '');
-                    return `${dec}억`;
-                  })}`
-                : isFalling
-                  ? `- ${formatDeltaPrice(Math.abs(item.delta)).replace(/억\s*([0-9,]+)만?/, (_match: string, m: string) => {
-                      const num = parseInt(m.replace(/,/g, ''), 10);
-                      if (!num || num <= 0) return '억';
-                      const dec = (num / 10000).toFixed(2).substring(1).replace(/\.?0+$/, '');
-                      return `${dec}억`;
-                    })}`
-                  : "보합"}
-            </span>
-            <span className="hidden sm:inline">
+            <span
+              data-testid="timeline-card-delta"
+              className={`px-1.5 py-0.5 rounded-md text-[10.5px] sm:text-[11px] font-black shrink-0 whitespace-nowrap leading-none ${
+                isRising
+                  ? "bg-brand-red-light text-brand-red"
+                  : isFalling
+                    ? "bg-brand-blue-light text-brand-blue"
+                    : "bg-[#f2f4f6] text-secondary dark:bg-[#202027]"
+              }`}
+            >
               {isRising
                 ? `+ ${formatDeltaPrice(item.delta)}${formatDeltaPercent(item.deltaPercent)}`
                 : isFalling
                   ? `- ${formatDeltaPrice(Math.abs(item.delta))}${formatDeltaPercent(item.deltaPercent)}`
                   : "보합"}
             </span>
-          </span>
+          </div>
         </div>
       </button>
 
-      {/* Far-Right Actions: Favorite Star + Detail Action Button (z-10 above stretched card button) */}
-      <div className="relative z-10 flex items-center justify-center gap-1 shrink-0">
+      {/* Top-Right Actions: Favorite Star + Detail Action Button (z-10 above stretched card button) */}
+      <div className="absolute top-2.5 right-2.5 sm:top-3.5 sm:right-4 z-10 flex items-center justify-center gap-0.5 sm:gap-1 shrink-0">
         {onToggleFavorite && (
           <button
             type="button"
@@ -471,7 +471,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
               });
               onToggleFavorite(item.aptName);
             }}
-            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-tertiary transition-colors cursor-pointer"
+            className="p-0.5 sm:p-1 rounded-lg hover:bg-slate-200/70 dark:hover:bg-slate-700 text-tertiary transition-colors cursor-pointer"
           >
             <Star
               size={13}
@@ -491,7 +491,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
             onDetailsClick(item.aptName);
           }}
           onMouseEnter={() => onDetailsHover(item.aptName, item.dong)}
-          className="px-2.5 py-1 min-h-[26px] rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150 ease-out active:scale-95 cursor-pointer shrink-0 outline-none focus:ring-2 focus:ring-blue-500/50 whitespace-nowrap"
+          className="px-1.5 sm:px-2.5 py-0.5 sm:py-1 min-h-[24px] sm:min-h-[26px] rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 text-[10.5px] sm:text-[11px] font-extrabold text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150 ease-out active:scale-95 cursor-pointer shrink-0 outline-none focus:ring-2 focus:ring-blue-500/50 whitespace-nowrap"
         >
           상세
         </button>
@@ -528,18 +528,18 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
   const displayName = item.displayAptName || item.aptName;
   const pyeong = item.areaPyeong || (item.area ? item.area / 3.3058 : 34);
   const pyeongPriceMan = Math.round((item.priceVal * 10000) / pyeong);
+  const normalizedPrice = formatTimelinePriceText(item.priceEok);
 
   return (
     <div
       data-testid={`timeline-row-${item.aptName}`}
       onMouseEnter={() => onCardHover?.(item.aptName, item.dong)}
-      className={`px-3.5 py-3 flex items-center justify-between gap-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer border-b border-border/40 last:border-b-0 ${
-        isSelected ? 'bg-emerald-50/40 dark:bg-emerald-950/20' : ''
+      className={`px-3.5 py-3 flex items-center justify-between gap-2 hover:bg-[#f9fafb] dark:hover:bg-[#17171c] transition-colors cursor-pointer border-b border-[#f2f4f6] dark:border-[#202027] last:border-b-0 ${
+        isSelected ? 'bg-blue-50/60 dark:bg-blue-950/20' : ''
       }`}
     >
       {/* Left: Apt info */}
       <div className="flex items-center gap-2 min-w-0 flex-1">
-
         <button
           type="button"
           onClick={() => onCardClick(item.aptName)}
@@ -547,20 +547,20 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
           className="flex flex-col min-w-0 text-left bg-transparent border-none p-0 cursor-pointer flex-1"
         >
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-[12px] sm:text-[13px] font-extrabold text-primary truncate max-w-[180px] sm:max-w-[280px]">
+            <span className="text-[13px] sm:text-[13.5px] font-extrabold text-primary truncate break-keep min-w-0" title={displayName}>
               {displayName}
             </span>
             {item.type === 'high' && (
-              <span className="px-1.5 py-0.2 rounded bg-red-500 text-white text-[8.5px] sm:text-[9px] font-black shrink-0 tracking-wider">
+              <span className="px-1.5 py-0.5 rounded-md bg-brand-red-light text-brand-red text-[9.5px] font-black shrink-0 leading-none">
                 신고가
               </span>
             )}
           </div>
-          <span className="text-[10px] text-tertiary font-medium">
-            {item.dong} · {item.floor}층 · {areaUnit === 'm2' ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`) : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
+          <span className="text-[11px] text-tertiary font-medium tabular-nums">
+            {item.dong} · {areaUnit === 'm2' ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`) : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)} · {item.floor}층
             {item.contractDate && (
               <span className="text-secondary font-medium">
-                {' '}· 계약일 {item.contractDate.length >= 8 ? `${item.contractDate.slice(4, 6)}.${item.contractDate.slice(6, 8)}` : item.contractDate}
+                {' '}· {item.contractDate.length >= 8 ? `${item.contractDate.slice(4, 6)}.${item.contractDate.slice(6, 8)}` : item.contractDate}
               </span>
             )}
             {pyeongPriceMan > 0 && <span className="hidden sm:inline"> · 평당 {pyeongPriceMan.toLocaleString()}만</span>}
@@ -569,22 +569,30 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
       </div>
 
       {/* Right: Price, Delta, and Details Button */}
-      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-        <div className="text-right flex flex-col items-end justify-center">
-          <div className="text-[12.5px] sm:text-[13.5px] font-black text-primary leading-tight">
-            {item.priceEok}
+      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 tabular-nums">
+        <div className="text-right flex flex-col items-end justify-center gap-0.5">
+          <div
+            className={`text-[13px] sm:text-[14px] font-black leading-tight ${
+              isRising
+                ? 'text-red-600 dark:text-red-400'
+                : isFalling
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : 'text-primary'
+            }`}
+          >
+            {normalizedPrice}
           </div>
           {item.delta !== undefined && item.delta !== 0 ? (
             <div
-              className={`text-[9.5px] font-extrabold flex items-center gap-0.5 ${
-                isRising ? 'text-red-500' : isFalling ? 'text-blue-500' : 'text-slate-400'
+              className={`text-[10px] font-extrabold flex items-center gap-0.5 ${
+                isRising ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'
               }`}
             >
               {isRising ? '+' : '-'} {formatDeltaPrice(Math.abs(item.delta))}
               {formatDeltaPercent(item.deltaPercent)}
             </div>
           ) : (
-            <div className="text-[9.5px] font-bold text-slate-400">보합</div>
+            <div className="text-[10px] font-bold text-tertiary">보합</div>
           )}
         </div>
 
@@ -623,7 +631,7 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
             onDetailsClick(item.aptName);
           }}
           onMouseEnter={() => onDetailsHover?.(item.aptName, item.dong)}
-          className="px-2 py-1 rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-all cursor-pointer shadow-xs"
+          className="px-2.5 py-1 rounded-xl bg-[#f9fafb] hover:bg-blue-50 dark:bg-[#17171c] dark:hover:bg-blue-950/40 text-[10.5px] font-extrabold text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
         >
           상세
         </button>
@@ -679,9 +687,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     const tram: LocalNoticeItem[] = [];
     const railKeywords = [
       '철도', '트램', 'gtx', '인동선', '동인선', '동탄인덕원',
-      'srt', '분당선', '솔빛나루', '환승센터', '광역철도', '복선전철', '복선절철'
+      'srt', '분당선', '신분당선', '솔빛나루', '환승센터', '광역철도', '복선전철', '복선절철',
+      '반도체선', '동서횡단', '국가철도망', '경강선', 'jtx', '수도권내륙선'
     ];
-    const westernNonDongtanKeywords = ['신안산선', '인천발', '봉담', '향남', '어천'];
+    const westernNonDongtanKeywords = ['신안산선', '인천발', '봉담', '향남', '어천', '송산', '서해선', '남양'];
     const dongtanCoreRailKeywords = ['동탄', '솔빛나루', '인덕원', '동인선', '분당선', 'gtx-a', 'srt'];
 
     localNotices.forEach((item) => {
@@ -715,9 +724,15 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       if (!isRailSource) return;
 
       // Exclude non-Dongtan western Hwaseong railway projects unless Dongtan is explicitly mentioned
+      const isByeongjeomSongsanDong =
+        titleLower.includes('송산동') &&
+        (titleLower.includes('병점') || titleLower.includes('진안'));
       if (
         !titleLower.includes('동탄') &&
-        westernNonDongtanKeywords.some((kw) => titleLower.includes(kw))
+        westernNonDongtanKeywords.some((kw) => {
+          if (kw === '송산' && isByeongjeomSongsanDong) return false;
+          return titleLower.includes(kw);
+        })
       ) {
         return;
       }
@@ -2172,7 +2187,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   return (
     <div
       data-split-mode={String(isSplitMode)}
-      className="w-full flex flex-col bg-transparent relative min-h-[85vh] min-h-[800px] min-w-0 max-w-full transition-all duration-300 ease-out"
+      className="w-full flex flex-col bg-transparent relative min-h-[85vh] min-h-[800px] min-w-0 max-w-full transition-opacity duration-200 ease-out"
       style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}
     >
       <MacroHeader macroTrendJsonLd={macroTrendJsonLd} isSplitMode={isSplitMode} />
@@ -2182,7 +2197,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           isSplitMode
             ? 'px-4 sm:px-5 md:px-6 xl:px-8'
             : 'px-4 sm:px-6 md:px-10 lg:px-16'
-        } pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-auto max-w-full overflow-x-clip min-w-0 min-h-[85vh] min-h-[800px] box-border transition-all duration-300 ease-out`}
+        } pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-auto max-w-full overflow-x-clip min-w-0 min-h-[85vh] min-h-[800px] box-border transition-opacity duration-200 ease-out`}
       >
         {/* ═══ Zone 2A: 메인 히어로 (좌측 원형 도넛 네비게이터 + 연동 4칸 카드 | 우측 단지·매크로 시세 추이) ═══ */}
         <div
@@ -2191,7 +2206,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             isSplitMode
               ? 'grid grid-cols-1 gap-6'
               : 'grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-0'
-          } pb-5 mb-4 border-b border-border items-stretch box-border transition-all duration-300 ease-out`}
+          } pb-5 mb-4 border-b border-border items-stretch box-border transition-opacity duration-200 ease-out`}
         >
           {/* Left 6 Columns (lg:col-span-6, 시그니처 도넛 차트 자리): Circular Donut Navigator + Connected 4-Card Drilldown */}
           <div
@@ -2479,7 +2494,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           data-testid="zone4-retention-community-grid"
           className={`w-full ${
             isSplitMode ? 'grid grid-cols-1' : 'grid grid-cols-1 lg:grid-cols-12'
-          } gap-4 lg:gap-5 items-stretch box-border transition-all duration-300 ease-out`}
+          } gap-4 lg:gap-5 items-stretch box-border transition-opacity duration-200 ease-out`}
         >
           {/* Row 1 Left (lg:col-span-7): TrafficNoticeBoard */}
           <div

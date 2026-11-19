@@ -99,9 +99,9 @@ export function ComplexDrillDownTable({
       {/* Multi-Dimensional Filter Controls */}
       <div className="flex flex-wrap items-center gap-2.5 p-3 rounded-xl bg-white dark:bg-[#202027] border border-[#f2f4f6] dark:border-[#2c2c35]">
         {/* Area Band Toggle */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5 min-w-0 max-w-full">
           <span className="text-[11px] font-bold text-secondary shrink-0">평형:</span>
-          <div className={getToggleTrackClass()}>
+          <div className={getToggleTrackClass('flex-wrap max-w-full')}>
             <button
               type="button"
               onClick={() => onFilterChange({ areaBand: 'all' })}
@@ -134,9 +134,9 @@ export function ComplexDrillDownTable({
         </div>
 
         {/* Building Age Toggle */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5 min-w-0 max-w-full">
           <span className="text-[11px] font-bold text-secondary shrink-0">연식:</span>
-          <div className={getToggleTrackClass()}>
+          <div className={getToggleTrackClass('flex-wrap max-w-full')}>
             <button
               type="button"
               onClick={() => onFilterChange({ buildingAge: 'all' })}

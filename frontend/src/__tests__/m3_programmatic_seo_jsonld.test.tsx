@@ -268,10 +268,10 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
   });
 
   describe('4. /guide, /mbti, and /zone/[id] SSR Semantic & Accessibility Invariants', () => {
-    it('renders Zero-CLS AdSlots, 23 original long-form guides with 100% real-data apartment bindings, and recirculation links in /guide and /guide/[slug]', async () => {
+    it('renders Zero-CLS AdSlots, 25 original long-form guides with 100% real-data apartment bindings, and recirculation links in /guide and /guide/[slug]', async () => {
       const guideParams = await generateGuideStaticParams();
-      expect(guideParams).toHaveLength(23);
-      expect(GUIDE_ARTICLES).toHaveLength(23);
+      expect(guideParams).toHaveLength(25);
+      expect(GUIDE_ARTICLES).toHaveLength(25);
 
       const emojiRegex = /[\u{1F300}-\u{1FAFF}]/u;
 
@@ -346,16 +346,16 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
     });
   });
 
-  describe('5. Unified Sitemap (181 Verified URLs; 99 Empty/Zero-Sale Templates Isolated) & Robots Completeness Invariant', () => {
-    it('registers exact [181, ±0, 개] verified indexable URLs in sitemap.ts (excluding 56 Jisan details + 43 zero-sale apartments = 99 noindex templates)', async () => {
+  describe('5. Unified Sitemap (183 Verified URLs; 99 Empty/Zero-Sale Templates Isolated) & Robots Completeness Invariant', () => {
+    it('registers exact [183, ±0, 개] verified indexable URLs in sitemap.ts (excluding 56 Jisan details + 43 zero-sale apartments = 99 noindex templates)', async () => {
       const entries = await sitemap({ id: 0 });
-      expect(entries).toHaveLength(181);
+      expect(entries).toHaveLength(183);
 
       const asyncEntries = await sitemap({ id: Promise.resolve('0') });
-      expect(asyncEntries).toHaveLength(181);
+      expect(asyncEntries).toHaveLength(183);
 
       const defaultEntries = await sitemap();
-      expect(defaultEntries).toHaveLength(181);
+      expect(defaultEntries).toHaveLength(183);
 
       const aptUrls = entries.filter((e) => e.url.includes('/apartment/'));
       const jisanDetailUrls = entries.filter((e) => e.url.includes('/technovalley/'));
@@ -380,7 +380,7 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
       expect(jisanDetailUrls).toHaveLength(0);
       expect(mbtiUrls).toHaveLength(0);
       expect(zoneUrls).toHaveLength(7);
-      expect(guideUrls).toHaveLength(23);
+      expect(guideUrls).toHaveLength(25);
       expect(coreStaticUrls).toHaveLength(9);
 
       const emptyChunk = await sitemap({ id: 99 });

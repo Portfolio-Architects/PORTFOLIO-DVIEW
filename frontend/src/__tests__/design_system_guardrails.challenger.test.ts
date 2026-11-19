@@ -37,7 +37,8 @@ function getSourceFiles(dir: string): string[] {
     } else if (
       (entry.name.endsWith('.tsx') || entry.name.endsWith('.ts')) &&
       !entry.name.includes('.test.') &&
-      !entry.name.includes('.spec.')
+      !entry.name.includes('.spec.') &&
+      !entry.name.endsWith('Temp.tsx')
     ) {
       results.push(fullPath);
     }

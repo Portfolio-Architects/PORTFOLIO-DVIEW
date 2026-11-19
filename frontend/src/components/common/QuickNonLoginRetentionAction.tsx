@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useMemo, useState } from 'react';
-import { BellRing, Check, Star } from 'lucide-react';
+import { DviewIcon } from '@/components/common/DviewIcon';
 import { useFavorites, isApartmentInFavorites } from '@/hooks/useFavorites';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import PushSubscriptionModal from '@/components/pwa/PushSubscriptionModal';
@@ -182,13 +182,7 @@ export const QuickNonLoginRetentionAction = React.memo(function QuickNonLoginRet
     ? alertPostFavLabel ?? '평일 07시 알림'
     : alertLabel ?? (isCompact ? '07시 알림' : '평일 07시 알림');
 
-  const favBtnSizeClass = isCompact
-    ? 'h-7 px-2 sm:px-2.5 rounded-lg text-[11px] gap-1'
-    : 'min-h-[36px] px-3 py-1.5 rounded-xl text-[11.5px] sm:text-xs gap-1.5';
-
-  const alertBtnSizeClass = isCompact
-    ? 'h-7 px-2 sm:px-2.5 rounded-lg text-[11px] gap-1'
-    : 'min-h-[36px] px-3 py-1.5 rounded-xl text-[11.5px] sm:text-xs gap-1.5';
+  const sizeCls = isCompact ? 'dview-ret-xs' : 'dview-ret-sm';
 
   return (
     <>
@@ -203,20 +197,22 @@ export const QuickNonLoginRetentionAction = React.memo(function QuickNonLoginRet
           aria-pressed={isFavorite}
           aria-label={`${resolvedDisplay} ${isFavorite ? '비로그인 관심단지 찜 해제' : '비로그인 관심단지 1초 찜하기'}`}
           onClick={handleFavoriteClick}
-          className={`${favBtnSizeClass} inline-flex items-center justify-center font-extrabold whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
-            isFavorite
-              ? 'bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300'
-              : 'bg-surface hover:bg-blue-50 dark:bg-[#202027] dark:hover:bg-blue-950/40 border border-slate-200/90 dark:border-slate-700 text-primary hover:text-blue-600 dark:hover:text-blue-400'
-          }`}
+          className={`dview-ret-btn ${sizeCls} ${isFavorite ? 'dview-ret-fav-on' : 'dview-ret-fav'}`}
         >
           {isFavorite ? (
-            <Check
+            <DviewIcon
+              name="check"
               size={isCompact ? 12 : 13}
               strokeWidth={2.5}
-              className="shrink-0 text-emerald-600 dark:text-emerald-400"
+              className="text-emerald-600 dark:text-emerald-400"
             />
           ) : (
-            <Star size={isCompact ? 12 : 13} strokeWidth={2.3} className="shrink-0 text-blue-600 dark:text-blue-400" />
+            <DviewIcon
+              name="star"
+              size={isCompact ? 12 : 13}
+              strokeWidth={2.3}
+              className="text-blue-600 dark:text-blue-400"
+            />
           )}
           {isFavorite ? (
             <span>{resolvedFavSelected}</span>
@@ -235,13 +231,9 @@ export const QuickNonLoginRetentionAction = React.memo(function QuickNonLoginRet
           data-post-favorite-nudge={isFavorite ? 'true' : 'false'}
           aria-label={`${resolvedDisplay} 평일 오전 7시 실거래 변동 알림 설정`}
           onClick={handleAlertClick}
-          className={`${alertBtnSizeClass} inline-flex items-center justify-center font-extrabold whitespace-nowrap shrink-0 transition-colors cursor-pointer tabular-nums ${
-            isFavorite
-              ? 'bg-blue-600 hover:bg-blue-700 text-white border border-transparent shadow-2xs ring-2 ring-blue-500/25'
-              : 'bg-blue-600 hover:bg-blue-700 text-white border border-transparent'
-          }`}
+          className={`dview-ret-btn ${sizeCls} dview-ret-7am${isFavorite ? ' dview-ret-7am-on' : ''}`}
         >
-          <BellRing size={isCompact ? 11 : 13} strokeWidth={2.4} className="shrink-0" />
+          <DviewIcon name="bell-ring" size={isCompact ? 11 : 13} strokeWidth={2.4} />
           {useMobileCondensed &&
           ((isFavorite && alertPostFavLabel === undefined) ||
             (!isFavorite && alertLabel === undefined)) ? (

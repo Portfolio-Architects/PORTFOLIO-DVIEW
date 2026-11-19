@@ -412,6 +412,54 @@ function matchTopicGuideAction(
     };
   }
   if (
+    qLower.includes('돔구장') ||
+    qLower.includes('k-mars') ||
+    qLower.includes('화성시법원') ||
+    qLower.includes('병점복합타운') ||
+    (qLower.includes('병점') && (qLower.includes('법원') || qLower.includes('돔')))
+  ) {
+    return {
+      targetRoute: '/guide/byeongjeom-dome-stadium-hwaseong-court-dongtan-impact',
+      recommendedAction:
+        '화성시법원 병점복합타운 확정(2032 개원) · 병점역 돔구장(K-MARS) 공모 쟁점 및 동탄1·트램2호선 실거래 비교 FAQ 강화',
+    };
+  }
+  if (
+    qLower.includes('분당선') ||
+    qLower.includes('신분당선') ||
+    qLower.includes('반도체선') ||
+    qLower.includes('동서횡단') ||
+    qLower.includes('국가철도망') ||
+    qLower.includes('남사터널') ||
+    qLower.includes('수도권내륙선') ||
+    qLower.includes('jtx') ||
+    qLower.includes('호매실') ||
+    qLower.includes('봉담')
+  ) {
+    return {
+      targetRoute: '/guide/dongtan-bundang-sinbundang-semiconductor-line-5th-rail-plan',
+      recommendedAction:
+        '분당선 연장(기흥~동탄~오산)·신분당선(봉담) 4차 예타 현황과 2026.12 말 제5차 국가철도망 반도체선·JTX 동탄지선 FAQ 강화',
+    };
+  }
+  if (
+    qLower.includes('무정차') ||
+    qLower.includes('영동대로') ||
+    ((qLower.includes('삼성역') || qLower.includes('복합환승')) &&
+      (qLower.includes('gtx') ||
+        qLower.includes('동탄역') ||
+        qLower.includes('직결') ||
+        qLower.includes('개통') ||
+        qLower.includes('통근') ||
+        qLower.includes('출퇴근')))
+  ) {
+    return {
+      targetRoute: '/guide/dongtan-station-transfer-hub-gtx-a-samseong-commute-analysis',
+      recommendedAction:
+        'GTX-A 삼성역 무정차 통과 일정(2026.12 확정·2027 상반기 전망·2028 정차) 및 동탄역 4중 환승 통근·실거래 FAQ 강화',
+    };
+  }
+  if (
     qLower.includes('직주근접') ||
     qLower.includes('삼성전자') ||
     qLower.includes('삼성반도체') ||

@@ -131,3 +131,17 @@ export function getZoneColorForDong(dong: string): string {
 export function getAllDongs(): string[] {
   return Object.keys(DONG_TO_ZONE_MAP).sort((a, b) => a.localeCompare(b, 'ko'));
 }
+
+export const ZONE_SHORT_TAGLINES: Readonly<Record<string, string>> = {
+  metropolis: '동탄1 중심 · 완성된 상권·학군',
+  community: '동탄2 시범 · 초품아·공원 생활권',
+  gbcx: 'GTX-A·SRT 동탄역 초역세권',
+  techno: '삼성반도체 인접 직주근접 권역',
+  culture: '동탄1·2 경계 복합 생활권',
+  waterfront: '동탄호수공원 · 수변 상업 생활권',
+  newtown: '동탄2 동측 신규 택지 · 성장 권역',
+};
+
+export function getZoneShortTagline(zoneId: string): string {
+  return ZONE_SHORT_TAGLINES[zoneId] || '';
+}

@@ -16,6 +16,9 @@ export const metadata: Metadata = {
     'D-VIEW(디뷰 · 동뷰 · 동탄뷰) 동탄 신도시 부동산 실거래 데이터 분석 플랫폼의 서비스 이용약관, 국토교통부 공공데이터 활용 기준, 저작권 보호 및 투자 면책 고지 사항을 안내합니다.',
   alternates: {
     canonical: 'https://dongtanview.com/terms',
+    types: {
+      'application/rss+xml': 'https://dongtanview.com/feed.xml',
+    },
   },
   openGraph: {
     title: '서비스 이용약관 · 공공데이터 면책 고지 | D-VIEW (디뷰 · 동뷰 · 동탄뷰)',

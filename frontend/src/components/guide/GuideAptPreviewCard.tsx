@@ -2,13 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import {
-  ArrowUpRight,
-  Building2,
-  TrendingUp,
-  Calendar,
-  ShieldCheck,
-} from 'lucide-react';
+import { DviewIcon } from '@/components/common/DviewIcon';
 import type { GuideAptMiniPreviewItem } from '@/lib/data/guides';
 import { QuickNonLoginRetentionAction } from '@/components/common/QuickNonLoginRetentionAction';
 import { trackEvent, trackVirtualPageView } from '@/lib/utils/analytics';
@@ -236,13 +230,13 @@ export default function GuideAptPreviewCard({
         data-apt-slug={safeSlug}
         data-apt-dong={item.dong}
         aria-label={`${item.displayName} 실시간 실거래가 미니 프리뷰 및 단지 상세 이동`}
-        className="group relative flex flex-col justify-between min-h-[158px] sm:min-h-[168px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/90 hover:bg-slate-100/80 dark:bg-slate-900/80 dark:hover:bg-slate-800/80 hover:border-emerald-500/40 p-4 transition-all duration-200 shadow-2xs hover:shadow-sm no-underline"
+        className="group dview-gcard min-h-[158px] sm:min-h-[168px] bg-slate-50/90 hover:bg-slate-100/80 dark:bg-slate-900/80 dark:hover:bg-slate-800/80"
       >
       <div className="space-y-3">
         {/* Top Metadata Row: Dong/Zone Badge & Live Indicator */}
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/60 px-2.5 py-0.5 rounded-lg">
-            <Building2 size={12} className="shrink-0" />
+          <div className="dview-gcard-dong">
+            <DviewIcon name="building-2" size={12} />
             <span>
               {item.dong} · {item.zoneName}
             </span>
@@ -252,14 +246,14 @@ export default function GuideAptPreviewCard({
             {isHighConversionFlagship && (
               <span
                 data-testid={isLakeEduTownHero ? 'guide-apt-preview-high-dwell-badge' : 'guide-apt-preview-flagship-badge'}
-                className="inline-flex items-center gap-1 text-[10.5px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-md"
+                className="dview-gcard-flag"
               >
-                <ShieldCheck size={11} className="shrink-0" />
+                <DviewIcon name="shield-check" size={11} />
                 <span>{isLakeEduTownHero ? '평균 15분 체류 대장' : '고전환 핵심 대장'}</span>
               </span>
             )}
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200/70 dark:border-blue-800/50 px-2 py-0.5 rounded-md">
-              <TrendingUp size={11} className="shrink-0" />
+            <span className="dview-gcard-live">
+              <DviewIcon name="trending-up" size={11} />
               <span>실거래 프리뷰</span>
             </span>
           </div>
@@ -268,47 +262,47 @@ export default function GuideAptPreviewCard({
         {/* Complex Display Name + Official Key */}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <div className="text-[15px] sm:text-base font-black text-slate-900 dark:text-slate-50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-snug break-keep">
+            <div className="dview-gcard-t">
               <span>{item.displayName}</span>
               {hasSubKey && (
-                <span className="ml-1.5 text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">
+                <span className="dview-gcard-sub">
                   ({item.name})
                 </span>
               )}
             </div>
           </div>
 
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600 transition-colors shrink-0">
-            <ArrowUpRight size={14} />
+          <span className="dview-gcard-arrow">
+            <DviewIcon name="arrow-up-right" size={14} />
           </span>
         </div>
 
         {/* Real Transaction Metrics Grid */}
-        <dl className="grid grid-cols-2 gap-2.5 pt-2.5 border-t border-slate-200/70 dark:border-slate-800/80 text-xs">
-          <div className="rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800/70 px-3 py-2">
-            <dt className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">
+        <dl className="dview-gcard-dl">
+          <div className="dview-gcard-m">
+            <dt className="dview-gcard-k">
               최근 매매 실거래
             </dt>
-            <dd className="mt-0.5 text-[14px] sm:text-[15px] font-black tabular-nums text-emerald-700 dark:text-emerald-400">
+            <dd className="dview-gcard-v1">
               {item.latestPriceStr}
             </dd>
           </div>
 
-          <div className="rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800/70 px-3 py-2">
-            <dt className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">
+          <div className="dview-gcard-m">
+            <dt className="dview-gcard-k">
               최근 전세 실거래
             </dt>
-            <dd className="mt-0.5 text-[14px] sm:text-[15px] font-extrabold tabular-nums text-slate-900 dark:text-slate-100">
+            <dd className="dview-gcard-v2">
               {item.latestRentStr}
             </dd>
           </div>
 
           <div className="px-1">
-            <dt className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1">
-              <ShieldCheck size={11} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <dt className="dview-gcard-k flex items-center gap-1">
+              <DviewIcon name="shield-check" size={11} className="text-emerald-600 dark:text-emerald-400" />
               <span>전세가율 · 실거주 PER</span>
             </dt>
-            <dd className="mt-0.5 text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-200">
+            <dd className="dview-gcard-v3">
               {item.jeonseRatio > 0 ? (
                 <span>
                   {item.jeonseRatio}%
@@ -321,10 +315,10 @@ export default function GuideAptPreviewCard({
           </div>
 
           <div className="px-1">
-            <dt className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+            <dt className="dview-gcard-k">
               누적 실거래량
             </dt>
-            <dd className="mt-0.5 text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-200">
+            <dd className="dview-gcard-v3">
               {item.txCount > 0 ? `${item.txCount.toLocaleString()}건` : '정보 없음'}
             </dd>
           </div>
@@ -332,26 +326,26 @@ export default function GuideAptPreviewCard({
       </div>
 
       {/* Footer Meta Bar: Latest Contract Date + Area/Floor + High-Visibility Deep-Link CTA Button */}
-      <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/70 flex items-center justify-between gap-2 text-[11px]">
-        <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400 font-semibold tabular-nums truncate">
-          <Calendar size={11} className="shrink-0" />
+      <div className="dview-gcard-ft">
+        <span className="dview-gcard-dt">
+          <DviewIcon name="calendar" size={11} />
           <span>계약 {item.latestDate}</span>
           {latestSpecText && <span>· {latestSpecText}</span>}
         </span>
 
         <span
           data-testid="guide-apt-preview-card-cta-btn"
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 group-hover:bg-emerald-700 text-white text-[11px] font-extrabold shadow-2xs transition-colors shrink-0"
+          className="dview-gcard-cta"
         >
           <span>실거래 · 단지 상세 리포트</span>
-          <ArrowUpRight size={12} />
+          <DviewIcon name="arrow-up-right" size={12} />
         </span>
       </div>
       </Link>
 
       <div
         data-testid={`guide-apt-preview-retention-${placement}`}
-        className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] px-3 py-2 flex flex-wrap items-center justify-between gap-2 min-w-0"
+        className="dview-gcard-ret"
       >
         <span className="text-[11px] font-bold text-secondary truncate tabular-nums">
           로그인 없이 1초 저장 · 평일 07:00 변동 알림

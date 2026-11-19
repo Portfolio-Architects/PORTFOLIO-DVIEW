@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, ShieldCheck, Building2 } from 'lucide-react';
+import type { AdSlotFormat } from '@/components/ads/core/adSlotGeometry';
 import {
   CPA_CAMPAIGN_CATALOG,
   type NativeCpaFallbackPayload,
@@ -11,6 +12,7 @@ import {
 } from '@/lib/ads/cascadeFallback';
 
 export interface AdSlotCascadeFallbackViewProps {
+  format?: AdSlotFormat;
   cpaPayload?: NativeCpaFallbackPayload;
   payload?: NativeCpaFallbackPayload;
   cpaTemplate?: CpaCampaignTemplate;
@@ -26,6 +28,7 @@ export interface AdSlotCascadeFallbackViewProps {
  * Enforces Zero-CLS geometry, Ad Money v5.0 soft-surface tokens (`bg-[#f9fafb] dark:bg-[#17171c] bg-elevated`), and 0 unicode emojis.
  */
 export function AdSlotCascadeFallbackView({
+  format,
   cpaPayload,
   payload,
   cpaTemplate: propTemplate,
@@ -57,6 +60,56 @@ export function AdSlotCascadeFallbackView({
   const isExternalPartnerUrl =
     /^https?:\/\//i.test(resolvedPayload.targetUrl) &&
     !resolvedPayload.targetUrl.startsWith('https://dongtanview.com');
+
+  const isCompactStrip = format === 'horizontal-strip';
+
+  if (isCompactStrip) {
+    return (
+      <div
+        data-testid="ad-slot-cascade-fallback"
+        data-cpa-campaign-id={resolvedPayload.cpaCampaignId}
+        data-source-trigger={resolvedPayload.sourceTrigger}
+        data-cascade-status={cascadeStatus}
+        data-estimated-cpa-won={resolvedPayload.estimatedCpaValueWon}
+        data-late-fill-discarded={lateFillDiscarded ? 'true' : 'false'}
+        className={`w-full h-full flex flex-row items-center justify-between gap-2 px-3 py-1.5 pl-10 pr-8 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] bg-elevated text-left z-10 tabular-nums overflow-hidden ${minHeightClass}`}
+      >
+        <Link
+          href={resolvedPayload.targetUrl}
+          prefetch={false}
+          {...(isExternalPartnerUrl ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          data-testid="ad-slot-cascade-cta"
+          onClick={handleClick}
+          className="group flex flex-row items-center justify-between gap-2 w-full min-w-0 hover:opacity-95 transition-opacity"
+        >
+          <div className="min-w-0 flex-1 flex flex-col justify-center">
+            <h4
+              className={
+                cpaTemplate.accentTone === 'emerald'
+                  ? 'text-xs font-black text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors truncate'
+                  : 'text-xs font-black text-slate-900 dark:text-slate-50 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors truncate'
+              }
+            >
+              {resolvedPayload.title}
+            </h4>
+            <p className="hidden sm:block text-[11px] text-slate-600 dark:text-slate-400 truncate">
+              {resolvedPayload.subtitle}
+            </p>
+          </div>
+          <span
+            className={
+              cpaTemplate.accentTone === 'emerald'
+                ? 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-slate-50 text-[11px] font-bold transition-colors shrink-0 whitespace-nowrap'
+                : 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 text-slate-50 text-[11px] font-bold transition-colors shrink-0 whitespace-nowrap'
+            }
+          >
+            <span>{resolvedPayload.ctaText}</span>
+            <ArrowRight size={12} />
+          </span>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div

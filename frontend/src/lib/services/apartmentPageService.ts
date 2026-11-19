@@ -1387,6 +1387,9 @@ export function getDefaultApartmentMetadata(baseUrl: string, aptName: string = '
     robots: { index: false, follow: true },
     alternates: {
       canonical: `https://dongtanview.com/apartment/${encodeURIComponent(canonicalSlug)}`,
+      types: {
+        'application/rss+xml': `${baseUrl}/feed.xml`,
+      },
     },
     openGraph: {
       title,
@@ -1565,6 +1568,9 @@ export async function buildApartmentSeoMetadata(
       robots: robotsDirective,
       alternates: {
         canonical: `https://dongtanview.com/apartment/${encodeURIComponent(canonicalSlug)}`,
+        types: {
+          'application/rss+xml': `${baseUrl}/feed.xml`,
+        },
       },
       openGraph: {
         title: seoTitle,
@@ -2401,6 +2407,9 @@ export function buildTechnoValleySeoMetadata(
         '동탄테크노밸리, 동탄 지식산업센터, 동탄 산업단지, 동탄 기업 리스트, 지식산업센터 실거래가, 동탄 에이팩시티, 에이팩시티, 동탄금강펜테리움 IX타워, 동탄금강펜테리움ix타워, 금강펜테리움 IX타워, 입주 업종, 취득세 35% 감면, 재산세 35% 감면, 법인세 감면, 과밀억제권역 법인 이전, 중소기업 정책자금 대출, 오피스 매매 시세, 사옥 이전',
       alternates: {
         canonical: `${baseUrl}/technovalley`,
+        types: {
+          'application/rss+xml': `${baseUrl}/feed.xml`,
+        },
       },
       openGraph: {
         title: defaultTitle,
@@ -2516,6 +2525,9 @@ export function buildTechnoValleySeoMetadata(
     robots: { index: false, follow: true },
     alternates: {
       canonical: canonicalUrl,
+      types: {
+        'application/rss+xml': `${baseUrl}/feed.xml`,
+      },
     },
     openGraph: {
       title,

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BellRing, Check, Smartphone, Star } from 'lucide-react';
+import { Smartphone } from 'lucide-react';
+import { DviewIcon } from '@/components/common/DviewIcon';
 import { useAuth } from '@/hooks/useAuth';
 import { useFavorites, isApartmentInFavorites } from '@/hooks/useFavorites';
 import { usePWA } from '@/components/pwa/PWAProvider';
@@ -163,11 +164,11 @@ export const GuideMorningAlertRetentionCard = React.memo(
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2 min-w-0">
             <span className={getVisualSignalPillClass('down', 'tabular-nums')}>
-              <BellRing size={11} className="shrink-0" />
+              <DviewIcon name="bell-ring" size={11} />
               <span>평일 07:00</span>
             </span>
             <span className={getVisualSignalPillClass('safe')}>
-              <Star size={11} className="shrink-0" />
+              <DviewIcon name="star" size={11} />
               <span>비로그인 1초 찜</span>
             </span>
             <h3 className="text-sm sm:text-[15px] font-black text-primary tracking-tight">
@@ -261,12 +262,12 @@ export const GuideMorningAlertRetentionCard = React.memo(
                   >
                     {isFavorite ? (
                       <>
-                        <Check size={14} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
+                        <DviewIcon name="check" size={14} className="text-emerald-600 dark:text-emerald-400" />
                         <span className="truncate">관심 저장됨</span>
                       </>
                     ) : (
                       <>
-                        <Star size={14} className="shrink-0" />
+                        <DviewIcon name="star" size={14} />
                         <span className="truncate">+ 관심단지 담기</span>
                       </>
                     )}
@@ -296,7 +297,7 @@ export const GuideMorningAlertRetentionCard = React.memo(
                     isFavorite ? 'ring-2 ring-blue-500/30' : ''
                   }`}
                 >
-                  <BellRing size={14} className="shrink-0" />
+                  <DviewIcon name="bell-ring" size={14} />
                   <span className="truncate">
                     {isFavorite
                       ? '관심 저장됨 · 평일 07시 변동 알림 켜기'
@@ -329,7 +330,7 @@ export const GuideMorningAlertRetentionCard = React.memo(
                   onClick={handleOpenPushModal}
                   className="min-h-[38px] py-2 px-3 sm:px-4 flex-1 sm:flex-initial min-w-0 whitespace-nowrap justify-center rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 leading-snug text-center transition-colors cursor-pointer shadow-2xs"
                 >
-                  <BellRing size={14} className="shrink-0" />
+                  <DviewIcon name="bell-ring" size={14} />
                   <span className="truncate">실거래 신고 즉시 오전 7시 알림 받기</span>
                 </button>
               </div>

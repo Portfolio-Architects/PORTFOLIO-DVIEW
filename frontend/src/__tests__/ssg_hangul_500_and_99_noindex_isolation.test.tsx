@@ -236,9 +236,9 @@ describe('Hangul 500 Pure SSG Conversion & 99 Empty Template Unconditional noind
       const flagshipMeta = await buildApartmentSeoMetadata('동탄역롯데캐슬');
       expect(flagshipMeta.robots).toEqual({ index: true, follow: true });
 
-      // Sitemap must emit exact 181 indexable URLs (9 + 23 + 7 + 142) with ZERO overlap with the 99 noindex URLs
+      // Sitemap must emit exact 183 indexable URLs (9 + 25 + 7 + 142) with ZERO overlap with the 99 noindex URLs
       const sitemapEntries = await sitemap({ id: 0 });
-      expect(sitemapEntries).toHaveLength(181);
+      expect(sitemapEntries).toHaveLength(183);
 
       const sitemapUrlSet = new Set(sitemapEntries.map((e) => e.url));
       for (const noindexUrl of noindexJisanUrls) {

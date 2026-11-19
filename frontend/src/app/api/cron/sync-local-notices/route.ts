@@ -41,12 +41,15 @@ const DEV_SYNC_COOLDOWN_MS = 30000; // 개발 서버 쿨타임 (30초)
 const DONGTAN_KEYWORDS = [
   '동탄', '출장소', '호수공원', '청계', '영천', '오산동', '신동', '목동', 
   '산척', '장지', '송동', '방교', '반송', '능동', '여울', '석우',
-  'GTX', '인덕원', '트램', '동인선'
+  'GTX', '인덕원', '트램', '동인선',
+  '분당선', '병점', '진안', '돔구장', '시법원', '화성시법원',
+  '반도체선', '동서횡단선', '국가철도망', '남사터널', 'JTX'
 ];
 
 const DONGTAN_RAIL_KEYWORDS = [
-  '동탄', '솔빛나루', '분당선', '인덕원', '동인선', 'GTX', '트램',
-  'SRT', '수서', '삼성', '기흥', '오산', '병점', '환승센터', '철도망도'
+  '동탄', '솔빛나루', '분당선', '신분당선', '인덕원', '동인선', 'GTX', '트램',
+  'SRT', '수서', '삼성', '기흥', '오산', '병점', '환승센터', '철도망도',
+  '반도체선', '동서횡단', '경기남부', '국가철도망', '남사', '부발', '경강선', 'JTX', '수도권내륙선'
 ];
 
 const NON_DONGTAN_RAIL_KEYWORDS = [
@@ -316,7 +319,14 @@ function checkIfDongtanRail(title: string, dept: string): boolean {
   const t = title || '';
   const d = dept || '';
   if (t.includes('동탄') || d.includes('동탄')) return true;
-  if (NON_DONGTAN_RAIL_KEYWORDS.some(k => t.includes(k))) return false;
+  // 병점구 화산동 관할 법정동 '송산동'(병점·진안 동반)은 서부 만세구 '송산면(송산그린시티)' 배제 대상에서 예외 처리
+  const isByeongjeomSongsanDong =
+    t.includes('송산동') && (t.includes('병점') || t.includes('진안'));
+  const hasWesternOnlyExclusion = NON_DONGTAN_RAIL_KEYWORDS.some((k) => {
+    if (k === '송산' && isByeongjeomSongsanDong) return false;
+    return t.includes(k);
+  });
+  if (hasWesternOnlyExclusion) return false;
   return DONGTAN_RAIL_KEYWORDS.some(k => t.includes(k) || d.includes(k));
 }
 

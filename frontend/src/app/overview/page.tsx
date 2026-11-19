@@ -52,6 +52,9 @@ export const metadata: Metadata = {
     '동탄 아파트 시세·집값 추이 그래프·실거래가 순위 매일 동기화 — 동탄 1·2신도시 184개 아파트 가격·평형별 시세·전세가율 진단 및 권역별 실거래 데이터 분석을 확인하세요.',
   alternates: {
     canonical: 'https://dongtanview.com/overview',
+    types: {
+      'application/rss+xml': 'https://dongtanview.com/feed.xml',
+    },
   },
   openGraph: {
     title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (1·2신도시 184개 가격 순위·전세가율) | D-VIEW',

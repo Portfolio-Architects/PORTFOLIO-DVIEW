@@ -61,10 +61,27 @@ function isThematicTopicId(topicId: string): topicId is ThematicTopicId {
   return THEMATIC_TOPIC_IDS.has(topicId);
 }
 
-function scrollTopicSectionIntoView(topicId: string) {
+function scrollElementBelowStickyHeader(elementId: string) {
   try {
-    const el = document.getElementById(topicId);
-    if (el && typeof el.scrollIntoView === 'function') {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const offset = typeof window !== 'undefined' && window.innerWidth >= 768 ? 96 : 64;
+    const rect =
+      typeof el.getBoundingClientRect === 'function' ? el.getBoundingClientRect() : null;
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.scrollTo === 'function' &&
+      rect &&
+      rect.height > 0
+    ) {
+      const targetTop = Math.max(
+        0,
+        (window.scrollY ?? window.pageYOffset ?? 0) + rect.top - offset
+      );
+      window.scrollTo({ top: targetTop, behavior: 'smooth' });
+      return;
+    }
+    if (typeof el.scrollIntoView === 'function') {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   } catch {
@@ -77,7 +94,7 @@ function StatsTopicUrlSync({
   onQueryTopicChange,
 }: {
   initialTopicId: string;
-  onQueryTopicChange: (topicId: string) => void;
+  onQueryTopicChange: (topicId: string, shouldScroll?: boolean) => void;
 }) {
   const searchParams = useSearchParams();
   const queryTopic =
@@ -91,14 +108,13 @@ function StatsTopicUrlSync({
     if (queryTopic && getStatsTopicById(queryTopic)) {
       if (prevQueryTopicRef.current !== queryTopic) {
         prevQueryTopicRef.current = queryTopic;
-        onQueryTopicChange(queryTopic);
-        if (queryTopic === 'dongtan-1-vs-2-comparison' || isThematicTopicId(queryTopic)) {
-          scrollTopicSectionIntoView(queryTopic);
-        }
+        const shouldScroll =
+          queryTopic === 'dongtan-1-vs-2-comparison' || isThematicTopicId(queryTopic);
+        onQueryTopicChange(queryTopic, shouldScroll);
       }
     } else if (!queryTopic && prevQueryTopicRef.current !== null) {
       prevQueryTopicRef.current = null;
-      onQueryTopicChange(initialTopicId);
+      onQueryTopicChange(initialTopicId, false);
     }
   }, [queryTopic, initialTopicId, onQueryTopicChange]);
 
@@ -109,13 +125,12 @@ function StatsTopicUrlSync({
         const popTopic = params.get('topic');
         if (popTopic && getStatsTopicById(popTopic)) {
           prevQueryTopicRef.current = popTopic;
-          onQueryTopicChange(popTopic);
-          if (popTopic === 'dongtan-1-vs-2-comparison' || isThematicTopicId(popTopic)) {
-            scrollTopicSectionIntoView(popTopic);
-          }
+          const shouldScroll =
+            popTopic === 'dongtan-1-vs-2-comparison' || isThematicTopicId(popTopic);
+          onQueryTopicChange(popTopic, shouldScroll);
         } else {
           prevQueryTopicRef.current = null;
-          onQueryTopicChange(initialTopicId);
+          onQueryTopicChange(initialTopicId, false);
         }
       } catch {
         // Ignore in non-browser environments
@@ -140,6 +155,38 @@ export function StatsPageClient({
 }: StatsPageClientProps) {
   const router = useRouter();
   const [activeTopicId, setActiveTopicId] = useState<string>(initialTopicId);
+  const pendingScrollTopicRef = useRef<string | null>(null);
+  const [pendingScrollSeq, setPendingScrollSeq] = useState(0);
+
+  const handleQueryTopicChange = useCallback(
+    (topicId: string, shouldScroll = false) => {
+      if (shouldScroll) {
+        pendingScrollTopicRef.current = topicId;
+        setPendingScrollSeq((seq) => seq + 1);
+      } else {
+        pendingScrollTopicRef.current = null;
+      }
+      setActiveTopicId(topicId);
+    },
+    []
+  );
+
+  useEffect(() => {
+    const targetId = pendingScrollTopicRef.current;
+    if (!targetId || activeTopicId !== targetId) return;
+    pendingScrollTopicRef.current = null;
+    scrollElementBelowStickyHeader(targetId);
+  }, [activeTopicId, pendingScrollSeq]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const rawHash = window.location.hash.replace(/^#/, '');
+    if (!rawHash) return;
+    const rafId = window.requestAnimationFrame(() => {
+      scrollElementBelowStickyHeader(rawHash);
+    });
+    return () => window.cancelAnimationFrame(rafId);
+  }, []);
 
   // Filters state
   const [filters, setFilters] = useState<StatsFilterOptions>({
@@ -222,14 +269,7 @@ export function StatsPageClient({
         areaBand: nextAreaBand ?? prev.areaBand,
         sortBy: 'latestPriceDesc',
       }));
-      try {
-        const tableEl = document.getElementById('stats-complex-drilldown-anchor');
-        if (tableEl && typeof tableEl.scrollIntoView === 'function') {
-          tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      } catch {
-        // Ignore scroll error in test environment
-      }
+      scrollElementBelowStickyHeader('stats-complex-drilldown-anchor');
     },
     []
   );
@@ -242,14 +282,7 @@ export function StatsPageClient({
         dong: scope === 'dongtan1' ? '동탄1' : 'all',
         sortBy: scope === 'station_core' ? 'distance' : 'volumeDesc',
       });
-      try {
-        const tableEl = document.getElementById('stats-complex-drilldown-anchor');
-        if (tableEl && typeof tableEl.scrollIntoView === 'function') {
-          tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      } catch {
-        // Ignore scroll error in test environment
-      }
+      scrollElementBelowStickyHeader('stats-complex-drilldown-anchor');
     },
     []
   );
@@ -276,7 +309,7 @@ export function StatsPageClient({
       <Suspense fallback={null}>
         <StatsTopicUrlSync
           initialTopicId={initialTopicId}
-          onQueryTopicChange={setActiveTopicId}
+          onQueryTopicChange={handleQueryTopicChange}
         />
       </Suspense>
 
@@ -417,7 +450,7 @@ export function StatsPageClient({
           )}
 
           {/* Section 4: Interactive Filtering Controls & Sortable Complex Drill-Down Table */}
-          <div id="stats-complex-drilldown-anchor">
+          <div id="stats-complex-drilldown-anchor" className="scroll-mt-24 md:scroll-mt-[96px]">
             <ComplexDrillDownTable
               records={payload.filteredRecords}
               filters={filters}

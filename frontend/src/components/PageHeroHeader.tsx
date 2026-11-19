@@ -67,7 +67,7 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
       </div>
 
       {/* Standardized Hero Header */}
-      <div className={`h-[130px] sm:h-[128px] flex flex-col gap-3 sm:gap-4 ${isSplitMode ? 'px-4 sm:px-5 md:px-6 xl:px-8' : 'px-3 sm:px-6 md:px-10 lg:px-16'} pt-[28px] md:pt-6 lg:pt-8 pb-3 w-full max-w-full overflow-x-clip min-w-0 bg-transparent border-b border-slate-200/80 dark:border-slate-800/80 shrink-0 z-20 relative transition-all duration-300 ease-out`}>
+      <div className={`h-[130px] sm:h-[128px] flex flex-col gap-3 sm:gap-4 ${isSplitMode ? 'px-4 sm:px-5 md:px-6 xl:px-8' : 'px-3 sm:px-6 md:px-10 lg:px-16'} pt-[28px] md:pt-6 lg:pt-8 pb-3 w-full max-w-full overflow-x-clip min-w-0 bg-transparent border-b border-slate-200/80 dark:border-slate-800/80 shrink-0 z-20 relative transition-opacity duration-200 ease-out`}>
         <div className="flex items-start justify-between w-full max-w-full min-w-0">
           <div className="flex flex-col gap-3 sm:gap-4 w-full min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">

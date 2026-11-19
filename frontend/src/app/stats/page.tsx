@@ -1,11 +1,19 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { ChevronDown } from 'lucide-react';
 import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock from '@/components/pwa/MobileDock';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketStatsSubtitle';
 import { safeJsonLd } from '@/lib/utils/structuredData';
+import {
+  getVisualSignalPillClass,
+  getSeoAccordionClass,
+  getSeoAccordionSummaryClass,
+  getSeoAccordionChevronClass,
+  getSeoAccordionBodyClass,
+} from '@/lib/design-system/copyDiet';
 import {
   getDongtanStationAnalysisData,
   computeUndervaluedComplexes,
@@ -17,7 +25,6 @@ import {
   getBuildingAgeDepreciationData,
 } from '@/lib/stats/thematicPriceComparisonEngine';
 import { StatsPageClient } from './StatsPageClient';
-import { StatsSkeleton } from '@/components/stats/StatsSkeleton';
 
 export const dynamic = 'force-static';
 export const revalidate = false;
@@ -59,6 +66,9 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://dongtanview.com/stats',
+    types: {
+      'application/rss+xml': 'https://dongtanview.com/feed.xml',
+    },
   },
   openGraph: {
     title:
@@ -147,7 +157,7 @@ export default function StatsPage() {
         '@type': 'Dataset',
         '@id': `${baseUrl}/stats#dataset-dongtan-station-distance`,
         name: '동탄역 거리별 아파트 실거래가 OLS 선형회귀 및 역세권 프리미엄 분석 데이터셋',
-        description: `동탄신도시 ${datasetMeta?.totalComplexCount ?? 127}개 단지(${datasetMeta?.totalTxCount ?? 0}건 실거래) 대상 GTX-A·SRT 동탄역 직선거리와 평당 매매가 간 OLS 회귀분석(기울기 ${Math.round(regression.slopeWonPerKm).toLocaleString('ko-KR')}만원/km, 상관계수 r=${regression.pearsonR.toFixed(4)}, 결정계수 R²=${regression.rSquared.toFixed(4)}, 역세권 프리미엄 +${regression.stationPremiumRatePercent.toFixed(1)}%).`,
+        description: `동탄신도시 ${datasetMeta?.totalComplexCount ?? 127}개 단지(${(datasetMeta?.totalTxCount ?? 0).toLocaleString('ko-KR')}건 실거래) 대상 GTX-A·SRT 동탄역 직선거리와 평당 매매가 간 OLS 회귀분석(기울기 ${Math.round(regression.slopeWonPerKm).toLocaleString('ko-KR')}만원/km, 상관계수 r=${regression.pearsonR.toFixed(4)}, 결정계수 R²=${regression.rSquared.toFixed(4)}, 역세권 프리미엄 ${regression.stationPremiumRatePercent >= 0 ? '+' : ''}${regression.stationPremiumRatePercent.toFixed(1)}%).`,
         url: `${baseUrl}/stats`,
         inLanguage: 'ko-KR',
         isAccessibleForFree: true,
@@ -207,7 +217,7 @@ export default function StatsPage() {
         '@type': 'Dataset',
         '@id': `${baseUrl}/stats#dataset-lake-park-view-premium`,
         name: '동탄호수공원 수변·도보 생활권 vs 비수변 아파트 집값·회전율 비교 데이터셋',
-        description: `동탄호수공원 수변·도보 생활권(${initialLakeData.waterfrontGroup.complexCount}개 단지, 1년 가중평균 ${initialLakeData.waterfrontGroup.weightedAvgPriceEokText}, 평당 ${initialLakeData.waterfrontGroup.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원, 연간 회전율 ${initialLakeData.waterfrontGroup.avgAnnualTurnoverPercent}%) vs 남동탄 비수변 배후권(${initialLakeData.southHinterlandGroup.complexCount}개 단지, 1년 가중평균 ${initialLakeData.southHinterlandGroup.weightedAvgPriceEokText}) 집값 격차(${initialLakeData.delta.waterfrontVsHinterlandPriceDiffEokText}, +${initialLakeData.delta.waterfrontVsHinterlandPremiumPercent}%).`,
+        description: `동탄호수공원 수변·도보 생활권(${initialLakeData.waterfrontGroup.complexCount}개 단지, 1년 가중평균 ${initialLakeData.waterfrontGroup.weightedAvgPriceEokText}, 평당 ${initialLakeData.waterfrontGroup.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원, 연간 회전율 ${initialLakeData.waterfrontGroup.avgAnnualTurnoverPercent}%) vs 남동탄 비수변 배후권(${initialLakeData.southHinterlandGroup.complexCount}개 단지, 1년 가중평균 ${initialLakeData.southHinterlandGroup.weightedAvgPriceEokText}) 집값 격차(${initialLakeData.delta.waterfrontVsHinterlandPriceDiffEokText}, ${initialLakeData.delta.waterfrontVsHinterlandPremiumPercent >= 0 ? '+' : ''}${initialLakeData.delta.waterfrontVsHinterlandPremiumPercent}%).`,
         url: `${baseUrl}/stats?topic=lake-park-view-premium#lake-park-view-premium`,
         inLanguage: 'ko-KR',
         isAccessibleForFree: true,
@@ -236,7 +246,7 @@ export default function StatsPage() {
         '@type': 'Dataset',
         '@id': `${baseUrl}/stats#dataset-building-age-depreciation`,
         name: '동탄 연식별(신축·준신축·구축) 아파트 집값 격차 및 전고점 대비 시세 방어율 데이터셋',
-        description: `동탄신도시 신축 5년차 이하(${initialAgeData.newBuildGroup.complexCount}개 단지, 가중평균 ${initialAgeData.newBuildGroup.weightedAvgPriceEokText}, 전고점 방어율 ${initialAgeData.newBuildGroup.avgPriceRetentionPercent}%) vs 준신축 6~10년차(${initialAgeData.semiNewGroup.complexCount}개 단지, 가중평균 ${initialAgeData.semiNewGroup.weightedAvgPriceEokText}) vs 구축 16년차 이상(${initialAgeData.oldBuildGroup.complexCount}개 단지, 가중평균 ${initialAgeData.oldBuildGroup.weightedAvgPriceEokText}, 전고점 방어율 ${initialAgeData.oldBuildGroup.avgPriceRetentionPercent}%) 집값 격차(${initialAgeData.delta.newVsOldPriceDiffEokText}, +${initialAgeData.delta.newVsOldPricePremiumPercent}%).`,
+        description: `동탄신도시 신축 5년차 이하(${initialAgeData.newBuildGroup.complexCount}개 단지, 가중평균 ${initialAgeData.newBuildGroup.weightedAvgPriceEokText}, 전고점 방어율 ${initialAgeData.newBuildGroup.avgPriceRetentionPercent}%) vs 준신축 6~10년차(${initialAgeData.semiNewGroup.complexCount}개 단지, 가중평균 ${initialAgeData.semiNewGroup.weightedAvgPriceEokText}) vs 구축 16년차 이상(${initialAgeData.oldBuildGroup.complexCount}개 단지, 가중평균 ${initialAgeData.oldBuildGroup.weightedAvgPriceEokText}, 전고점 방어율 ${initialAgeData.oldBuildGroup.avgPriceRetentionPercent}%) 집값 격차(${initialAgeData.delta.newVsOldPriceDiffEokText}, ${initialAgeData.delta.newVsOldPricePremiumPercent >= 0 ? '+' : ''}${initialAgeData.delta.newVsOldPricePremiumPercent}%).`,
         url: `${baseUrl}/stats?topic=building-age-depreciation#building-age-depreciation`,
         inLanguage: 'ko-KR',
         isAccessibleForFree: true,
@@ -311,167 +321,378 @@ export default function StatsPage() {
         />
 
         <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full max-w-full min-w-0 gap-6 box-border">
-          <Suspense fallback={<StatsSkeleton />}>
-            <StatsPageClient
-              initialPayload={initialPayload}
-              initialUndervaluedSummary={initialUndervaluedSummary}
-              initialComparisonData={initialComparisonData}
-              initialSchoolData={initialSchoolData}
-              initialLakeData={initialLakeData}
-              initialAgeData={initialAgeData}
-            />
-          </Suspense>
+          <StatsPageClient
+            initialPayload={initialPayload}
+            initialUndervaluedSummary={initialUndervaluedSummary}
+            initialComparisonData={initialComparisonData}
+            initialSchoolData={initialSchoolData}
+            initialLakeData={initialLakeData}
+            initialAgeData={initialAgeData}
+          />
 
-          {/* Visible SSR Semantic Regression & Thematic Price Comparison Summary (B9 Anti-Cloaking) */}
+          {/* Visible SSR Semantic Regression & Thematic Price Comparison Summary (Dual-Layer Ad Money v5.1) */}
           <section
             id="stats-ssr-regression-summary"
             aria-label="동탄역 거리별 아파트 가격 회귀분석 요약"
-            className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-5 sm:p-6 text-xs sm:text-[13px] text-secondary space-y-2.5 tabular-nums"
+            className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-5 sm:p-6 text-xs sm:text-[13px] text-secondary space-y-4 tabular-nums scroll-mt-24 md:scroll-mt-[96px]"
           >
-            <h2 className="text-sm font-extrabold text-primary">
-              동탄역 거리별 아파트 실거래가 OLS 선형회귀 요약 ({datasetMeta?.referenceMonthLabel})
-            </h2>
-            <p className="leading-relaxed">
-              표본 단지 수 {datasetMeta?.totalComplexCount ?? 127}개, 분석 실거래 표본 {datasetMeta?.totalTxCount ?? 0}건,
-              회귀 방정식 절편 {Math.round(regression.interceptWon).toLocaleString('ko-KR')}만원,
-              거리 1km당 가격 변화율 {Math.round(regression.slopeWonPerKm).toLocaleString('ko-KR')}만원,
-              피어슨 상관계수 {regression.pearsonR.toFixed(4)}, 결정계수 {regression.rSquared.toFixed(4)},
-              1km 이내 역세권 프리미엄 비율 {regression.stationPremiumRatePercent.toFixed(1)}퍼센트.
-            </p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 pt-1">
-              {distanceTiers.map((tier) => (
-                <li
-                  key={tier.tierId}
-                  className="rounded-xl bg-surface px-3 py-2 text-[11.5px] font-medium text-secondary"
-                >
-                  {tier.tierLabel}: 표본 {tier.complexCount}개 단지, 거래량 {tier.txVolume}건, 평당 평균가{' '}
-                  {Math.round(tier.avgPricePerPyeongWon / 10000).toLocaleString('ko-KR')}만원
-                </li>
-              ))}
+            {/* Layer 1 Header */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <h2 className="text-sm sm:text-[15px] font-black text-primary tracking-tight truncate">
+                  동탄역 거리별 실거래 요약
+                </h2>
+                {datasetMeta?.referenceMonthLabel && (
+                  <span className={getVisualSignalPillClass({ tone: 'neutral', size: 'xs' })}>
+                    {datasetMeta.referenceMonthLabel}
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] font-semibold text-tertiary">
+                국토교통부 실거래 전수 기준
+              </span>
+            </div>
+
+            {/* Layer 1 KPI Strip (4 compact tiles, zero <li>) */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+              <div className="rounded-xl bg-surface dark:bg-[#202027] p-3.5 flex flex-col gap-1">
+                <span className="text-[11px] font-bold text-tertiary whitespace-nowrap truncate">
+                  분석 표본
+                </span>
+                <span className="text-base sm:text-lg font-black text-primary tracking-tight">
+                  {(datasetMeta?.totalComplexCount ?? 127).toLocaleString('ko-KR')}개 단지
+                </span>
+                <span className="text-[11px] font-semibold text-secondary truncate">
+                  {(datasetMeta?.totalTxCount ?? 0).toLocaleString('ko-KR')}건 실거래
+                </span>
+              </div>
+
+              <div className="rounded-xl bg-surface dark:bg-[#202027] p-3.5 flex flex-col gap-1">
+                <span className="text-[11px] font-bold text-tertiary whitespace-nowrap truncate">
+                  역세권 프리미엄
+                </span>
+                <span className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
+                  {regression.stationPremiumRatePercent >= 0 ? '+' : ''}
+                  {regression.stationPremiumRatePercent.toFixed(1)}%
+                </span>
+                <span className="text-[11px] font-semibold text-secondary truncate">
+                  1km 내 vs 2km+
+                </span>
+              </div>
+
+              <div className="rounded-xl bg-surface dark:bg-[#202027] p-3.5 flex flex-col gap-1">
+                <span className="text-[11px] font-bold text-tertiary whitespace-nowrap truncate">
+                  1km당 변동
+                </span>
+                <span className="text-base sm:text-lg font-black text-blue-600 dark:text-blue-400 tracking-tight">
+                  {Math.round(regression.slopeWonPerKm).toLocaleString('ko-KR')}만원
+                </span>
+                <span className="text-[11px] font-semibold text-secondary truncate">
+                  평당 매매가 기울기
+                </span>
+              </div>
+
+              <div className="rounded-xl bg-surface dark:bg-[#202027] p-3.5 flex flex-col gap-1">
+                <span className="text-[11px] font-bold text-tertiary whitespace-nowrap truncate">
+                  모형 설명력
+                </span>
+                <span className="text-base sm:text-lg font-black text-primary tracking-tight">
+                  {(regression.rSquared * 100).toFixed(1)}%
+                </span>
+                <span className="text-[11px] font-semibold text-secondary truncate">
+                  r = {regression.pearsonR.toFixed(2)} (R² 기준)
+                </span>
+              </div>
+            </div>
+
+            {/* Layer 1: Exact 5 <li> Distance-Tier Cards */}
+            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+              {distanceTiers.map((tier) => {
+                const pyeongMan = Math.round(tier.avgPricePerPyeongWon / 10000);
+                const prem = tier.premiumVsAveragePercent;
+                const tone = prem > 0 ? 'safe' : prem < 0 ? 'down' : 'neutral';
+                return (
+                  <li
+                    key={tier.tierId}
+                    className="rounded-xl bg-surface dark:bg-[#202027] p-3.5 flex flex-col justify-between gap-2"
+                  >
+                    <div className="flex items-center justify-between gap-1.5">
+                      <span className="text-[11px] font-bold text-secondary truncate">
+                        {tier.tierLabel}
+                      </span>
+                      <span className={getVisualSignalPillClass({ tone, size: 'xs' })}>
+                        {prem >= 0 ? '+' : ''}
+                        {prem.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-lg font-black text-primary tracking-tight">
+                        {pyeongMan.toLocaleString('ko-KR')}만원
+                      </span>
+                      <span className="text-[11px] font-semibold text-tertiary">/평</span>
+                    </div>
+                    <span className="text-[11px] font-semibold text-tertiary truncate">
+                      {tier.complexCount.toLocaleString('ko-KR')}개 단지 ·{' '}
+                      {tier.txVolume.toLocaleString('ko-KR')}건
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
-            {initialUndervaluedSummary.items.length > 0 && (
-              <div
-                id="stats-ssr-undervalued-summary"
-                className="pt-2.5 border-t border-slate-200/70 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-              >
-                <p className="leading-relaxed">
-                  동탄역 로그거리·연식 다중회귀(R² {(initialUndervaluedSummary.rSquared * 100).toFixed(1)}%) 기대가 대비 저평가 상위 단지:{' '}
-                  {initialUndervaluedSummary.items.map((item, idx) => (
-                    <React.Fragment key={item.canonicalSlug}>
-                      {idx > 0 ? ', ' : ''}
+
+            {/* Layer 1: 5 Clean 1-Line Thematic Summary Rows (All IDs & 4 /apartment/ Links Preserved) */}
+            <div className="divide-y divide-[#f2f4f6] dark:divide-[#202027] border-t border-[#f2f4f6] dark:border-[#202027]">
+              {initialUndervaluedSummary.items.length > 0 && (
+                <div
+                  id="stats-ssr-undervalued-summary"
+                  className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 scroll-mt-24 md:scroll-mt-[96px]"
+                >
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
+                    <span className="font-extrabold text-primary shrink-0">
+                      기대가 대비 저평가
+                    </span>
+                    {initialUndervaluedSummary.items.map((item) => (
                       <Link
+                        key={item.canonicalSlug}
                         href={`/apartment/${encodeURIComponent(item.canonicalSlug)}`}
                         prefetch={false}
-                        className="font-bold text-emerald-700 dark:text-emerald-400 hover:underline"
+                        className="inline-flex items-center gap-1 rounded-md bg-surface dark:bg-[#202027] px-2 py-0.5 text-[11.5px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline"
                       >
-                        {item.name}
+                        <span>{item.name}</span>
+                        <span className="text-tertiary font-semibold">
+                          {item.discountPercent.toFixed(1)}%
+                        </span>
                       </Link>
-                      {`(${item.dong}, 기대가 대비 ${item.discountPercent.toFixed(1)}%, 최근 ${item.latestPriceEokText})`}
-                    </React.Fragment>
-                  ))}
-                  .
-                </p>
+                    ))}
+                  </div>
+                  <Link
+                    href="/guide/dongtan-budget-tier-ranking"
+                    prefetch={false}
+                    className="shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    예산별 랭킹 가이드
+                  </Link>
+                </div>
+              )}
+
+              <div
+                id="stats-ssr-dongtan-1-vs-2-summary"
+                className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 scroll-mt-24 md:scroll-mt-[96px]"
+              >
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 min-w-0">
+                  <span className="font-extrabold text-primary shrink-0">동탄1 vs 동탄2</span>
+                  <span className="text-secondary">
+                    동탄1 {dongtan1.weightedAvgPriceEokText} · 동탄2 {dongtan2.weightedAvgPriceEokText}
+                  </span>
+                  <span
+                    className={getVisualSignalPillClass({
+                      tone:
+                        delta.weightedPricePremiumPercent > 0
+                          ? 'safe'
+                          : delta.weightedPricePremiumPercent < 0
+                            ? 'down'
+                            : 'neutral',
+                      size: 'xs',
+                    })}
+                  >
+                    {delta.weightedPriceDiffEokText} ({delta.weightedPricePremiumPercent >= 0 ? '+' : ''}
+                    {delta.weightedPricePremiumPercent}%)
+                  </span>
+                </div>
                 <Link
-                  href="/guide/dongtan-budget-tier-ranking"
+                  href="/guide/dongtan-1-vs-2-comparison"
                   prefetch={false}
-                  className="shrink-0 font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  className="shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
                 >
-                  예산별 실거래 랭킹 가이드 보기
+                  동탄1·2 비교 가이드
                 </Link>
               </div>
-            )}
 
-            <div
-              id="stats-ssr-dongtan-1-vs-2-summary"
-              className="pt-2.5 border-t border-slate-200/70 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-            >
-              <p className="leading-relaxed">
-                동탄1신도시({dongtan1.complexCount}개 단지, 1년 가중평균 {dongtan1.weightedAvgPriceEokText}, 평당{' '}
-                {dongtan1.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원) vs 동탄2신도시({dongtan2.complexCount}개 단지, 1년 가중평균{' '}
-                {dongtan2.weightedAvgPriceEokText}, 평당 {dongtan2.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원) 평균 집값 차이{' '}
-                {delta.weightedPriceDiffEokText} ({delta.weightedPricePremiumPercent >= 0 ? '+' : ''}
-                {delta.weightedPricePremiumPercent}%).
-              </p>
-              <Link
-                href="/guide/dongtan-1-vs-2-comparison" prefetch={false}
-                className="shrink-0 font-bold text-blue-600 dark:text-blue-400 hover:underline"
+              <div
+                id="stats-ssr-school-district-summary"
+                className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 scroll-mt-24 md:scroll-mt-[96px]"
               >
-                동탄1 vs 동탄2 심층 비교 분석글 보기
-              </Link>
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 min-w-0">
+                  <span className="font-extrabold text-primary shrink-0">초품아 · 학군 격차</span>
+                  <span className="text-secondary">
+                    초품아 {initialSchoolData.chopumaGroup.weightedAvgPriceEokText} vs 일반{' '}
+                    {initialSchoolData.generalSchoolGroup.weightedAvgPriceEokText}
+                  </span>
+                  <span
+                    className={getVisualSignalPillClass({
+                      tone:
+                        initialSchoolData.delta.academyPricePremiumPercent > 0
+                          ? 'safe'
+                          : initialSchoolData.delta.academyPricePremiumPercent < 0
+                            ? 'down'
+                            : 'neutral',
+                      size: 'xs',
+                    })}
+                  >
+                    학원가 {initialSchoolData.delta.academyPriceDiffEokText} (
+                    {initialSchoolData.delta.academyPricePremiumPercent >= 0 ? '+' : ''}
+                    {initialSchoolData.delta.academyPricePremiumPercent}%)
+                  </span>
+                </div>
+                <Link
+                  href="/guide/dongtan-school-zone-top-apartments"
+                  prefetch={false}
+                  className="shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  초품아·학군 가이드
+                </Link>
+              </div>
+
+              <div
+                id="stats-ssr-lake-park-summary"
+                className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 scroll-mt-24 md:scroll-mt-[96px]"
+              >
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 min-w-0">
+                  <span className="font-extrabold text-primary shrink-0">동탄호수공원 생활권</span>
+                  <span className="text-secondary">
+                    수변 {initialLakeData.waterfrontGroup.weightedAvgPriceEokText} vs 비수변{' '}
+                    {initialLakeData.southHinterlandGroup.weightedAvgPriceEokText}
+                  </span>
+                  <span
+                    className={getVisualSignalPillClass({
+                      tone:
+                        initialLakeData.delta.waterfrontVsHinterlandPremiumPercent > 0
+                          ? 'safe'
+                          : initialLakeData.delta.waterfrontVsHinterlandPremiumPercent < 0
+                            ? 'down'
+                            : 'neutral',
+                      size: 'xs',
+                    })}
+                  >
+                    {initialLakeData.delta.waterfrontVsHinterlandPriceDiffEokText} (
+                    {initialLakeData.delta.waterfrontVsHinterlandPremiumPercent >= 0 ? '+' : ''}
+                    {initialLakeData.delta.waterfrontVsHinterlandPremiumPercent}%)
+                  </span>
+                </div>
+                <Link
+                  href="/guide/dongtan-lake-vs-station-comparison"
+                  prefetch={false}
+                  className="shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  호수공원·동탄역 가이드
+                </Link>
+              </div>
+
+              <div
+                id="stats-ssr-building-age-summary"
+                className="pt-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 scroll-mt-24 md:scroll-mt-[96px]"
+              >
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 min-w-0">
+                  <span className="font-extrabold text-primary shrink-0">연식별 시세 격차</span>
+                  <span className="text-secondary">
+                    신축(≤5년) {initialAgeData.newBuildGroup.weightedAvgPriceEokText} vs 구축(16년+){' '}
+                    {initialAgeData.oldBuildGroup.weightedAvgPriceEokText}
+                  </span>
+                  <span
+                    className={getVisualSignalPillClass({
+                      tone:
+                        initialAgeData.delta.newVsOldPricePremiumPercent > 0
+                          ? 'safe'
+                          : initialAgeData.delta.newVsOldPricePremiumPercent < 0
+                            ? 'down'
+                            : 'neutral',
+                      size: 'xs',
+                    })}
+                  >
+                    {initialAgeData.delta.newVsOldPriceDiffEokText} (
+                    {initialAgeData.delta.newVsOldPricePremiumPercent >= 0 ? '+' : ''}
+                    {initialAgeData.delta.newVsOldPricePremiumPercent}%)
+                  </span>
+                </div>
+                <Link
+                  href="/guide/dongtan-reconstruction-remodeling-1st-new-town-outlook"
+                  prefetch={false}
+                  className="shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  연식·리모델링 가이드
+                </Link>
+              </div>
             </div>
 
-            <div
-              id="stats-ssr-school-district-summary"
-              className="pt-2.5 border-t border-slate-200/70 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-            >
-              <p className="leading-relaxed">
-                Issue #2 초품아·학군 집값 비교: 초품아({initialSchoolData.chopumaGroup.complexCount}개 단지, 가중평균{' '}
-                {initialSchoolData.chopumaGroup.weightedAvgPriceEokText}, 평당{' '}
-                {initialSchoolData.chopumaGroup.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원) vs 일반 단지(
-                {initialSchoolData.generalSchoolGroup.complexCount}개 단지, 가중평균{' '}
-                {initialSchoolData.generalSchoolGroup.weightedAvgPriceEokText}, 평당{' '}
-                {initialSchoolData.generalSchoolGroup.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원), 학원가 밀집권(반경 500m 학원 40개+,{' '}
-                {initialSchoolData.academyPrimeGroup.complexCount}개 단지, 가중평균{' '}
-                {initialSchoolData.academyPrimeGroup.weightedAvgPriceEokText}) vs 비학원권(
-                {initialSchoolData.nonAcademyGroup.weightedAvgPriceEokText}) 집값 차이{' '}
-                {initialSchoolData.delta.academyPriceDiffEokText} (+
-                {initialSchoolData.delta.academyPricePremiumPercent}%).
-              </p>
-              <Link
-                href="/guide/dongtan-school-zone-top-apartments" prefetch={false}
-                className="shrink-0 font-bold text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                동탄 초품아·학군 심층 비교 가이드 보기
-              </Link>
-            </div>
+            {/* Layer 2: Closed-by-default Native SSR <details> (ZERO <li>, ZERO <AdSlot>) */}
+            <details className={getSeoAccordionClass('bg-surface! dark:bg-[#202027]!')}>
+              <summary className={getSeoAccordionSummaryClass()}>
+                <span>OLS 회귀분석 · 입지별 산출 근거 더보기</span>
+                <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
+              </summary>
+              <div className={getSeoAccordionBodyClass('space-y-3 tabular-nums')}>
+                <h3 className="text-[13px] font-extrabold text-primary">
+                  동탄역 거리별 아파트 실거래가 OLS 선형회귀 요약 ({datasetMeta?.referenceMonthLabel})
+                </h3>
+                <p>
+                  표본 단지 수 {(datasetMeta?.totalComplexCount ?? 127).toLocaleString('ko-KR')}개,
+                  분석 실거래 표본 {(datasetMeta?.totalTxCount ?? 0).toLocaleString('ko-KR')}건,
+                  회귀 방정식 절편 {Math.round(regression.interceptWon).toLocaleString('ko-KR')}만원,
+                  거리 1km당 가격 변화율 {Math.round(regression.slopeWonPerKm).toLocaleString('ko-KR')}만원,
+                  피어슨 상관계수 r = {regression.pearsonR.toFixed(4)},
+                  결정계수 R² = {regression.rSquared.toFixed(4)},
+                  1km 이내 역세권 프리미엄 {regression.stationPremiumRatePercent >= 0 ? '+' : ''}
+                  {regression.stationPremiumRatePercent.toFixed(1)}%.
+                </p>
 
-            <div
-              id="stats-ssr-lake-park-summary"
-              className="pt-2.5 border-t border-slate-200/70 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-            >
-              <p className="leading-relaxed">
-                Issue #3 동탄호수공원 조망권 집값 비교: 호수 수변·도보 핵심권(1km 이내,{' '}
-                {initialLakeData.waterfrontGroup.complexCount}개 단지, 1년 가중평균{' '}
-                {initialLakeData.waterfrontGroup.weightedAvgPriceEokText}, 평당{' '}
-                {initialLakeData.waterfrontGroup.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원, 연간 회전율{' '}
-                {initialLakeData.waterfrontGroup.avgAnnualTurnoverPercent}%) vs 남동탄 비수변 배후권(
-                {initialLakeData.southHinterlandGroup.complexCount}개 단지, 가중평균{' '}
-                {initialLakeData.southHinterlandGroup.weightedAvgPriceEokText}) 평균 집값 격차{' '}
-                {initialLakeData.delta.waterfrontVsHinterlandPriceDiffEokText} (+
-                {initialLakeData.delta.waterfrontVsHinterlandPremiumPercent}%).
-              </p>
-              <Link
-                href="/guide/dongtan-lake-vs-station-comparison" prefetch={false}
-                className="shrink-0 font-bold text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                호수공원 vs 동탄역 비교 가이드 보기
-              </Link>
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
+                  {initialUndervaluedSummary.items.length > 0 && (
+                    <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-3 space-y-1">
+                      <div className="font-bold text-primary">
+                        로그거리·연식 다중회귀 (R² {(initialUndervaluedSummary.rSquared * 100).toFixed(1)}%)
+                      </div>
+                      <p>
+                        {initialUndervaluedSummary.items
+                          .map(
+                            (item) =>
+                              `${item.name}(${item.dong}, 기대가 대비 ${item.discountPercent.toFixed(1)}%, 최근 ${item.latestPriceEokText})`
+                          )
+                          .join(' · ')}
+                      </p>
+                    </div>
+                  )}
 
-            <div
-              id="stats-ssr-building-age-summary"
-              className="pt-2.5 border-t border-slate-200/70 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-            >
-              <p className="leading-relaxed">
-                Issue #4 연식별 감가상각·전고점 방어율 비교: 신축 5년차 이하(
-                {initialAgeData.newBuildGroup.complexCount}개 단지, 가중평균{' '}
-                {initialAgeData.newBuildGroup.weightedAvgPriceEokText}, 평당{' '}
-                {initialAgeData.newBuildGroup.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원, 전고점 방어율{' '}
-                {initialAgeData.newBuildGroup.avgPriceRetentionPercent}%) vs 구축 16년차 이상(
-                {initialAgeData.oldBuildGroup.complexCount}개 단지, 가중평균{' '}
-                {initialAgeData.oldBuildGroup.weightedAvgPriceEokText}, 평당{' '}
-                {initialAgeData.oldBuildGroup.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원, 전고점 방어율{' '}
-                {initialAgeData.oldBuildGroup.avgPriceRetentionPercent}%) 평균 집값 격차{' '}
-                {initialAgeData.delta.newVsOldPriceDiffEokText} (+
-                {initialAgeData.delta.newVsOldPricePremiumPercent}%).
-              </p>
-              <Link
-                href="/guide/dongtan-reconstruction-remodeling-1st-new-town-outlook" prefetch={false}
-                className="shrink-0 font-bold text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                연식·리모델링 전망 가이드 보기
-              </Link>
-            </div>
+                  <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-3 space-y-1">
+                    <div className="font-bold text-primary">동탄1 vs 동탄2 권역 비교</div>
+                    <p>
+                      동탄1({dongtan1.complexCount.toLocaleString('ko-KR')}개 단지, 1년 가중평균 {dongtan1.weightedAvgPriceEokText},
+                      평당 {dongtan1.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원) vs 동탄2(
+                      {dongtan2.complexCount.toLocaleString('ko-KR')}개 단지, 1년 가중평균 {dongtan2.weightedAvgPriceEokText},
+                      평당 {dongtan2.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원).
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-3 space-y-1">
+                    <div className="font-bold text-primary">초품아 · 학군 및 학원가 밀집도</div>
+                    <p>
+                      초품아({initialSchoolData.chopumaGroup.complexCount.toLocaleString('ko-KR')}개 단지, 평당{' '}
+                      {initialSchoolData.chopumaGroup.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원) vs 일반(
+                      {initialSchoolData.generalSchoolGroup.complexCount.toLocaleString('ko-KR')}개 단지, 평당{' '}
+                      {initialSchoolData.generalSchoolGroup.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원),
+                      반경 500m 학원 40개+ 밀집권({initialSchoolData.academyPrimeGroup.complexCount.toLocaleString('ko-KR')}개 단지,{' '}
+                      {initialSchoolData.academyPrimeGroup.weightedAvgPriceEokText}) vs 비학원권(
+                      {initialSchoolData.nonAcademyGroup.weightedAvgPriceEokText}).
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-3 space-y-1">
+                    <div className="font-bold text-primary">동탄호수공원 수변권 · 연식별 감가상각</div>
+                    <p>
+                      호수 수변권 1km 이내({initialLakeData.waterfrontGroup.complexCount.toLocaleString('ko-KR')}개 단지, 평당{' '}
+                      {initialLakeData.waterfrontGroup.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원,
+                      연간 회전율 {initialLakeData.waterfrontGroup.avgAnnualTurnoverPercent}%) vs 남동탄 비수변(
+                      {initialLakeData.southHinterlandGroup.complexCount.toLocaleString('ko-KR')}개 단지) · 신축 5년차 이하(
+                      {initialAgeData.newBuildGroup.complexCount.toLocaleString('ko-KR')}개 단지, 평당{' '}
+                      {initialAgeData.newBuildGroup.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원,
+                      전고점 방어율 {initialAgeData.newBuildGroup.avgPriceRetentionPercent}%) vs 구축 16년차 이상(
+                      {initialAgeData.oldBuildGroup.complexCount.toLocaleString('ko-KR')}개 단지, 평당{' '}
+                      {initialAgeData.oldBuildGroup.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원,
+                      방어율 {initialAgeData.oldBuildGroup.avgPriceRetentionPercent}%).
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
           </section>
         </div>
       </main>

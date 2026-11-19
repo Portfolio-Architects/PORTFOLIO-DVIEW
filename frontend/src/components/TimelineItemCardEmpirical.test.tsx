@@ -128,7 +128,7 @@ export { TimelineItemCard, TimelineItemCardProps };
     expect(screen.getByText('신고가')).toBeDefined();
   });
 
-  it('EMPIRICAL BUG TEST: Mobile price regex drops precision for sub-1000만 amounts (e.g. 500만)', () => {
+  it('EMPIRICAL PRECISION TEST: Preserves sub-1000만 precision uniformly across viewports (e.g. 15억 500만)', () => {
     const TimelineItemCard = getComponent();
     const item = {
       aptName: '정밀도 테스트 단지',
@@ -142,19 +142,11 @@ export { TimelineItemCard, TimelineItemCardProps };
       delta: 0.05,
     };
 
-    const { container } = render(<TimelineItemCard {...defaultProps} item={item} />);
-    
-    // Target price elements
-    const priceSpans = container.querySelectorAll('.text-\\[12\\.5px\\], .text-\\[13px\\], .text-\\[14\\.5px\\]');
-    const mobilePrice = priceSpans[0]?.querySelector('.inline.sm\\:hidden')?.textContent;
-    const desktopPrice = priceSpans[0]?.querySelector('.hidden.sm\\:inline')?.textContent;
-
-    // Expectation check: 15억 500만 on mobile becomes '15.05억'
-    expect(desktopPrice).toBe('15억 500만');
-    expect(mobilePrice).toBe('15.05억');
+    const { getByTestId } = render(<TimelineItemCard {...defaultProps} item={item} />);
+    expect(getByTestId('timeline-card-price').textContent).toBe('15억 500만');
   });
 
-  it('EMPIRICAL BUG TEST: Mobile delta regex preserves precision for sub-1000만 eok deltas (e.g. 1.05억)', () => {
+  it('EMPIRICAL PRECISION TEST: Delta pill preserves precision for sub-1000만 eok deltas (e.g. + 1억 500만)', () => {
     const TimelineItemCard = getComponent();
     const item = {
       aptName: '델타 정밀도 단지',
@@ -169,18 +161,11 @@ export { TimelineItemCard, TimelineItemCardProps };
       prevPriceVal: 15.0,
     };
 
-    const { container } = render(<TimelineItemCard {...defaultProps} item={item} />);
-    
-    // Target delta badge element
-    const deltaBadgeSpans = container.querySelectorAll('span.font-black.px-1');
-    const mobileDelta = deltaBadgeSpans[0]?.querySelector('.inline.sm\\:hidden')?.textContent;
-    const desktopDelta = deltaBadgeSpans[0]?.querySelector('.hidden.sm\\:inline')?.textContent;
-
-    expect(desktopDelta).toBe('+ 1억 500만');
-    expect(mobileDelta).toBe('+ 1.05억');
+    const { getByTestId } = render(<TimelineItemCard {...defaultProps} item={item} />);
+    expect(getByTestId('timeline-card-delta').textContent).toBe('+ 1억 500만');
   });
 
-  it('EMPIRICAL TEST: Row 1 Header shrinking and clipping behavior under long dong string', () => {
+  it('EMPIRICAL TEST: Row 2 specs dong shrinking and clipping behavior under long dong string', () => {
     const TimelineItemCard = getComponent();
     const item = {
       aptName: '초장문 동 테스트',
@@ -194,12 +179,12 @@ export { TimelineItemCard, TimelineItemCardProps };
       delta: 0,
     };
 
-    const { container } = render(<TimelineItemCard {...defaultProps} item={item} />);
-    const headerRow = container.querySelector('.text-\\[9\\.5px\\]');
-    expect(headerRow).not.toBeNull();
-    
+    const { getByTestId } = render(<TimelineItemCard {...defaultProps} item={item} />);
+    const specsRow = getByTestId('timeline-card-specs');
+    expect(specsRow).not.toBeNull();
+
     // Check if dong span has shrink-0 with truncate
-    const dongSpan = headerRow?.children[0];
+    const dongSpan = specsRow.children[0];
     expect(dongSpan?.className).toContain('shrink-0');
     expect(dongSpan?.className).toContain('truncate');
   });
@@ -220,8 +205,8 @@ export { TimelineItemCard, TimelineItemCardProps };
       prevPriceVal: 105.3,
     };
 
-    const { container } = render(<TimelineItemCard {...defaultProps} item={item} />);
-    const aptSpan = container.querySelector('.text-xs, .text-\\[13px\\], .text-sm');
+    const { getByTestId } = render(<TimelineItemCard {...defaultProps} item={item} />);
+    const aptSpan = getByTestId('timeline-card-title');
     expect(aptSpan?.textContent).toBe(item.displayAptName);
     expect(aptSpan?.getAttribute('title')).toBe(item.displayAptName);
     expect(aptSpan?.className).toContain('truncate');
@@ -241,7 +226,7 @@ export { TimelineItemCard, TimelineItemCardProps };
       delta: 0,
     };
 
-    const { rerender, container } = render(<TimelineItemCard {...defaultProps} item={itemZero} />);
+    const { rerender, getByTestId } = render(<TimelineItemCard {...defaultProps} item={itemZero} />);
     expect(screen.getAllByText('보합').length).toBeGreaterThan(0);
 
     const itemNeg = {
@@ -252,11 +237,7 @@ export { TimelineItemCard, TimelineItemCardProps };
     };
 
     rerender(<TimelineItemCard {...defaultProps} item={itemNeg} />);
-    const deltaBadgeSpans = container.querySelectorAll('span.font-black.px-1');
-    const mobileDelta = deltaBadgeSpans[0]?.querySelector('.inline.sm\\:hidden')?.textContent;
-    const desktopDelta = deltaBadgeSpans[0]?.querySelector('.hidden.sm\\:inline')?.textContent;
-    expect(desktopDelta).toBe('- 5,000만');
-    expect(mobileDelta).toBe('- 5,000만');
+    expect(getByTestId('timeline-card-delta').textContent).toBe('- 5,000만');
   });
 
   it('verifies click and hover callback triggers and e.stopPropagation on details button', () => {
@@ -392,5 +373,29 @@ export { TimelineItemCard, TimelineItemCardProps };
 
     expect(screen.queryByTestId('timeline-today-registered-badge')).toBeNull();
     expect(screen.queryByText('오늘 등록')).toBeNull();
+  });
+
+  it('normalizes unspaced priceEok, omits strikethrough prevPrice, and renders flat 신고가 badge for 23-char complex names', () => {
+    const TimelineItemCard = getComponent();
+    const item = {
+      ...sampleItem,
+      aptName: '동탄역시범금강펜테리움센트럴파크3',
+      displayAptName: '동탄역 시범 금강펜테리움 센트럴파크 3차',
+      dong: '청계동',
+      priceEok: '15억5,800',
+      priceVal: 15.58,
+      type: 'high',
+      delta: 1.53,
+      deltaPercent: 10.9,
+      prevPriceVal: 14.05,
+    };
+
+    const { container, getByTestId } = render(<TimelineItemCard {...defaultProps} item={item} />);
+    expect(getByTestId('timeline-card-title').textContent).toBe('동탄역 시범 금강펜테리움 센트럴파크 3차');
+    expect(getByTestId('timeline-card-price').textContent).toBe('15억 5,800만');
+    expect(container.querySelector('.line-through')).toBeNull();
+    const newHighPill = screen.getByText('신고가');
+    expect(newHighPill.className).toContain('bg-brand-red-light');
+    expect(newHighPill.className).not.toContain('animate-pulse');
   });
 });

@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import NewsClient from './NewsClient';
 import { getNewsMainSchema, safeJsonLd } from '@/lib/utils/structuredData';
 import { getMacroNews, getLocalNotices } from '@/lib/services/newsData';
+import { GUIDE_ARTICLES } from '@/lib/data/guides';
 
 export const dynamic = 'force-static';
 export const revalidate = false; // Pure SSG (legacy: export const revalidate = 3600;)
@@ -80,7 +81,7 @@ export default async function NewsPage() {
             D-VIEW 동탄 소식 및 행정 공지
           </h1>
           <p className="text-[13px] sm:text-[14px] text-slate-600 dark:text-slate-400 mt-2 leading-relaxed font-medium">
-            화성시청 및 동탄출장소의 공식 고시공고와 동탄 1·2신도시 핵심 광역교통망(GTX-A, 동탄 도시철도 트램, 동탄인덕원선, 분당선 연장) 추진 현황을 공공 원문 데이터 기반으로 분석하여 제공합니다.
+            화성특례시청 및 동탄구청의 공식 고시공고와 동탄 1·2신도시 핵심 광역교통망(GTX-A, 동탄 도시철도 트램, 동탄인덕원선, 분당선 연장, 제5차 국가철도망 반도체선) 추진 현황을 공공 원문 데이터 기반으로 분석하여 제공합니다.
           </p>
         </header>
 
@@ -117,7 +118,7 @@ export default async function NewsPage() {
               국토교통부 주택공급 대책, 한국은행 기준금리 결정, 금융위원회의 스트레스 DSR 단계별 시행 및 특례 대출 한도 조정 등 거시경제 뉴스는 동탄 아파트 시장의 거래량(선행 지표)과 실거래 매매가·전세가(동행 지표)에 통상 1개월~3개월의 시차를 두고 반영됩니다. 거래량이 먼저 회복되거나 축소된 이후 대장주 단지(동탄역 시범단지 및 호수공원 핵심 단지)부터 호가와 실거래 체결가가 반응하는 경향이 뚜렷합니다.
             </p>
             <p className="text-slate-600 dark:text-slate-400">
-              따라서 언론 보도와 행정 공지를 열람할 때는 단일 기사의 자극적인 제목에 의존하기보다, D-VIEW가 제공하는 단지별 3개월 평균 실거래가, 전세가율(매매 대비 전세 비율), 매매-전세 차액(실구매 자금 부담) 및 23편의 동탄 권역별 심층 비교 가이드 리포트를 함께 대조하여 객관적인 의사결정을 내리는 것을 권장합니다.
+              따라서 언론 보도와 행정 공지를 열람할 때는 단일 기사의 자극적인 제목에 의존하기보다, D-VIEW가 제공하는 단지별 3개월 평균 실거래가, 전세가율(매매 대비 전세 비율), 매매-전세 차액(실구매 자금 부담) 및 {GUIDE_ARTICLES.length}편의 동탄 권역별 심층 비교 가이드 리포트를 함께 대조하여 객관적인 의사결정을 내리는 것을 권장합니다.
             </p>
           </article>
         </div>

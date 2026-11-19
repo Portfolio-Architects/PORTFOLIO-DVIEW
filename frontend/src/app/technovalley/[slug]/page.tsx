@@ -7,6 +7,7 @@ import TechnoValleyClient from '../TechnoValleyClient';
 import LoungeHeader from '@/components/LoungeHeader';
 import { AdSlot } from '@/components/ads/AdSlot';
 import GuideAptPreviewCard from '@/components/guide/GuideAptPreviewCard';
+import TopLandingCalculatorQuickBar from '@/components/finance/TopLandingCalculatorQuickBar';
 import TechnoValleyBounceDefenseBridge from '@/components/technovalley/TechnoValleyBounceDefenseBridge';
 import { selectPeerTechnoValleyJisans } from '@/lib/utils/technovalleyPeerUtils';
 import {
@@ -162,6 +163,17 @@ export default async function TechnoValleyDetailPage(
             id="technovalley-selected-jisan-ssr"
             className="rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.04] dark:bg-emerald-950/20 p-5 sm:p-6 space-y-4"
           >
+            <TopLandingCalculatorQuickBar
+              variant="technovalley"
+              surface="technovalley_detail_top_quick_bar"
+              targetName={selectedJisan.name}
+              benchmarkPriceManwon={
+                latestMatchedTx?.priceRaw && latestMatchedTx.priceRaw > 0
+                  ? latestMatchedTx.priceRaw
+                  : undefined
+              }
+            />
+
             <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[13px] tabular-nums">
               <div className="bg-surface rounded-xl border border-border/60 p-3.5">
                 <dt className="text-tertiary text-[11.5px] font-semibold">연면적 / 대지면적</dt>

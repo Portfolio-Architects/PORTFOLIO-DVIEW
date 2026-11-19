@@ -19,6 +19,7 @@ import {
 } from '@/lib/stats/dongtan1Vs2ComparisonEngine';
 import type { AreaBandFilter } from '@/lib/stats/types';
 import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
+import { getVisualSignalPillClass } from '@/lib/design-system/copyDiet';
 import { trackEvent, trackVirtualPageView } from '@/lib/utils/analytics';
 
 export interface Dongtan1Vs2ComparisonSectionProps {
@@ -102,19 +103,22 @@ export function Dongtan1Vs2ComparisonSection({
       id="dongtan-1-vs-2-comparison"
       data-testid="dongtan-1-vs-2-comparison-section"
       aria-label="동탄1신도시 vs 동탄2신도시 집값 비교 분석"
-      className="w-full flex flex-col gap-5"
+      className="w-full flex flex-col gap-6 scroll-mt-24 md:scroll-mt-[96px]"
     >
       {/* 1. Top Comparison Hero & Area Band Controls */}
-      <div className="w-full p-5 sm:p-6 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]">
-        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 pb-5 border-b border-slate-200/70 dark:border-slate-800/80">
+      <div className="w-full">
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 pb-5 border-b border-[#f2f4f6] dark:border-[#202027]">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-600 text-white">
                 <Scale className="w-3.5 h-3.5" />
                 동탄 1 vs 동탄 2 집값 비교
               </span>
-              <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 tabular-nums">
-                국토부 100% 실거래 · 동탄1({dongtan1.complexCount}단지) vs 동탄2({dongtan2.complexCount}단지)
+              <span className={getVisualSignalPillClass({ tone: 'safe', size: 'sm' })}>
+                100% 실거래
+              </span>
+              <span className="text-[11.5px] font-semibold text-secondary tabular-nums">
+                동탄1({dongtan1.complexCount}단지) vs 동탄2({dongtan2.complexCount}단지)
               </span>
             </div>
             <h2 className="text-lg sm:text-xl font-black text-primary tracking-tight">
@@ -133,7 +137,7 @@ export function Dongtan1Vs2ComparisonSection({
               onClick={() =>
                 handleGuideBridgeClick(primaryGuide.slug, primaryGuide.title, 'hero_top_cta')
               }
-              className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold transition-colors shadow-sm"
+              className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold transition-colors"
             >
               <BookOpen className="w-4 h-4 shrink-0" />
               <span>동탄1 vs 동탄2 비교 분석글 전문 보기</span>
@@ -176,11 +180,11 @@ export function Dongtan1Vs2ComparisonSection({
           {/* Dongtan 1 Card */}
           <div
             data-testid="vs-region-card-dongtan1"
-            className="lg:col-span-5 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#202027] border border-emerald-500/25 flex flex-col justify-between gap-4"
+            className="lg:col-span-5 p-4 sm:p-5 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] flex flex-col justify-between gap-4"
           >
             <div>
               <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                <span className={getVisualSignalPillClass({ tone: 'safe', size: 'sm', extraClass: 'gap-1.5' })}>
                   <Building2 className="w-3 h-3" />
                   {dongtan1.regionTitle}
                 </span>
@@ -188,11 +192,14 @@ export function Dongtan1Vs2ComparisonSection({
                   {dongtan1.complexCount}개 단지 · 1년 {dongtan1.txVolume1Y.toLocaleString('ko-KR')}건 거래
                 </span>
               </div>
+              <div className="text-[11px] text-tertiary font-medium mb-1">
+                {dongtan1.dongsLabel}
+              </div>
               <p className="text-xs text-secondary font-medium mb-3">
-                {dongtan1.dongsLabel} · {dongtan1.regionSubtitle}
+                {dongtan1.regionSubtitle}
               </p>
 
-              <div className="p-3.5 rounded-xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-slate-800/80 mb-3">
+              <div className="p-3.5 rounded-xl bg-white dark:bg-[#202027] mb-3">
                 <div className="text-[11px] font-bold text-tertiary mb-1">
                   동탄1 1년 가중평균 집값
                 </div>
@@ -212,7 +219,7 @@ export function Dongtan1Vs2ComparisonSection({
               </div>
 
               <div className="grid grid-cols-2 gap-2.5 text-xs">
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#17171c]">
+                <div className="p-2.5 rounded-xl bg-white dark:bg-[#202027]">
                   <span className="block text-[11px] text-tertiary font-medium">
                     최근 거래 평균가
                   </span>
@@ -223,7 +230,7 @@ export function Dongtan1Vs2ComparisonSection({
                     중위가 {dongtan1.medianLatestPriceEokText}
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#17171c]">
+                <div className="p-2.5 rounded-xl bg-white dark:bg-[#202027]">
                   <span className="block text-[11px] text-tertiary font-medium">
                     평균 준공 · 세대수
                   </span>
@@ -241,7 +248,7 @@ export function Dongtan1Vs2ComparisonSection({
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-1.5 text-xs">
+            <div className="pt-3 border-t border-[#f2f4f6] dark:border-[#202027] space-y-1.5 text-xs">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-tertiary font-semibold">최고가 대장 단지</span>
                 {dongtan1.maxPriceComplexSlug ? (
@@ -303,8 +310,8 @@ export function Dongtan1Vs2ComparisonSection({
           </div>
 
           {/* Center VS Delta Column */}
-          <div className="lg:col-span-1 flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-100/80 dark:bg-[#202027] border border-slate-200/70 dark:border-slate-800 text-center gap-2">
-            <span className="w-9 h-9 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shadow-sm">
+          <div className="lg:col-span-1 flex flex-col items-center justify-center p-3 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] text-center gap-2">
+            <span className="w-9 h-9 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center">
               VS
             </span>
             <div className="space-y-1">
@@ -321,7 +328,7 @@ export function Dongtan1Vs2ComparisonSection({
                   : '단일 권역 표본'}
               </span>
             </div>
-            <div className="w-full border-t border-slate-200 dark:border-slate-800 pt-2 space-y-1">
+            <div className="w-full border-t border-[#f2f4f6] dark:border-[#202027] pt-2 space-y-1">
               <span className="block text-[10px] font-bold text-tertiary">평당가 격차</span>
               <span className="block text-xs font-extrabold text-primary tabular-nums">
                 {hasBothRegions
@@ -334,11 +341,11 @@ export function Dongtan1Vs2ComparisonSection({
           {/* Dongtan 2 Card */}
           <div
             data-testid="vs-region-card-dongtan2"
-            className="lg:col-span-5 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#202027] border border-blue-500/25 flex flex-col justify-between gap-4"
+            className="lg:col-span-5 p-4 sm:p-5 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] flex flex-col justify-between gap-4"
           >
             <div>
               <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-500/10 text-blue-700 dark:text-blue-300">
+                <span className={getVisualSignalPillClass({ tone: 'down', size: 'sm', extraClass: 'gap-1.5' })}>
                   <TrendingUp className="w-3 h-3" />
                   {dongtan2.regionTitle}
                 </span>
@@ -346,11 +353,14 @@ export function Dongtan1Vs2ComparisonSection({
                   {dongtan2.complexCount}개 단지 · 1년 {dongtan2.txVolume1Y.toLocaleString('ko-KR')}건 거래
                 </span>
               </div>
+              <div className="text-[11px] text-tertiary font-medium mb-1">
+                {dongtan2.dongsLabel}
+              </div>
               <p className="text-xs text-secondary font-medium mb-3">
-                {dongtan2.dongsLabel} · {dongtan2.regionSubtitle}
+                {dongtan2.regionSubtitle}
               </p>
 
-              <div className="p-3.5 rounded-xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-slate-800/80 mb-3">
+              <div className="p-3.5 rounded-xl bg-white dark:bg-[#202027] mb-3">
                 <div className="text-[11px] font-bold text-tertiary mb-1">
                   동탄2 1년 가중평균 집값
                 </div>
@@ -370,7 +380,7 @@ export function Dongtan1Vs2ComparisonSection({
               </div>
 
               <div className="grid grid-cols-2 gap-2.5 text-xs">
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#17171c]">
+                <div className="p-2.5 rounded-xl bg-white dark:bg-[#202027]">
                   <span className="block text-[11px] text-tertiary font-medium">
                     최근 거래 평균가
                   </span>
@@ -381,7 +391,7 @@ export function Dongtan1Vs2ComparisonSection({
                     중위가 {dongtan2.medianLatestPriceEokText}
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#17171c]">
+                <div className="p-2.5 rounded-xl bg-white dark:bg-[#202027]">
                   <span className="block text-[11px] text-tertiary font-medium">
                     평균 준공 · 세대수
                   </span>
@@ -399,7 +409,7 @@ export function Dongtan1Vs2ComparisonSection({
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-1.5 text-xs">
+            <div className="pt-3 border-t border-[#f2f4f6] dark:border-[#202027] space-y-1.5 text-xs">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-tertiary font-semibold">최고가 대장 단지</span>
                 {dongtan2.maxPriceComplexSlug ? (
@@ -463,14 +473,14 @@ export function Dongtan1Vs2ComparisonSection({
       </div>
 
       {/* 2. Budget Bracket Distribution Comparison (내 예산별 매수 가능 단지 비중) */}
-      <div className="w-full p-5 sm:p-6 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]">
+      <div className="w-full pt-6 border-t border-[#f2f4f6] dark:border-[#202027]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div>
             <h3 className="text-base sm:text-lg font-extrabold text-primary">
               내 예산으로 어디 갈 수 있을까? 가격대별(6억~15억+) 단지 분포 비교
             </h3>
-            <p className="text-xs text-secondary mt-0.5">
-              최근 실거래가 기준 동탄1신도시와 동탄2신도시의 가격 구간별 단지 수와 대표 아파트입니다.
+            <p className="text-xs text-secondary mt-0.5 line-clamp-1">
+              최근 실거래 기준 가격 구간별 단지 분포
             </p>
           </div>
           <Link
@@ -494,7 +504,7 @@ export function Dongtan1Vs2ComparisonSection({
             <div
               key={b.bracketId}
               data-testid={`vs-price-bracket-${b.bracketId}`}
-              className="p-3.5 sm:p-4 rounded-xl bg-white dark:bg-[#202027] border border-slate-200/70 dark:border-slate-800/80"
+              className="p-3.5 sm:p-4 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c]"
             >
               <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
                 <span className="text-xs sm:text-sm font-extrabold text-primary">
@@ -574,7 +584,10 @@ export function Dongtan1Vs2ComparisonSection({
       </div>
 
       {/* 3. 1:1 Flagship Rival Complex Price Matchups */}
-      <div className="w-full p-5 sm:p-6 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]">
+      <div
+        id="dongtan-1-vs-2-matchup"
+        className="w-full pt-6 border-t border-[#f2f4f6] dark:border-[#202027] scroll-mt-24 md:scroll-mt-[96px]"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 mb-1">
@@ -584,8 +597,8 @@ export function Dongtan1Vs2ComparisonSection({
             <h3 className="text-base sm:text-lg font-extrabold text-primary">
               동탄1 vs 동탄2 상징 단지 집값 1:1 매치업
             </h3>
-            <p className="text-xs text-secondary mt-0.5">
-              각 신도시를 대표하는 랜드마크·시범·학군·공원 대장주의 실제 거래 가격과 연결된 비교 리포트를 확인하세요.
+            <p className="text-xs text-secondary mt-0.5 line-clamp-1">
+              권역별 대표 단지 실거래가·평당가 1:1 대조
             </p>
           </div>
         </div>
@@ -595,23 +608,39 @@ export function Dongtan1Vs2ComparisonSection({
             <div
               key={m.matchupId}
               data-testid={`rival-matchup-${m.matchupId}`}
-              className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#202027] border border-slate-200/70 dark:border-slate-800/80 flex flex-col justify-between gap-3.5"
+              className="p-4 sm:p-5 rounded-2xl bg-[#f9fafb] hover:bg-[#f2f4f6]/70 dark:bg-[#17171c] dark:hover:bg-[#202027]/80 transition-colors flex flex-col justify-between gap-3.5"
             >
               <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-secondary">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                  <span className={getVisualSignalPillClass({ tone: 'neutral', size: 'xs' })}>
                     {m.themeBadge}
                   </span>
-                  <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 tabular-nums">
-                    최근가 격차 {m.latestPriceGapEokText}
-                  </span>
+                  <div className="flex flex-wrap items-center justify-end gap-1.5 tabular-nums">
+                    <span
+                      className={`inline-flex items-center max-w-full px-1.5 py-0.5 rounded-md text-[11px] leading-tight font-extrabold tabular-nums ${
+                        m.pyeongPriceGapManwon >= 0
+                          ? 'bg-brand-blue-light text-brand-blue'
+                          : 'bg-[#f2f4f6] dark:bg-[#202027] text-secondary'
+                      }`}
+                    >
+                      평당 {m.pyeongPriceGapText}
+                    </span>
+                    <span className="inline-flex items-center max-w-full px-1.5 py-0.5 rounded-md text-[11px] leading-tight font-extrabold tabular-nums bg-[#f2f4f6] dark:bg-[#202027] text-secondary">
+                      최근가 {m.latestPriceGapEokText}
+                    </span>
+                  </div>
                 </div>
-                <h4 className="text-sm sm:text-base font-black text-primary leading-snug mb-1">
+                <h4 className="text-sm sm:text-[15px] font-black text-primary leading-snug mb-1">
                   {m.matchupTitle}
                 </h4>
-                <p className="text-xs text-secondary leading-relaxed mb-3">
+                <p className="text-xs text-secondary leading-snug line-clamp-1 mb-2">
                   {m.matchupDescription}
                 </p>
+                {m.hasMaterialAreaDiff && (
+                  <div className="text-[11px] font-bold text-tertiary tabular-nums mb-2.5">
+                    평균 면적차 {Math.abs(m.areaDiffM2)}㎡ · 평당가 기준 비교
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-2.5">
                   {/* Dongtan 1 Side */}
@@ -625,23 +654,28 @@ export function Dongtan1Vs2ComparisonSection({
                         `rival_${m.matchupId}_d1`
                       )
                     }
-                    className="group p-3 rounded-xl bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-slate-800/80 border border-emerald-500/20 transition-colors"
+                    className="group p-3.5 rounded-xl bg-white hover:bg-[#f2f4f6]/70 dark:bg-[#202027] dark:hover:bg-[#282832] transition-colors flex flex-col justify-between gap-1.5"
                   >
-                    <div className="flex items-center justify-between text-[10px] font-bold text-emerald-700 dark:text-emerald-300 mb-1 tabular-nums">
-                      <span>동탄1 · {m.dongtan1Complex.dong}</span>
-                      <span>
-                        {m.dongtan1Complex.builtYear}년 · {Math.round(m.dongtan1Complex.exclusiveAreaAvgM2)}㎡
+                    <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] font-bold tabular-nums">
+                      <span className="text-emerald-700 dark:text-emerald-300">
+                        동탄1 · {m.dongtan1Complex.dong}
+                      </span>
+                      <span className="text-secondary">
+                        평균 {Math.round(m.dongtan1Complex.exclusiveAreaAvgM2)}㎡ · {m.dongtan1Complex.builtYear}년
                       </span>
                     </div>
-                    <div className="text-xs font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate mb-1.5">
+                    <div className="text-[13.5px] sm:text-sm font-black text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-1">
                       {m.dongtan1Complex.name}
                     </div>
-                    <div className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
-                      {m.dongtan1Complex.latestPriceEokText}
+                    <div className="flex items-baseline gap-1.5 pt-0.5">
+                      <span className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums tracking-tight">
+                        {m.dongtan1Complex.latestPriceEokText}
+                      </span>
+                      <span className="text-[10.5px] font-semibold text-tertiary">최근가</span>
                     </div>
-                    <div className="text-[11px] text-tertiary font-medium tabular-nums mt-0.5">
-                      1년 평균 {m.dongtan1Complex.avgPriceEokText} · 평당{' '}
-                      {m.dongtan1Complex.pyeongPriceManwon.toLocaleString('ko-KR')}만
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] font-semibold text-secondary tabular-nums">
+                      <span>평당 {m.dongtan1Complex.pyeongPriceManwon.toLocaleString('ko-KR')}만원</span>
+                      <span className="text-tertiary">1년 평균 {m.dongtan1Complex.avgPriceEokText}</span>
                     </div>
                   </Link>
 
@@ -656,29 +690,34 @@ export function Dongtan1Vs2ComparisonSection({
                         `rival_${m.matchupId}_d2`
                       )
                     }
-                    className="group p-3 rounded-xl bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-slate-800/80 border border-blue-500/20 transition-colors"
+                    className="group p-3.5 rounded-xl bg-white hover:bg-[#f2f4f6]/70 dark:bg-[#202027] dark:hover:bg-[#282832] transition-colors flex flex-col justify-between gap-1.5"
                   >
-                    <div className="flex items-center justify-between text-[10px] font-bold text-blue-700 dark:text-blue-300 mb-1 tabular-nums">
-                      <span>동탄2 · {m.dongtan2Complex.dong}</span>
-                      <span>
-                        {m.dongtan2Complex.builtYear}년 · {Math.round(m.dongtan2Complex.exclusiveAreaAvgM2)}㎡
+                    <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] font-bold tabular-nums">
+                      <span className="text-blue-700 dark:text-blue-300">
+                        동탄2 · {m.dongtan2Complex.dong}
+                      </span>
+                      <span className="text-secondary">
+                        평균 {Math.round(m.dongtan2Complex.exclusiveAreaAvgM2)}㎡ · {m.dongtan2Complex.builtYear}년
                       </span>
                     </div>
-                    <div className="text-xs font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate mb-1.5">
+                    <div className="text-[13.5px] sm:text-sm font-black text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-1">
                       {m.dongtan2Complex.name}
                     </div>
-                    <div className="text-base sm:text-lg font-black text-blue-600 dark:text-blue-400 tabular-nums">
-                      {m.dongtan2Complex.latestPriceEokText}
+                    <div className="flex items-baseline gap-1.5 pt-0.5">
+                      <span className="text-lg sm:text-xl font-black text-blue-600 dark:text-blue-400 tabular-nums tracking-tight">
+                        {m.dongtan2Complex.latestPriceEokText}
+                      </span>
+                      <span className="text-[10.5px] font-semibold text-tertiary">최근가</span>
                     </div>
-                    <div className="text-[11px] text-tertiary font-medium tabular-nums mt-0.5">
-                      1년 평균 {m.dongtan2Complex.avgPriceEokText} · 평당{' '}
-                      {m.dongtan2Complex.pyeongPriceManwon.toLocaleString('ko-KR')}만
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] font-semibold text-secondary tabular-nums">
+                      <span>평당 {m.dongtan2Complex.pyeongPriceManwon.toLocaleString('ko-KR')}만원</span>
+                      <span className="text-tertiary">1년 평균 {m.dongtan2Complex.avgPriceEokText}</span>
                     </div>
                   </Link>
                 </div>
               </div>
 
-              <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+              <div className="pt-2.5 border-t border-[#f2f4f6] dark:border-[#202027] flex items-center justify-between gap-2">
                 <Link
                   href={`/guide/${m.relatedGuideSlug}`} prefetch={false}
                   onClick={() =>
@@ -688,7 +727,7 @@ export function Dongtan1Vs2ComparisonSection({
                       `rival_card_${m.matchupId}`
                     )
                   }
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline min-w-0"
                 >
                   <BookOpen className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate">{m.relatedGuideTitle}</span>
@@ -701,7 +740,7 @@ export function Dongtan1Vs2ComparisonSection({
       </div>
 
       {/* 4. Legal Dong House Price Ranking Table (동탄1 3개동 vs 동탄2 8개동 서열) */}
-      <div className="w-full p-5 sm:p-6 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]">
+      <div className="w-full pt-6 border-t border-[#f2f4f6] dark:border-[#202027]">
         <div className="mb-4">
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-secondary mb-1">
             <MapPin className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
@@ -710,8 +749,8 @@ export function Dongtan1Vs2ComparisonSection({
           <h3 className="text-base sm:text-lg font-extrabold text-primary">
             동탄1(3개 법정동) vs 동탄2(8개 법정동) 평균 집값 랭킹
           </h3>
-          <p className="text-xs text-secondary mt-0.5">
-            11개 법정동 전체의 1년 거래량 가중평균 집값과 최고가 대장 단지를 비교합니다.
+          <p className="text-xs text-secondary mt-0.5 line-clamp-1">
+            11개 법정동 1년 가중평균 · 최고가 단지
           </p>
         </div>
 
@@ -722,20 +761,19 @@ export function Dongtan1Vs2ComparisonSection({
               <div
                 key={d.dong}
                 data-testid={`dong-rank-card-${d.dong}`}
-                className="p-3.5 rounded-xl bg-white dark:bg-[#202027] border border-slate-200/70 dark:border-slate-800/80 flex flex-col justify-between gap-2"
+                className="p-3.5 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] flex flex-col justify-between gap-2"
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-black text-secondary flex items-center justify-center tabular-nums">
+                    <span className="w-5 h-5 rounded-md bg-white dark:bg-[#202027] text-[11px] font-black text-secondary flex items-center justify-center tabular-nums">
                       {idx + 1}
                     </span>
                     <span className="text-sm font-black text-primary">{d.dong}</span>
                     <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        isD1
-                          ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                          : 'bg-blue-500/10 text-blue-700 dark:text-blue-300'
-                      }`}
+                      className={getVisualSignalPillClass({
+                        tone: isD1 ? 'safe' : 'down',
+                        size: 'xs',
+                      })}
                     >
                       {d.regionId}
                     </span>
@@ -752,7 +790,7 @@ export function Dongtan1Vs2ComparisonSection({
                   </span>
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                <div className="pt-2 border-t border-[#f2f4f6] dark:border-[#202027] flex items-center justify-between text-[11px]">
                   <span className="text-tertiary font-medium">최고가 단지</span>
                   <Link
                     href={`/apartment/${encodeURIComponent(d.flagshipComplexSlug)}`} prefetch={false}
@@ -778,7 +816,7 @@ export function Dongtan1Vs2ComparisonSection({
       {/* 5. Bidirectional Traffic Engine: Comparison Guides Recirculation Deck */}
       <div
         data-testid="stats-to-guide-recirculation-deck"
-        className="w-full p-5 sm:p-6 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]"
+        className="w-full pt-6 border-t border-[#f2f4f6] dark:border-[#202027]"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div>
@@ -789,8 +827,8 @@ export function Dongtan1Vs2ComparisonSection({
             <h3 className="text-base sm:text-lg font-extrabold text-primary">
               집값 통계와 함께 읽으면 좋은 동탄 핵심 비교 분석글
             </h3>
-            <p className="text-xs text-secondary mt-0.5">
-              숫자 뒤에 숨은 학군·출퇴근·생활 인프라 차이를 비교 분석 아티클에서 자세히 확인해 보세요.
+            <p className="text-xs text-secondary mt-0.5 line-clamp-1">
+              학군·교통·생활권별 1:1 입지 비교 리포트
             </p>
           </div>
           <Link
@@ -814,14 +852,14 @@ export function Dongtan1Vs2ComparisonSection({
                 'recirculation_featured_card'
               )
             }
-            className="group block p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#202027] border-2 border-blue-500/30 hover:border-blue-600 transition-all mb-3.5"
+            className="group block p-4 sm:p-5 rounded-2xl bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] transition-colors mb-3.5"
           >
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-600 text-white">
+              <div className="flex flex-wrap items-center gap-2 min-w-0">
+                <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-600 text-white shrink-0">
                   {primaryGuide.badge}
                 </span>
-                <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 tabular-nums">
+                <span className="inline-block max-w-full rounded-md bg-brand-green-light px-2.5 py-1 text-[11px] font-extrabold text-brand-green tabular-nums">
                   {primaryGuide.highlightStatLabel}
                 </span>
               </div>
@@ -847,11 +885,11 @@ export function Dongtan1Vs2ComparisonSection({
               onClick={() =>
                 handleGuideBridgeClick(guide.slug, guide.title, 'recirculation_secondary_grid')
               }
-              className="group p-4 rounded-xl bg-white dark:bg-[#202027] border border-slate-200/70 dark:border-slate-800/80 hover:border-blue-500/40 transition-all flex flex-col justify-between gap-2.5"
+              className="group p-4 rounded-2xl bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] transition-colors flex flex-col justify-between gap-2.5"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-secondary">
+                  <span className={getVisualSignalPillClass({ tone: 'neutral', size: 'xs' })}>
                     {guide.badge}
                   </span>
                   <ArrowRight className="w-3.5 h-3.5 text-tertiary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
@@ -863,7 +901,7 @@ export function Dongtan1Vs2ComparisonSection({
                   {guide.summary}
                 </p>
               </div>
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] font-bold text-blue-600 dark:text-blue-400 tabular-nums truncate">
+              <div className="pt-2 border-t border-[#f2f4f6] dark:border-[#202027] text-[11px] font-bold text-blue-600 dark:text-blue-400 tabular-nums truncate">
                 {guide.highlightStatLabel}
               </div>
             </Link>

@@ -29,6 +29,9 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     description: `동탄 ${zone.name}(${combinedDongBadge}) 국토교통부 실거래 시세, 전세가율, 초·중·고 학군 및 입지 분석 리포트를 D-VIEW에서 확인하세요. ${zone.description}`,
     alternates: {
       canonical: `https://dongtanview.com/zone/${params.id}`,
+      types: {
+        'application/rss+xml': 'https://dongtanview.com/feed.xml',
+      },
     },
   };
 }

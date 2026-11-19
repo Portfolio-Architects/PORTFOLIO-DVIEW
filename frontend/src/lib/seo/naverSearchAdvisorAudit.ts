@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import type { MetadataRoute } from 'next';
 import robots from '@/app/robots';
+import { REQUIRED_ALLOWED_BOTS } from '@/lib/seo/robotsPolicy';
 import sitemap from '@/app/sitemap';
 import { buildDviewRssXml } from '@/app/feed.xml/route';
 import { isAdSenseApprovalMode } from '@/lib/services/apartmentPageService';
@@ -33,8 +34,20 @@ export interface NaverSearchAdvisorAuditInput {
   now?: Date;
   adsenseApprovalMode?: boolean;
   rootVerificationToken: string | null;
+  /** Number of naver-site-verification declarations emitted in root layout (must be 1, never duplicated). */
+  verificationTagCount?: number;
+  /** Optional list of public/naver*.html verification files present in frontend/public/. */
+  publicVerificationFiles?: string[];
   rssAutodiscovery: {
     rootLayout: boolean;
+    homePage?: boolean;
+    technovalley?: boolean;
+    explore?: boolean;
+    stats?: boolean;
+    about?: boolean;
+    contact?: boolean;
+    terms?: boolean;
+    privacy?: boolean;
     guideIndex: boolean;
     guideDetail: boolean;
   };
@@ -56,6 +69,7 @@ export interface NaverSearchAdvisorAuditReport {
   checks: NaverAuditCheckResult[];
   submissionManifest: {
     naverVerificationToken: string | null;
+    publicVerificationFiles?: string[];
     sitemapUrl: string;
     rssUrl: string;
     feedUrl: string;
@@ -65,16 +79,7 @@ export interface NaverSearchAdvisorAuditReport {
   };
 }
 
-const REQUIRED_SEARCH_AND_GEO_BOTS = [
-  'Yeti',
-  'Daumoa',
-  'Googlebot',
-  'GPTBot',
-  'ChatGPT-User',
-  'PerplexityBot',
-  'ClaudeBot',
-  'Google-Extended',
-] as const;
+const REQUIRED_SEARCH_AND_REVENUE_BOTS = REQUIRED_ALLOWED_BOTS;
 
 const PUBLIC_SEO_PREFIXES = [
   '/guide',
@@ -206,44 +211,65 @@ export function runNaverSearchAdvisorAudit(
     } else if (!/^[a-f0-9]{32,64}$/i.test(token)) {
       issues.push(`naver-site-verification 토큰 형식이 비정상입니다 (${token}).`);
     }
+    if (
+      typeof input.verificationTagCount === 'number' &&
+      input.verificationTagCount > 1
+    ) {
+      issues.push(
+        `layout.tsx에 naver-site-verification 메타 태그가 ${input.verificationTagCount}회 중복 선언되어 있습니다 (단일 metadata.other 선언으로 통합 필요).`
+      );
+    }
     checks.push({
       id: 'naver_site_verification',
       label: '네이버 서치어드바이저 소유권 메타 태그 검증',
       passed: issues.length === 0,
       summary:
         issues.length === 0
-          ? `naver-site-verification 토큰 확인 완료 (${token.slice(0, 8)}...${token.slice(-6)})`
+          ? `naver-site-verification 단일 토큰 확인 완료 (${token.slice(0, 8)}...${token.slice(-6)})`
           : issues[0],
       issues,
     });
   }
 
-  // 2. Robots.txt Yeti & AI Search (GEO) Crawler Rules
+  // 2. Robots.txt Revenue & Search Crawler Allowlist Rules (Googlebot, Mediapartners-Google, Yeti, Daumoa, Bingbot)
   {
     const issues: string[] = [];
     const rules = normalizeRuleArray(input.robotsConfig.rules);
-    const configuredAgents = new Set<string>();
+    const allowedAgents = new Set<string>();
+    const requiredBotSet = new Set<string>(REQUIRED_SEARCH_AND_REVENUE_BOTS);
 
     for (const rule of rules) {
-      for (const ua of normalizeRuleArray(rule.userAgent)) {
-        configuredAgents.add(ua);
-      }
+      const agents = normalizeRuleArray(rule.userAgent);
+      const allows = normalizeRuleArray(rule.allow).filter(Boolean);
       const disallows = normalizeRuleArray(rule.disallow).filter(Boolean);
-      for (const publicPrefix of PUBLIC_SEO_PREFIXES) {
-        const blocked = disallows.some((disallowPattern) =>
-          isPublicPrefixBlockedByDisallow(publicPrefix, disallowPattern)
-        );
-        if (blocked) {
-          issues.push(
-            `robots.ts에서 공개 색인 경로(${publicPrefix})가 차단되었습니다 (userAgent=${ JSON.stringify(rule.userAgent) }).`
+      const targetsRequiredBot = agents.some((ua) => requiredBotSet.has(ua));
+      const allowsRoot = allows.includes('/');
+
+      if (targetsRequiredBot && allowsRoot) {
+        for (const ua of agents) {
+          if (requiredBotSet.has(ua)) {
+            allowedAgents.add(ua);
+          }
+        }
+      }
+
+      if (targetsRequiredBot) {
+        for (const publicPrefix of PUBLIC_SEO_PREFIXES) {
+          const blocked = disallows.some((disallowPattern) =>
+            isPublicPrefixBlockedByDisallow(publicPrefix, disallowPattern)
           );
+          if (blocked) {
+            issues.push(
+              `robots.ts에서 공개 색인 경로(${publicPrefix})가 차단되었습니다 (userAgent=${JSON.stringify(rule.userAgent)}).`
+            );
+          }
         }
       }
     }
 
-    for (const bot of REQUIRED_SEARCH_AND_GEO_BOTS) {
-      if (!configuredAgents.has(bot)) {
-        issues.push(`robots.ts에 필수 검색·GEO 크롤러(${bot}) 명시 허용 규칙이 누락되었습니다.`);
+    for (const bot of REQUIRED_SEARCH_AND_REVENUE_BOTS) {
+      if (!allowedAgents.has(bot)) {
+        issues.push(`robots.ts에 필수 검색·수익 크롤러(${bot}) 명시 허용 규칙이 누락되었습니다.`);
       }
     }
 
@@ -258,11 +284,11 @@ export function runNaverSearchAdvisorAudit(
 
     checks.push({
       id: 'robots_yeti_and_geo_bots',
-      label: 'Yeti·Daumoa·Googlebot 및 AI 검색(GEO) 크롤러 수집 허용 검증',
+      label: 'Googlebot·Mediapartners-Google·Yeti·Daumoa·Bingbot 허용 및 비수익 봇 차단 검증',
       passed: issues.length === 0,
       summary:
         issues.length === 0
-          ? `필수 봇 ${REQUIRED_SEARCH_AND_GEO_BOTS.length}종 허용 및 Sitemap 단일 정규 선언 확인`
+          ? `필수 봇 ${REQUIRED_SEARCH_AND_REVENUE_BOTS.length}종 허용 및 Sitemap 단일 정규 선언 확인`
           : issues[0],
       issues,
     });
@@ -355,6 +381,30 @@ export function runNaverSearchAdvisorAudit(
     if (!input.rssAutodiscovery.rootLayout) {
       issues.push('루트 layout.tsx에 application/rss+xml 자동 발견 메타데이터가 누락되었습니다.');
     }
+    if (input.rssAutodiscovery.homePage === false) {
+      issues.push('홈페이지 src/app/page.tsx의 alternates에 application/rss+xml이 누락되어 layout.tsx RSS 링크가 덮어쓰여졌습니다.');
+    }
+    if (input.rssAutodiscovery.technovalley === false) {
+      issues.push('/technovalley 메타데이터(buildTechnoValleySeoMetadata)에 application/rss+xml 자동 발견 링크가 누락되었습니다.');
+    }
+    if (input.rssAutodiscovery.explore === false) {
+      issues.push('/explore/page.tsx에 application/rss+xml 자동 발견 링크가 누락되었습니다.');
+    }
+    if (input.rssAutodiscovery.stats === false) {
+      issues.push('/stats/page.tsx에 application/rss+xml 자동 발견 링크가 누락되었습니다.');
+    }
+    if (input.rssAutodiscovery.about === false) {
+      issues.push('/about/page.tsx에 application/rss+xml 자동 발견 링크가 누락되었습니다.');
+    }
+    if (input.rssAutodiscovery.contact === false) {
+      issues.push('/contact/page.tsx에 application/rss+xml 자동 발견 링크가 누락되었습니다.');
+    }
+    if (input.rssAutodiscovery.terms === false) {
+      issues.push('/terms/page.tsx에 application/rss+xml 자동 발견 링크가 누락되었습니다.');
+    }
+    if (input.rssAutodiscovery.privacy === false) {
+      issues.push('/privacy/page.tsx에 application/rss+xml 자동 발견 링크가 누락되었습니다.');
+    }
     if (!input.rssAutodiscovery.guideIndex) {
       issues.push('/guide/page.tsx에 application/rss+xml 자동 발견 메타데이터가 누락되었습니다.');
     }
@@ -368,7 +418,7 @@ export function runNaverSearchAdvisorAudit(
       passed: issues.length === 0,
       summary:
         issues.length === 0
-          ? '루트 레이아웃 · 가이드 허브 · 가이드 상세 3개 계층 RSS 자동 발견 연결 완료'
+          ? '루트·홈(/)·테크노밸리·탐색·통계·가이드·안내(about/contact/terms/privacy) 전 계층 RSS 자동 발견 연결 완료'
           : issues[0],
       issues,
     });
@@ -477,6 +527,9 @@ export function runNaverSearchAdvisorAudit(
     checks,
     submissionManifest: {
       naverVerificationToken: input.rootVerificationToken,
+      ...(input.publicVerificationFiles && input.publicVerificationFiles.length > 0
+        ? { publicVerificationFiles: input.publicVerificationFiles }
+        : {}),
       sitemapUrl: `${baseUrl}/sitemap.xml`,
       rssUrl: `${baseUrl}/rss.xml`,
       feedUrl: `${baseUrl}/feed.xml`,
@@ -509,14 +562,44 @@ export async function collectAndAuditNaverSeoReadiness(
       : frontendRoot;
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com').replace(/\/+$/, '');
   const layoutSource = readSourceSafe(path.resolve(resolvedFrontendRoot, 'src/app/layout.tsx'));
+  const homePageSource = readSourceSafe(path.resolve(resolvedFrontendRoot, 'src/app/page.tsx'));
+  const explorePageSource = readSourceSafe(path.resolve(resolvedFrontendRoot, 'src/app/explore/page.tsx'));
+  const statsPageSource = readSourceSafe(path.resolve(resolvedFrontendRoot, 'src/app/stats/page.tsx'));
+  const aboutPageSource = readSourceSafe(path.resolve(resolvedFrontendRoot, 'src/app/about/page.tsx'));
+  const contactPageSource = readSourceSafe(path.resolve(resolvedFrontendRoot, 'src/app/contact/page.tsx'));
+  const termsPageSource = readSourceSafe(path.resolve(resolvedFrontendRoot, 'src/app/terms/page.tsx'));
+  const privacyPageSource = readSourceSafe(path.resolve(resolvedFrontendRoot, 'src/app/privacy/page.tsx'));
   const guideIndexSource = readSourceSafe(path.resolve(resolvedFrontendRoot, 'src/app/guide/page.tsx'));
   const guideDetailSource = readSourceSafe(path.resolve(resolvedFrontendRoot, 'src/app/guide/[slug]/page.tsx'));
+  const aptPageServiceSource = readSourceSafe(
+    path.resolve(resolvedFrontendRoot, 'src/lib/services/apartmentPageService.ts')
+  );
+
+  let publicVerificationFiles: string[] = [];
+  try {
+    const publicDir = path.resolve(resolvedFrontendRoot, 'public');
+    if (fs.existsSync(publicDir)) {
+      publicVerificationFiles = fs
+        .readdirSync(publicDir)
+        .filter((f) => /^naver[a-f0-9]+\.html$/i.test(f))
+        .sort();
+    }
+  } catch {
+    publicVerificationFiles = [];
+  }
 
   const tokenMatch = layoutSource.match(/['"]naver-site-verification['"]\s*:\s*['"]([^'"]+)['"]/);
   const rootVerificationToken = tokenMatch?.[1] || null;
+  const verificationTagCount = (
+    layoutSource.match(/naver-site-verification/g) || []
+  ).length;
 
   const hasRssAutodiscovery = (src: string) =>
     src.includes("'application/rss+xml'") || src.includes('"application/rss+xml"');
+
+  const technoValleyMetaStart = aptPageServiceSource.indexOf('export function buildTechnoValleySeoMetadata');
+  const technoValleyMetaChunk =
+    technoValleyMetaStart >= 0 ? aptPageServiceSource.slice(technoValleyMetaStart) : '';
 
   const robotsConfig = robots();
   const sitemapEntries = await sitemap({ id: 0 });
@@ -534,8 +617,18 @@ export async function collectAndAuditNaverSeoReadiness(
     baseUrl,
     now,
     rootVerificationToken,
+    verificationTagCount,
+    publicVerificationFiles,
     rssAutodiscovery: {
       rootLayout: hasRssAutodiscovery(layoutSource),
+      homePage: hasRssAutodiscovery(homePageSource),
+      technovalley: hasRssAutodiscovery(technoValleyMetaChunk),
+      explore: hasRssAutodiscovery(explorePageSource),
+      stats: hasRssAutodiscovery(statsPageSource),
+      about: hasRssAutodiscovery(aboutPageSource),
+      contact: hasRssAutodiscovery(contactPageSource),
+      terms: hasRssAutodiscovery(termsPageSource),
+      privacy: hasRssAutodiscovery(privacyPageSource),
       guideIndex: hasRssAutodiscovery(guideIndexSource),
       guideDetail: hasRssAutodiscovery(guideDetailSource),
     },

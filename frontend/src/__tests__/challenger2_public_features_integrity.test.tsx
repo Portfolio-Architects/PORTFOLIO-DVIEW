@@ -438,7 +438,7 @@ describe('Challenger 2: Core Public Feature Integrity & Zero-Auth Verification',
       );
 
       expect(screen.getByText('동탄역 롯데캐슬')).toBeInTheDocument();
-      expect(screen.getByText('16억5,000')).toBeInTheDocument();
+      expect(screen.getByText('16억 5,000만')).toBeInTheDocument();
       expect(screen.getByText(/오산동/)).toBeInTheDocument();
     });
 

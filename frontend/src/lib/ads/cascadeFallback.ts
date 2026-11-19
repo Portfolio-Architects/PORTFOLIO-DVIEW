@@ -1,5 +1,8 @@
 import { z } from 'zod';
-import { isAdminTrackingExcludedClient } from '@/lib/utils/adminExclusion';
+import {
+  isAdminTrackingExcludedClient,
+  isGaDisableFlagActive,
+} from '@/lib/utils/adminExclusion';
 import {
   normalizeGa4DataLayerBootstrapOrder,
   schedulePreConfigDataLayerNormalization,
@@ -733,7 +736,7 @@ function normalizeGa4ParamString(
  * `_next-ga-init` defining `window.gtag`, automatically normalizing `js -> config -> event*` order.
  */
 export function dispatchGa4AdTelemetry(eventInput: ClosedLoopTelemetryInput): boolean {
-  if (typeof window === 'undefined' || isAdminTrackingExcluded()) {
+  if (typeof window === 'undefined' || isAdminTrackingExcluded() || isGaDisableFlagActive()) {
     return false;
   }
 

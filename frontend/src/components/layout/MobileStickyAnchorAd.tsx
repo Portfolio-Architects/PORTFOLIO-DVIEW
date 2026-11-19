@@ -180,7 +180,7 @@ export function MobileStickyAnchorAd({
       } ${className}`.trim()}
     >
       <div
-        className={`relative mx-auto w-full max-w-[480px] min-h-[50px] sm:min-h-[90px] rounded-xl bg-elevated dark:bg-slate-900 shadow-lg flex flex-col justify-center overflow-hidden ${
+        className={`relative mx-auto w-full max-w-[480px] h-[56px] min-h-[56px] max-h-[56px] sm:h-[90px] sm:min-h-[90px] sm:max-h-[90px] rounded-xl bg-elevated dark:bg-slate-900 shadow-lg flex flex-col justify-center overflow-hidden ${
           isKeyboardOpen ? 'pointer-events-none' : 'pointer-events-auto'
         }`}
       >
@@ -196,7 +196,7 @@ export function MobileStickyAnchorAd({
         <AdSlot
           format="horizontal-strip"
           refreshSlotId={refreshSlotId}
-          minHeightClass="min-h-[50px] sm:min-h-[90px]"
+          minHeightClass="h-[56px] min-h-[56px] max-h-[56px] sm:h-[90px] sm:min-h-[90px] sm:max-h-[90px]"
           fallbackType="cpa"
           className="w-full"
         />

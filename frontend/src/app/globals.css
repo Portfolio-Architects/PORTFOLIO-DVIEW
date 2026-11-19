@@ -139,6 +139,16 @@
   --font-mono: var(--font-pretendard), "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }
 
+html {
+  scroll-padding-top: 64px;
+}
+
+@media (min-width: 768px) {
+  html {
+    scroll-padding-top: 96px;
+  }
+}
+
 body {
   background-color: var(--bg-body);
   color: var(--text-primary);
@@ -779,4 +789,501 @@ body.is-scrolling [class*="backdrop-blur"] {
 }
 .animate-emoji-pop {
   animation: emoji-pop 0.55s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@layer components {
+  /* Lucide SVG <use> sprite icon baseline */
+  .d-ic {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+
+  /* Compact /explore SSR semantic catalog table (eliminates ~140KB repeated <td> Tailwind strings) */
+  .dview-explore-tbl tbody tr {
+    transition: background-color 150ms ease;
+  }
+  .dview-explore-tbl tbody tr:hover {
+    background-color: rgba(241, 245, 249, 0.7);
+  }
+  .dark .dview-explore-tbl tbody tr:hover {
+    background-color: rgba(44, 44, 53, 0.5);
+  }
+  .dview-explore-tbl tbody td {
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+  }
+  .dview-explore-tbl tbody td:first-child:not([colspan]) {
+    padding-left: 0;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .dview-explore-tbl tbody td:first-child:not([colspan]) a {
+    text-decoration: underline;
+    text-decoration-color: #cbd5e1;
+    text-underline-offset: 2px;
+  }
+  .dark .dview-explore-tbl tbody td:first-child:not([colspan]) a {
+    text-decoration-color: #334155;
+  }
+  .dview-explore-tbl tbody td:first-child:not([colspan]) a:hover {
+    color: #2563eb;
+  }
+  .dark .dview-explore-tbl tbody td:first-child:not([colspan]) a:hover {
+    color: #60a5fa;
+  }
+  .dview-explore-tbl tbody td:nth-child(n+3) {
+    text-align: right;
+  }
+  .dview-explore-tbl tbody td:nth-child(5) {
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .dview-explore-tbl tbody td:last-child:not([colspan]) {
+    padding-right: 0;
+    color: #94a3b8;
+  }
+  .dark .dview-explore-tbl tbody td:last-child:not([colspan]) {
+    color: #64748b;
+  }
+  .dview-explore-tbl tbody td:last-child:not([colspan])[data-ratio="1"] {
+    font-weight: 600;
+    color: #047857;
+  }
+  .dark .dview-explore-tbl tbody td:last-child:not([colspan])[data-ratio="1"] {
+    color: #34d399;
+  }
+
+  /* Compact GuideAptPreviewCard classes (preserves exact Slate/Emerald/Blue Ad Money v5.1 styling; bg-* utilities live on element so cascade layer never breaks dark/hover) */
+  .dview-gcard {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-radius: 1rem;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    padding: 1rem;
+    text-decoration: none;
+    transition: all 200ms ease;
+    box-shadow: var(--shadow-xs);
+  }
+  .dview-gcard:hover {
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: var(--shadow-sm);
+  }
+  .dark .dview-gcard {
+    border-color: #1e293b;
+  }
+  .dark .dview-gcard:hover {
+    border-color: rgba(16, 185, 129, 0.4);
+  }
+  .dview-gcard-dong {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 11px;
+    font-weight: 800;
+    color: #047857;
+    background-color: #ecfdf5;
+    border: 1px solid rgba(167, 243, 208, 0.8);
+    padding: 0.125rem 0.625rem;
+    border-radius: 0.5rem;
+  }
+  .dark .dview-gcard-dong {
+    color: #34d399;
+    background-color: rgba(2, 44, 34, 0.5);
+    border-color: rgba(6, 95, 70, 0.6);
+  }
+  .dview-gcard-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #047857;
+    background-color: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.375rem;
+  }
+  .dark .dview-gcard-flag {
+    color: #6ee7b7;
+  }
+  .dview-gcard-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1d4ed8;
+    background-color: #eff6ff;
+    border: 1px solid rgba(191, 219, 254, 0.7);
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.375rem;
+  }
+  .dark .dview-gcard-live {
+    color: #60a5fa;
+    background-color: rgba(23, 37, 84, 0.4);
+    border-color: rgba(30, 64, 175, 0.5);
+  }
+  .dview-gcard-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.75rem;
+    background-color: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #047857;
+    flex-shrink: 0;
+    transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+  }
+  .dark .dview-gcard-arrow {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+  }
+  .dview-gcard:hover .dview-gcard-arrow {
+    background-color: #059669;
+    border-color: #059669;
+    color: #ffffff;
+  }
+  .dview-gcard-m {
+    border-radius: 0.75rem;
+    background-color: #ffffff;
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    padding: 0.5rem 0.75rem;
+  }
+  .dark .dview-gcard-m {
+    background-color: rgba(15, 23, 42, 0.9);
+    border-color: rgba(30, 41, 59, 0.7);
+  }
+  .dview-gcard-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 0.5rem;
+    background-color: #059669;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    flex-shrink: 0;
+    transition: background-color 150ms ease;
+  }
+  .dview-gcard:hover .dview-gcard-cta {
+    background-color: #047857;
+  }
+  .dview-gcard-ret {
+    border-radius: 0.75rem;
+    background-color: #f9fafb;
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  .dark .dview-gcard-ret {
+    background-color: #17171c;
+  }
+  .dview-gcard-t {
+    font-size: 15px;
+    font-weight: 900;
+    color: #0f172a;
+    line-height: 1.375;
+    word-break: keep-all;
+    transition: color 150ms ease;
+  }
+  @media (min-width: 640px) {
+    .dview-gcard-t {
+      font-size: 1rem;
+    }
+  }
+  .dark .dview-gcard-t {
+    color: #f8fafc;
+  }
+  .dview-gcard:hover .dview-gcard-t {
+    color: #059669;
+  }
+  .dark .dview-gcard:hover .dview-gcard-t {
+    color: #34d399;
+  }
+  .dview-gcard-sub {
+    margin-left: 0.375rem;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #64748b;
+  }
+  .dark .dview-gcard-sub {
+    color: #94a3b8;
+  }
+  .dview-gcard-dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.625rem;
+    padding-top: 0.625rem;
+    border-top: 1px solid rgba(226, 232, 240, 0.7);
+    font-size: 0.75rem;
+  }
+  .dark .dview-gcard-dl {
+    border-top-color: rgba(30, 41, 59, 0.8);
+  }
+  .dview-gcard-k {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 600;
+  }
+  .dark .dview-gcard-k {
+    color: #94a3b8;
+  }
+  .dview-gcard-v1,
+  .dview-gcard-v2 {
+    margin-top: 0.125rem;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  @media (min-width: 640px) {
+    .dview-gcard-v1,
+    .dview-gcard-v2 {
+      font-size: 15px;
+    }
+  }
+  .dview-gcard-v1 {
+    font-weight: 900;
+    color: #047857;
+  }
+  .dark .dview-gcard-v1 {
+    color: #34d399;
+  }
+  .dview-gcard-v2 {
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .dark .dview-gcard-v2 {
+    color: #f1f5f9;
+  }
+  .dview-gcard-v3 {
+    margin-top: 0.125rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: #1e293b;
+  }
+  .dark .dview-gcard-v3 {
+    color: #e2e8f0;
+  }
+  .dview-gcard-ft {
+    margin-top: 0.75rem;
+    padding-top: 0.625rem;
+    border-top: 1px solid rgba(226, 232, 240, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 11px;
+  }
+  .dark .dview-gcard-ft {
+    border-top-color: rgba(30, 41, 59, 0.7);
+  }
+  .dview-gcard-dt {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #64748b;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dark .dview-gcard-dt {
+    color: #94a3b8;
+  }
+
+  /* Compact QuickNonLoginRetentionAction button classes (25x/guide page) */
+  .dview-ret-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+    cursor: pointer;
+  }
+  .dview-ret-xs {
+    height: 1.75rem;
+    padding: 0 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 11px;
+    gap: 0.25rem;
+  }
+  @media (min-width: 640px) {
+    .dview-ret-xs {
+      padding: 0 0.625rem;
+    }
+  }
+  .dview-ret-sm {
+    min-height: 36px;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.75rem;
+    font-size: 11.5px;
+    gap: 0.375rem;
+  }
+  @media (min-width: 640px) {
+    .dview-ret-sm {
+      font-size: 0.75rem;
+    }
+  }
+  .dview-ret-fav {
+    background-color: var(--bg-surface);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    color: var(--text-primary);
+  }
+  .dview-ret-fav:hover {
+    background-color: #eff6ff;
+    color: #2563eb;
+  }
+  .dark .dview-ret-fav {
+    background-color: #202027;
+    border-color: #334155;
+  }
+  .dark .dview-ret-fav:hover {
+    background-color: rgba(23, 37, 84, 0.4);
+    color: #60a5fa;
+  }
+  .dview-ret-fav-on {
+    background-color: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #047857;
+  }
+  .dview-ret-fav-on:hover {
+    background-color: #d1fae5;
+  }
+  .dark .dview-ret-fav-on {
+    background-color: rgba(2, 44, 34, 0.5);
+    border-color: rgba(6, 95, 70, 0.6);
+    color: #6ee7b7;
+  }
+  .dark .dview-ret-fav-on:hover {
+    background-color: rgba(6, 78, 59, 0.6);
+  }
+  .dview-ret-7am {
+    background-color: #2563eb;
+    color: #ffffff;
+    border: 1px solid transparent;
+    font-variant-numeric: tabular-nums;
+  }
+  .dview-ret-7am:hover {
+    background-color: #1d4ed8;
+  }
+  .dview-ret-7am-on {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  }
+
+  /* Compact Guide inline links, shortcut pills & recommendation cards */
+  .dview-g-ilink {
+    font-weight: 800;
+    color: #047857;
+    text-decoration: underline;
+    text-decoration-color: rgba(16, 185, 129, 0.4);
+    text-underline-offset: 4px;
+    transition: color 150ms ease;
+  }
+  .dview-g-ilink:hover {
+    color: #059669;
+  }
+  .dark .dview-g-ilink {
+    color: #34d399;
+  }
+  .dview-g-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.75rem;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    transition: border-color 150ms ease;
+  }
+  .dview-g-pill:hover {
+    border-color: rgba(16, 185, 129, 0.6);
+  }
+  .dark .dview-g-pill {
+    background-color: rgba(30, 41, 59, 0.9);
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+  .dview-g-rcard {
+    background-color: var(--bg-surface);
+    border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: border-color 200ms ease, box-shadow 200ms ease;
+  }
+  .dview-g-rcard:hover {
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Compact apartment SSR peer cards & tables */
+  .dview-apt-peer {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.625rem;
+    transition: border-color 150ms ease;
+  }
+  .dview-apt-peer:hover {
+    border-color: #6ee7b7;
+  }
+  .dark .dview-apt-peer {
+    background-color: rgba(30, 41, 59, 0.6);
+    border-color: rgba(51, 65, 85, 0.6);
+  }
+  .dark .dview-apt-peer:hover {
+    border-color: #047857;
+  }
+  .dview-apt-tbl tbody td,
+  .dview-apt-tbl tbody th {
+    padding: 0.5rem 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .dview-apt-tbl tbody th {
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .dview-apt-pyeong-tbl tbody td,
+  .dview-apt-pyeong-tbl tbody th {
+    padding: 0.875rem;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .dview-apt-pyeong-tbl tbody tr {
+    transition: background-color 150ms ease;
+  }
+  .dview-apt-pyeong-tbl tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+  .dark .dview-apt-pyeong-tbl tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+  }
 }

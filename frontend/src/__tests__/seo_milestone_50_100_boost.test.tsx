@@ -116,7 +116,7 @@ describe('GSC 50·100 Clicks Milestone SEO Enhancement Verification Suite', () =
       expect(nonZeroSitemap).toEqual([]);
 
       const entries = await sitemap({ id: 0 });
-      expect(entries).toHaveLength(181);
+      expect(entries).toHaveLength(183);
 
       const txSummary = await getTxSummaryData();
       const richeSummary = txSummary['동탄역시범리슈빌아파트'];
@@ -290,7 +290,7 @@ describe('GSC 50·100 Clicks Milestone SEO Enhancement Verification Suite', () =
       expect(parsedLd.isPartOf).toEqual({ '@id': 'https://dongtanview.com/#website' });
       expect(parsedLd.breadcrumb?.['@type']).toBe('BreadcrumbList');
       expect(parsedLd.breadcrumb?.itemListElement).toHaveLength(2);
-      expect(parsedLd.hasPart).toHaveLength(23);
+      expect(parsedLd.hasPart).toHaveLength(25);
       unmount();
     });
   });
@@ -396,7 +396,7 @@ describe('GSC 50·100 Clicks Milestone SEO Enhancement Verification Suite', () =
           clusteredSlugs.add(gSlug);
         }
       }
-      expect(clusteredSlugs.size).toBe(23);
+      expect(clusteredSlugs.size).toBe(25);
 
       for (const article of GUIDE_ARTICLES) {
         expect(article.topicClusterId).toBeDefined();

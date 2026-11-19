@@ -3,7 +3,11 @@
 import * as analyticsSelf from './analytics';
 import { sendGAEvent } from '@next/third-parties/google';
 import { logger } from '@/lib/services/logger';
-import { applyGaDisableFlag, isAdminTrackingExcludedClient } from '@/lib/utils/adminExclusion';
+import {
+  applyGaDisableFlag,
+  isAdminTrackingExcludedClient,
+  isGaDisableFlagActive,
+} from '@/lib/utils/adminExclusion';
 import {
   resolveCanonicalAptSlug,
   stripApartmentNoiseQueryParams,
@@ -417,7 +421,11 @@ export function trackEvent(eventName: string, params?: Record<string, unknown>) 
   }
 
   // Send to GA4 via @next/third-parties/google (gtag.js 3-arg tuple: 'event', eventName, params)
-  if (process.env.NEXT_PUBLIC_GA_ID && process.env.NODE_ENV === 'production') {
+  if (
+    process.env.NEXT_PUBLIC_GA_ID &&
+    process.env.NODE_ENV === 'production' &&
+    !isGaDisableFlagActive()
+  ) {
     const sanitizedParams = sanitizeEventParams(effectiveParams);
     try {
       window.dataLayer = window.dataLayer || [];
@@ -717,8 +725,9 @@ export function trackVirtualPageView(
   const now = Date.now();
   const cleanExtraParams = sanitizeEventParams(params);
   const excluded = isAdminTrackingExcludedClient();
+  const gaDisabled = isGaDisableFlagActive();
 
-  if (!excluded) {
+  if (!excluded && !gaDisabled) {
     trackEvent('page_view', {
       ...cleanExtraParams,
       page_path: safePath,
@@ -726,13 +735,13 @@ export function trackVirtualPageView(
       virtual_pv: 1,
       adsense_virtual_pv: 1,
     });
-  } else {
+  } else if (excluded) {
     applyGaDisableFlag(true);
   }
 
   const entry: VirtualPageViewEntry = {
     path: safePath,
-    gaEventDispatched: !excluded,
+    gaEventDispatched: !excluded && !gaDisabled,
     adsenseVirtualPvDispatched: excluded ? 0 : 1,
     timestamp: now,
     params,

@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import {
   DONGTAN_1_LEGAL_DONGS,
   DONGTAN_2_LEGAL_DONGS,
@@ -26,6 +26,7 @@ import type { ApartmentStatRecord } from '@/lib/stats/types';
 import { Dongtan1Vs2ComparisonSection } from '@/components/stats/Dongtan1Vs2ComparisonSection';
 import { GuideStatsComparisonBridge } from '@/components/guide/GuideStatsComparisonBridge';
 import { StatsPageClient } from '@/app/stats/StatsPageClient';
+import { checkCopyBudget, normalizeMicroCopy, splitGraphemes } from '@/lib/design-system/copyDiet';
 import * as analytics from '@/lib/utils/analytics';
 
 const mockPush = jest.fn();
@@ -408,6 +409,130 @@ describe('Dongtan 1 vs Dongtan 2 House Price Comparison & Bidirectional Guide Br
 
       const issue1TopicBtn = screen.getByText('Issue #1').closest('button');
       expect(issue1TopicBtn).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    test('R3/F6 UX invariants: sticky scroll-mt clearance, no duplicate complex names, pyeongPriceGapText, area-diff cue, Copy Diet, and borderless soft surfaces', () => {
+      const data = getDongtan1Vs2ComparisonData('all');
+      const { container } = render(<Dongtan1Vs2ComparisonSection initialData={data} />);
+
+      // S3-01: Sticky header clearance on section & matchup anchor
+      const rootSection = container.querySelector('#dongtan-1-vs-2-comparison');
+      const matchupAnchor = container.querySelector('#dongtan-1-vs-2-matchup');
+      expect(rootSection?.className).toContain('scroll-mt-24');
+      expect(rootSection?.className).toContain('md:scroll-mt-[96px]');
+      expect(matchupAnchor?.className).toContain('scroll-mt-24');
+      expect(matchupAnchor?.className).toContain('md:scroll-mt-[96px]');
+
+      // S3-02: Matchup subtitle passes Copy Diet & zero verbose endings
+      const matchupSubtitle = matchupAnchor?.querySelector('p')?.textContent?.trim() ?? '';
+      const budgetResult = checkCopyBudget(matchupSubtitle, 'sectionSubtitle');
+      expect(budgetResult.withinBudget).toBe(true);
+      expect(budgetResult.hasVerboseEnding).toBe(false);
+
+      // S3-02, S3-03, S3-04: Matchup cards avoid duplicate names, surface pyeongPriceGapText & ㎡, and drop nested emerald/blue borders
+      data.rivalMatchups.forEach((m) => {
+        const card = screen.getByTestId(`rival-matchup-${m.matchupId}`);
+        expect(card.className).toContain('bg-[#f9fafb]');
+        expect(card.className).not.toContain('border-slate-');
+        expect(card.innerHTML).not.toContain('border-emerald-500/20');
+        expect(card.innerHTML).not.toContain('border-blue-500/20');
+
+        const text = card.textContent ?? '';
+        // Complex name appears ONCE (in subcard, NOT duplicated in <h4>)
+        const d1Occurrences = text.split(m.dongtan1Complex.name).length - 1;
+        const d2Occurrences = text.split(m.dongtan2Complex.name).length - 1;
+        expect(d1Occurrences).toBe(1);
+        expect(d2Occurrences).toBe(1);
+
+        // Dual unit-normalized gap pills + area visibility
+        expect(text).toContain(`평당 ${m.pyeongPriceGapText}`);
+        expect(text).toContain(`최근가 ${m.latestPriceGapEokText}`);
+        expect(text).toContain(`${Math.round(m.dongtan1Complex.exclusiveAreaAvgM2)}㎡`);
+        expect(text).toContain(`${Math.round(m.dongtan2Complex.exclusiveAreaAvgM2)}㎡`);
+
+        if (m.hasMaterialAreaDiff) {
+          expect(text).toContain(`평균 면적차 ${Math.abs(m.areaDiffM2)}㎡`);
+        }
+      });
+
+      // M2-R2 Copy Diet & Mobile Pill Wrapping invariants
+      expect(checkCopyBudget(data.comparisonGuides[0].summary, 'cardDescription').withinBudget).toBe(true);
+      const smallPayload = getDongtan1Vs2ComparisonData('small');
+      expect(checkCopyBudget(smallPayload.delta.headlineAnswer, 'inlineNotice').withinBudget).toBe(true);
+
+      const d1CardDesc = screen.getByTestId('vs-region-card-dongtan1').querySelector('p')?.textContent ?? '';
+      const d2CardDesc = screen.getByTestId('vs-region-card-dongtan2').querySelector('p')?.textContent ?? '';
+      expect(checkCopyBudget(d1CardDesc, 'cardDescription').withinBudget).toBe(true);
+      expect(checkCopyBudget(d2CardDesc, 'cardDescription').withinBudget).toBe(true);
+
+      const realTxPill = screen.getByText('100% 실거래');
+      expect(checkCopyBudget(realTxPill.textContent ?? '', 'signalBadge').withinBudget).toBe(true);
+
+      const primaryGuideCard = screen.getByTestId(`comparison-guide-card-${data.comparisonGuides[0].slug}`);
+      const primaryStatBadge = within(primaryGuideCard).getByText(data.comparisonGuides[0].highlightStatLabel);
+      expect(primaryStatBadge.className).not.toContain('whitespace-nowrap');
+
+      // Every span.whitespace-nowrap pill inside Dongtan1Vs2ComparisonSection must be <= 10 graphemes
+      const comparisonSection = screen.getByTestId('dongtan-1-vs-2-comparison-section');
+      const nowrapSpanPills = Array.from(comparisonSection.querySelectorAll('span.whitespace-nowrap'));
+      expect(nowrapSpanPills.length).toBeGreaterThan(0);
+      nowrapSpanPills.forEach((pill) => {
+        const normalized = normalizeMicroCopy(pill.textContent ?? '');
+        expect(splitGraphemes(normalized).length).toBeLessThanOrEqual(10);
+      });
+    });
+
+    test('StatsTopicUrlSync defers scroll until after React commits thematic mount, popstate navigation, and VS relocation', () => {
+      const scrolledSnapshots: Array<{ id: string; inDom: boolean; precedingStationSummary: boolean }> = [];
+      const origScrollIntoView = Element.prototype.scrollIntoView;
+
+      Element.prototype.scrollIntoView = function mockScrollIntoView() {
+        const el = this as HTMLElement;
+        const stationNode = document.querySelector(
+          'section[aria-label="역세권 프리미엄 및 핵심 지표 요약"]'
+        );
+        const precedesStation = Boolean(
+          stationNode &&
+            (el.compareDocumentPosition(stationNode) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
+        );
+        scrolledSnapshots.push({
+          id: el.id,
+          inDom: document.body.contains(el),
+          precedingStationSummary: stationNode ? precedesStation : true,
+        });
+      };
+
+      try {
+        // 1) Deep-link mount to thematic topic (?topic=school-district-premium)
+        currentMockSearchParams = new URLSearchParams('topic=school-district-premium');
+        const { unmount } = render(<StatsPageClient />);
+        expect(screen.getByTestId('school-district-premium-section')).toBeInTheDocument();
+        expect(scrolledSnapshots).toEqual([
+          { id: 'school-district-premium', inDom: true, precedingStationSummary: true },
+        ]);
+
+        // 2) popstate navigation to another thematic topic (?topic=lake-park-view-premium)
+        scrolledSnapshots.length = 0;
+        const origHref = window.location.href;
+        window.history.pushState({}, '', '/stats?topic=lake-park-view-premium');
+        fireEvent(window, new PopStateEvent('popstate'));
+        expect(screen.getByTestId('lake-park-view-premium-section')).toBeInTheDocument();
+        expect(scrolledSnapshots).toEqual([
+          { id: 'lake-park-view-premium', inDom: true, precedingStationSummary: true },
+        ]);
+        window.history.replaceState({}, '', origHref);
+        unmount();
+
+        // 3) Deep-link mount to VS comparison (?topic=dongtan-1-vs-2-comparison) scrolls AFTER relocation to top
+        scrolledSnapshots.length = 0;
+        currentMockSearchParams = new URLSearchParams('topic=dongtan-1-vs-2-comparison');
+        render(<StatsPageClient />);
+        expect(scrolledSnapshots).toEqual([
+          { id: 'dongtan-1-vs-2-comparison', inDom: true, precedingStationSummary: true },
+        ]);
+      } finally {
+        Element.prototype.scrollIntoView = origScrollIntoView;
+      }
     });
   });
 });

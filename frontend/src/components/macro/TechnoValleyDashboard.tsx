@@ -1414,17 +1414,20 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard({
           </div>
 
           {/* Line Chart Area */}
-          <div className="flex-1 w-full relative min-h-[330px] h-[320px]">
+          <div className="flex-1 w-full relative min-h-[330px] h-[330px] overflow-hidden">
             {(isTrendLoading || isTrendValidating) && (
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-surface/50 backdrop-blur-[2px] transition-all duration-300 rounded-xl">
+              <div
+                key="trend-loading-overlay"
+                className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-surface/50 backdrop-blur-[2px] transition-all duration-300 rounded-xl"
+              >
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-10 h-10 border-[3.5px] border-border/60 border-t-hs-orange rounded-full animate-spin" />
                   <span className="text-xs font-bold text-tertiary animate-pulse">실시간 공실률 데이터 분석 중...</span>
                 </div>
               </div>
             )}
-            {mounted ? (
-              <div className="absolute inset-0">
+            <div key="trend-chart-viewport" className="w-full h-full">
+              {mounted ? (
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={50}>
                   <LineChart data={filteredTrendData} margin={{ top: 15, right: 10, left: -5, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
@@ -1496,18 +1499,18 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard({
                   )}
                 </LineChart>
               </ResponsiveContainer>
+              ) : (
+                <div className="w-full h-full border border-border/20 rounded-xl flex items-end justify-between p-4 gap-2 animate-pulse">
+                  {[30, 45, 60, 40, 75, 50, 90, 65, 80, 55, 70, 85].map((h, i) => (
+                    <div 
+                      key={i} 
+                      style={{ height: `${h}%` }} 
+                      className="flex-1 rounded-t bg-border/20" 
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-          ) : (
-              <div className="w-full h-[350px] border border-border/20 rounded-xl flex items-end justify-between p-4 gap-2 animate-pulse">
-                {[30, 45, 60, 40, 75, 50, 90, 65, 80, 55, 70, 85].map((h, i) => (
-                  <div 
-                    key={i} 
-                    style={{ height: `${h}%` }} 
-                    className="flex-1 rounded-t bg-border/20" 
-                  />
-                ))}
-              </div>
-            )}
           </div>
         </ChartErrorBoundary>
 

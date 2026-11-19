@@ -19,6 +19,12 @@ import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 import { GuideStatsComparisonBridge } from '@/components/guide/GuideStatsComparisonBridge';
 import GuideAptPreviewCard, { GuideAptCtaLink } from '@/components/guide/GuideAptPreviewCard';
 import GuideMorningAlertRetentionCard from '@/components/guide/GuideMorningAlertRetentionCard';
+import { getVisualSignalPillClass } from '@/lib/design-system/copyDiet';
+import {
+  getCompactGuideCategory,
+  getGuideCardSummary,
+  getGuideCardTitle,
+} from '@/lib/guide/guideCardDisplay';
 
 const GUIDE_HUB_OG_IMAGE =
   'https://dongtanview.com/api/og?title=' +
@@ -298,130 +304,103 @@ export default function GuideIndexPage() {
           )}
 
           {/* Articles Grid — Synchronized 2-Column Dashboard Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {GUIDE_ARTICLES.map((article) => (
-              <article
-                key={article.slug}
-                className="bg-surface border border-border/80 rounded-2xl p-5 sm:p-6 lg:p-8 shadow-xs hover:shadow-md hover:border-emerald-500/40 transition-all duration-200 group flex flex-col justify-between"
-              >
-                <div>
-                  {/* Meta Bar */}
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[12px] text-tertiary mb-3">
-                    <span className="font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-                      {article.category}
-                    </span>
-                    {isTopLandingGuideSlug(article.slug) && (
-                      <span
-                        data-testid="guide-index-card-top3-badge"
-                        className="font-extrabold text-blue-700 dark:text-blue-300 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20"
-                      >
-                        신규 유입 TOP 3
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1">
-                      {article.date}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      읽는 시간 약 {article.readingTime}
-                    </span>
-                    <span className="text-slate-400">|</span>
-                    <span>{article.author}</span>
-                  </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+            {GUIDE_ARTICLES.map((article) => {
+              const cardTitle = getGuideCardTitle(article.slug, article.title);
+              const cardSummary = getGuideCardSummary(
+                article.slug,
+                article.subtitle,
+                article.description
+              );
 
-                  {/* Title */}
-                  <h2 className="text-xl sm:text-2xl font-black text-primary tracking-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    <Link href={`/guide/${article.slug}`} prefetch={false}>
-                      {article.title}
-                    </Link>
-                  </h2>
-
-                  {/* Subtitle */}
-                  <p className="mt-2 text-primary/80 font-bold text-[13.5px] sm:text-[14.5px]">
-                    {article.subtitle}
-                  </p>
-
-                  {/* Description */}
-                  <p className="mt-2.5 text-secondary text-[13px] sm:text-[13.5px] leading-relaxed font-medium">
-                    {article.description}
-                  </p>
-
-                  {/* Key Takeaways Box */}
-                  <div className="mt-4 bg-body p-4 rounded-xl border border-border/60">
-                    <span className="text-[12px] font-extrabold text-primary mb-2 flex items-center gap-1.5">
-                      <span>핵심 리포트 요약</span>
-                    </span>
-                    <ul className="space-y-1.5 text-[12px] sm:text-[12.5px] text-secondary font-medium list-disc pl-4">
-                      {article.keyTakeaways.map((point, pIdx) => (
-                        <li key={pIdx}>
-                          <span>{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Featured Apartments Quick Links with Real-Time Price Preview */}
-                  {article.featuredApartments && article.featuredApartments.length > 0 && (
-                    <div className="mt-4 flex flex-wrap items-center gap-1.5">
-                      <span className="text-[11px] font-extrabold text-slate-600 dark:text-slate-400 mr-1">
-                        대표 단지 실거래 바로가기:
-                      </span>
-                      {article.featuredApartments.slice(0, 5).map((aptName) => {
-                        const preview = buildGuideAptMiniPreview(aptName);
-                        const canonicalSlug =
-                          preview?.canonicalSlug || resolveCanonicalAptSlug(aptName) || aptName;
-                        const labelText = preview?.displayName || aptName;
-                        return (
-                          <GuideAptCtaLink
-                            key={aptName}
-                            item={preview}
-                            href={`/apartment/${encodeURIComponent(canonicalSlug)}`}
-                            apartmentName={preview?.name || aptName}
-                            canonicalSlug={canonicalSlug}
-                            displayName={labelText}
-                            dong={preview?.dong}
-                            guideSlug={article.slug}
-                            placement="article_bottom"
-                            sectionTitle="가이드 목록 카드 대표 단지 바로가기"
-                            dataTestId="guide-index-card-apt-cta-pill"
-                            className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/50 px-2.5 py-1 rounded-lg hover:underline transition-colors tabular-nums"
+              return (
+                <article
+                  key={article.slug}
+                  className="bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] rounded-2xl p-5 sm:p-6 transition-colors group flex flex-col justify-between gap-4 min-w-0"
+                >
+                  <div className="min-w-0">
+                    {/* Meta Bar */}
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className={getVisualSignalPillClass({ tone: 'safe', size: 'xs' })}>
+                          {getCompactGuideCategory(article.category)}
+                        </span>
+                        {isTopLandingGuideSlug(article.slug) && (
+                          <span
+                            data-testid="guide-index-card-top3-badge"
+                            className={getVisualSignalPillClass({ tone: 'down', size: 'xs' })}
                           >
-                            <span>{labelText}</span>
-                            {preview && preview.latestPrice > 0 && (
-                              <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">
-                                · {preview.latestPriceStr}
-                              </span>
-                            )}
-                          </GuideAptCtaLink>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Tags */}
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {article.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-[11px] font-semibold text-tertiary bg-body px-2.5 py-1 rounded-lg border border-border/50"
-                      >
-                        #{tag}
+                            신규 유입 TOP 3
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[11.5px] text-tertiary font-medium tabular-nums shrink-0">
+                        {article.date} · {article.readingTime}
                       </span>
-                    ))}
-                  </div>
-                </div>
+                    </div>
 
-                {/* Bottom CTA */}
-                <div className="mt-5 pt-4 border-t border-border/60 flex items-center justify-between">
-                  <span className="text-[12px] text-tertiary font-medium">실증 공공데이터 기반 리서치</span>
-                  <Link
-                    href={`/guide/${article.slug}`} prefetch={false}
-                    className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-extrabold text-[13px] sm:text-[14px] hover:underline"
-                  >
-                    전문 읽기
-                  </Link>
-                </div>
-              </article>
-            ))}
+                    {/* Title */}
+                    <h2 className="mt-3 text-[17px] sm:text-[18px] font-black text-primary tracking-tight leading-snug line-clamp-2 break-keep group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                      <Link href={`/guide/${article.slug}`} prefetch={false}>
+                        {cardTitle}
+                      </Link>
+                    </h2>
+
+                    {/* Single Crisp Summary */}
+                    <p className="mt-2 text-[13px] font-medium text-secondary leading-relaxed line-clamp-2 break-keep">
+                      {cardSummary}
+                    </p>
+
+                    {/* Featured Apartments Inline Links (Top 3) */}
+                    {article.featuredApartments && article.featuredApartments.length > 0 && (
+                      <div className="mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                        {article.featuredApartments.slice(0, 3).map((aptName) => {
+                          const preview = buildGuideAptMiniPreview(aptName);
+                          const canonicalSlug =
+                            preview?.canonicalSlug || resolveCanonicalAptSlug(aptName) || aptName;
+                          const labelText = preview?.displayName || aptName;
+                          return (
+                            <GuideAptCtaLink
+                              key={aptName}
+                              item={preview}
+                              href={`/apartment/${encodeURIComponent(canonicalSlug)}`}
+                              apartmentName={preview?.name || aptName}
+                              canonicalSlug={canonicalSlug}
+                              displayName={labelText}
+                              dong={preview?.dong}
+                              guideSlug={article.slug}
+                              placement="article_bottom"
+                              sectionTitle="가이드 목록 카드 대표 단지 바로가기"
+                              dataTestId="guide-index-card-apt-cta-pill"
+                              className="inline-flex flex-wrap items-baseline gap-x-1 max-w-full min-w-0 text-[12px] font-bold text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors tabular-nums"
+                            >
+                              <span>{labelText}</span>
+                              {preview && preview.latestPrice > 0 && (
+                                <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">
+                                  · {preview.latestPriceStr}
+                                </span>
+                              )}
+                            </GuideAptCtaLink>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom CTA */}
+                  <div className="pt-3 border-t border-[#f2f4f6] dark:border-[#202027] flex items-center justify-end">
+                    <Link
+                      href={`/guide/${article.slug}`}
+                      prefetch={false}
+                      className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-extrabold text-[13px] hover:underline"
+                    >
+                      <span>전문 읽기</span>
+                      <ArrowUpRight size={14} />
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
           </div>
 
           {/* Morning 7 AM Real-Transaction Alert & Watchlist Revisit Retention Card */}

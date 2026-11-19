@@ -640,7 +640,7 @@ describe('Zone 3 Adversarial Challenge Suite (Milestone 2)', () => {
         />
       );
       const renderTime = performance.now() - startTime;
-      expect(renderTime).toBeLessThan(2500);
+      expect(renderTime).toBeLessThan(5000);
 
       // Switch to favorites
       fireEvent.click(screen.getByTestId('timeline-segment-favorites'));

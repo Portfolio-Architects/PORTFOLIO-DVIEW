@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ * @jest-environment-options {"url": "https://dongtanview.com/"}
+ */
 import fs from 'fs';
 import path from 'path';
 import vm from 'vm';
@@ -11,6 +15,8 @@ import {
   buildPreHydrationAdminGuardScript,
   hasAdminExclusionCookie,
   isAdminTrackingExcludedClient,
+  isGaDisableFlagActive,
+  isNonProductionTrackingHost,
   isRequestFromExcludedAdmin,
   setAdminTrackingExclusion,
   syncAdminTrackingStateClient,
@@ -480,5 +486,145 @@ describe('D-VIEW Admin Device GA4 & Telemetry Exclusion System', () => {
       errorSpy.mockRestore();
       document.head.innerHTML = originalHeadHtml;
     }
+  });
+
+  it('auto-disables GA4 on non-production hostnames (localhost, 127.0.0.1, ::1, *.vercel.app) without mutating admin cookie/localStorage', () => {
+    // 1. Hostname classifier unit verification
+    const blockedHosts = [
+      'localhost',
+      'LOCALHOST.',
+      'app.localhost',
+      '127.0.0.1',
+      '127.0.0.2',
+      '0.0.0.0',
+      '::1',
+      '[::1]',
+      'vercel.app',
+      'dview-git-feat-abc.vercel.app',
+      'DVIEW-PREVIEW.VERCEL.APP.',
+    ];
+    for (const host of blockedHosts) {
+      expect(isNonProductionTrackingHost(host)).toBe(true);
+    }
+
+    const allowedHosts = [
+      'dongtanview.com',
+      'www.dongtanview.com',
+      'evil-vercel.app',
+      'my-localhost.com',
+      '',
+    ];
+    for (const host of allowedHosts) {
+      expect(isNonProductionTrackingHost(host)).toBe(false);
+    }
+
+    // 2. Static public/js/dview-ga-admin-guard.js blocks GA4 on localhost, 127.0.0.1, and *.vercel.app synchronously
+    const staticGuardPath = path.resolve(__dirname, '../../../public/js/dview-ga-admin-guard.js');
+    const staticGuardCode = fs.readFileSync(staticGuardPath, 'utf8');
+
+    for (const host of ['localhost', '127.0.0.1', 'dview-preview-42.vercel.app']) {
+      const store = new Map<string, string>();
+      const mockWindow: Record<string, unknown> = {
+        location: { hostname: host, pathname: '/', search: '', hash: '', protocol: 'http:' },
+        history: { state: null, replaceState: jest.fn() },
+        localStorage: {
+          getItem: (k: string) => store.get(k) ?? null,
+          setItem: (k: string, v: string) => store.set(k, v),
+          removeItem: (k: string) => store.delete(k),
+        },
+      };
+      const mockDocument = {
+        cookie: '',
+        head: null,
+        currentScript: {
+          getAttribute: (name: string) => (name === 'data-ga-id' ? 'G-CUSTOM1234' : null),
+        },
+        getElementById: () => null,
+      };
+
+      vm.runInNewContext(staticGuardCode, {
+        window: mockWindow,
+        document: mockDocument,
+        URL,
+        URLSearchParams,
+      });
+
+      expect(mockWindow['ga-disable-G-Y17BHJ77W6']).toBe(true);
+      expect(mockWindow['ga-disable-G-CUSTOM1234']).toBe(true);
+      expect(store.get(ADMIN_STORAGE_KEY)).toBeUndefined();
+      expect(hasAdminExclusionCookie(mockDocument.cookie)).toBe(false);
+    }
+
+    // 3. Even ?dview_admin=0 on localhost clears admin cookie/storage while keeping ga-disable=true
+    const localClearStore = new Map<string, string>([[ADMIN_STORAGE_KEY, 'true']]);
+    const localClearWindow: Record<string, unknown> = {
+      location: {
+        hostname: 'localhost',
+        pathname: '/',
+        search: '?dview_admin=0',
+        hash: '',
+        protocol: 'http:',
+      },
+      history: { state: null, replaceState: jest.fn() },
+      localStorage: {
+        getItem: (k: string) => localClearStore.get(k) ?? null,
+        setItem: (k: string, v: string) => localClearStore.set(k, v),
+        removeItem: (k: string) => localClearStore.delete(k),
+      },
+    };
+    const localClearDoc = {
+      cookie: `${ADMIN_COOKIE_NAME}=true`,
+      head: null,
+      currentScript: null,
+      getElementById: () => null,
+    };
+    vm.runInNewContext(staticGuardCode, {
+      window: localClearWindow,
+      document: localClearDoc,
+      URL,
+      URLSearchParams,
+    });
+    expect(localClearStore.has(ADMIN_STORAGE_KEY)).toBe(false);
+    expect(localClearWindow.__dviewAdminNotice).toBe('disabled');
+    expect(localClearWindow['ga-disable-G-Y17BHJ77W6']).toBe(true);
+
+    // 4. Production dongtanview.com regular visitor is NOT blocked
+    const prodWindow: Record<string, unknown> = {
+      location: {
+        hostname: 'dongtanview.com',
+        pathname: '/',
+        search: '',
+        hash: '',
+        protocol: 'https:',
+      },
+      history: { state: null, replaceState: jest.fn() },
+      localStorage: { getItem: () => null, setItem: jest.fn(), removeItem: jest.fn() },
+    };
+    vm.runInNewContext(staticGuardCode, {
+      window: prodWindow,
+      document: { cookie: '', head: null, currentScript: null, getElementById: () => null },
+      URL,
+      URLSearchParams,
+    });
+    expect(prodWindow['ga-disable-G-Y17BHJ77W6']).toBeUndefined();
+
+    // 5. Client dispatchers (trackEvent, trackVirtualPageView, dispatchGa4AdTelemetry) respect ga-disable flag
+    window['ga-disable-G-Y17BHJ77W6'] = true;
+    expect(isGaDisableFlagActive('G-Y17BHJ77W6')).toBe(true);
+    const gtagMock = jest.fn();
+    window.gtag = gtagMock;
+    window.dataLayer = [];
+
+    trackEvent('tab_view', { tab_name: 'stats' });
+    const vpv = trackVirtualPageView('/apartment/동탄역롯데캐슬');
+    const adDispatched = dispatchGa4AdTelemetry({
+      eventType: 'IMPRESSION',
+      slotId: '6782594447',
+    });
+
+    expect(vpv.gaEventDispatched).toBe(false);
+    expect(adDispatched).toBe(false);
+    expect(gtagMock).not.toHaveBeenCalled();
+    expect(window.dataLayer).toHaveLength(0);
   });
 });

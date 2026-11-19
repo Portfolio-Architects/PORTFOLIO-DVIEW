@@ -17,6 +17,9 @@ export const metadata: Metadata = {
     'D-VIEW(디뷰 · 동뷰 · 동탄뷰) 동탄 부동산 실거래 데이터 랩스에 대한 데이터 정정 요청, 서비스 건의사항, 오류 제보, B2B 제휴 및 광고 문의를 위한 공식 고객 지원 채널입니다.',
   alternates: {
     canonical: 'https://dongtanview.com/contact',
+    types: {
+      'application/rss+xml': 'https://dongtanview.com/feed.xml',
+    },
   },
   openGraph: {
     title: '문의하기 · 데이터 정정·제휴 제안 | D-VIEW (디뷰 · 동뷰 · 동탄뷰) 고객 지원',

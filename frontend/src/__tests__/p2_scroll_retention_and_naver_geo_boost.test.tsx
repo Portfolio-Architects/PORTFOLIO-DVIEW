@@ -594,9 +594,9 @@ describe('P2 Boost: Mobile Scroll Depth, Morning 7AM Revisit Retention & Naver/G
       ).not.toBeNull();
       unmountDetail();
 
-      // Render /guide hub and verify retention card + exact 23 <article> cards invariant
+      // Render /guide hub and verify retention card + exact 25 <article> cards invariant
       const { container: indexContainer } = render(<GuideIndexPage />);
-      expect(indexContainer.querySelectorAll('article')).toHaveLength(23);
+      expect(indexContainer.querySelectorAll('article')).toHaveLength(25);
       expect(indexContainer.querySelector('#guide-hub-morning-alert-retention')).not.toBeNull();
     });
 
@@ -606,9 +606,9 @@ describe('P2 Boost: Mobile Scroll Depth, Morning 7AM Revisit Retention & Naver/G
       expect(liveReport.scorePct).toBe(100);
       expect(liveReport.passedCount).toBe(6);
       expect(
-        process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true' ? 79 : 181
+        process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true' ? 81 : 183
       ).toBe(liveReport.submissionManifest.sitemapTotalUrls);
-      expect(liveReport.submissionManifest.rssItemCount).toBe(30);
+      expect(liveReport.submissionManifest.rssItemCount).toBe(32);
 
       // Synthetic negative cases: missing verification token, blocked /guide, >50 RSS items, unescaped '&', duplicate guide title, missing speakable
       const bloatedRssItems = Array.from({ length: 51 }, (_, idx) =>

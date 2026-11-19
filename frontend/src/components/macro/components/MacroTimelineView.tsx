@@ -319,6 +319,21 @@ export function formatDeltaPercent(val: number | undefined): string {
   return ` (${rounded > 0 ? '+' : ''}${rounded}%)`;
 }
 
+export function formatTimelinePriceText(raw?: string): string {
+  if (!raw) return '';
+  const trimmed = raw.trim();
+  const eokManMatch = trimmed.match(/^(\d+)억\s*([0-9,]+)(?:만(?:원)?)?$/);
+  if (eokManMatch) {
+    const manClean = eokManMatch[2].trim();
+    return manClean === '0' ? `${eokManMatch[1]}억` : `${eokManMatch[1]}억 ${manClean}만`;
+  }
+  const eokOnlyMatch = trimmed.match(/^(\d+)억(?:원)?$/);
+  if (eokOnlyMatch) return `${eokOnlyMatch[1]}억`;
+  const manOnlyMatch = trimmed.match(/^([0-9,]+)(?:만(?:원)?)?$/);
+  if (manOnlyMatch) return `${manOnlyMatch[1]}만`;
+  return trimmed;
+}
+
 function DefaultTimelineCard({
   item,
   isSelected,
@@ -337,37 +352,27 @@ function DefaultTimelineCard({
   onToggleFavorite?: (aptName: string) => void;
 }) {
   const displayName = item.displayAptName || item.aptName;
+  const formattedPrice = formatTimelinePriceText(item.priceEok);
   return (
     <div
       data-testid={`timeline-card-${item.aptName}`}
       onClick={() => onCardClick?.(item.aptName)}
-      className={`p-3.5 bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 rounded-2xl transition-all cursor-pointer relative group flex flex-col justify-between gap-2 ${
+      className={`p-3.5 sm:p-4 rounded-2xl transition-colors cursor-pointer relative group flex flex-col justify-between gap-2.5 ${
         isSelected
           ? 'ring-2 ring-blue-600/30 bg-blue-50/70 dark:bg-blue-950/30'
-          : ''
+          : 'bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027]'
       }`}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex flex-col min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[12px] font-extrabold text-primary truncate">{displayName}</span>
-            {item.type === 'high' && (
-              <span className="px-1.5 py-0.5 rounded bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400 text-[9.5px] font-black">
-                신고가
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] text-tertiary tabular-nums">
-            {item.dong} · {item.floor}층 · {item.areaPyeong ? `${item.areaPyeong}평` : `${item.area}㎡`}
-            {(() => {
-              const cDate = item.contractDate || item.date;
-              if (!cDate) return null;
-              const clean = cDate.replace(/[-.]/g, '');
-              const mm = clean.length >= 6 ? clean.substring(4, 6) : '';
-              const dd = clean.length >= 8 ? clean.substring(6, 8) : '';
-              return mm && dd ? ` · 계약일 ${mm}.${dd}` : null;
-            })()}
+      <div className="flex items-start justify-between gap-2 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          <span className="text-[13.5px] font-extrabold text-primary truncate break-keep min-w-0" title={displayName}>
+            {displayName}
           </span>
+          {item.type === 'high' && (
+            <span className="px-1.5 py-0.5 rounded-md bg-brand-red-light text-brand-red text-[10px] font-black shrink-0 whitespace-nowrap leading-none">
+              신고가
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {onToggleFavorite && (
@@ -386,7 +391,7 @@ function DefaultTimelineCard({
                 });
                 onToggleFavorite(item.aptName);
               }}
-              className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-tertiary transition-colors"
+              className="p-1 rounded-lg hover:bg-slate-200/70 dark:hover:bg-slate-700 text-tertiary transition-colors"
             >
               <Star
                 size={13}
@@ -406,7 +411,7 @@ function DefaultTimelineCard({
                 e.stopPropagation();
                 onDetailsClick(item.aptName);
               }}
-              className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-tertiary transition-colors"
+              className="p-1 rounded-lg hover:bg-slate-200/70 dark:hover:bg-slate-700 text-tertiary transition-colors"
             >
               <ExternalLink size={13} />
             </button>
@@ -414,20 +419,43 @@ function DefaultTimelineCard({
         </div>
       </div>
 
-      <div className="flex items-baseline justify-between pt-1 border-t border-border/40 tabular-nums">
-        <span className="text-[13px] font-black text-primary">{item.priceEok}</span>
-        {item.delta !== undefined && item.delta !== 0 && (
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2 pt-2 border-t border-[#f2f4f6] dark:border-[#202027] tabular-nums min-w-0">
+        <span className="text-[11px] font-semibold text-tertiary break-words sm:truncate min-w-0">
+          {item.dong} · {item.areaPyeong ? `${item.areaPyeong}평` : `${item.area}㎡`} · {item.floor}층
+          {(() => {
+            const cDate = item.contractDate || item.date;
+            if (!cDate) return null;
+            const clean = cDate.replace(/[-.]/g, '');
+            const mm = clean.length >= 6 ? clean.substring(4, 6) : '';
+            const dd = clean.length >= 8 ? clean.substring(6, 8) : '';
+            return mm && dd ? ` · ${mm}.${dd}` : null;
+          })()}
+        </span>
+        <div className="flex items-center justify-between sm:justify-end gap-1.5 w-full sm:w-auto shrink-0 whitespace-nowrap">
           <span
-            className={`text-[10px] font-extrabold flex items-center gap-0.5 ${
-              item.delta > 0
-                ? 'text-red-500'
-                : 'text-blue-500'
+            className={`text-[14px] font-black tracking-tight ${
+              item.delta !== undefined && item.delta > 0
+                ? 'text-red-600 dark:text-red-400'
+                : item.delta !== undefined && item.delta < 0
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : 'text-primary'
             }`}
           >
-            {item.delta > 0 ? '+' : '-'} {Math.abs(item.delta)}억
-            {formatDeltaPercent(item.deltaPercent)}
+            {formattedPrice}
           </span>
-        )}
+          {item.delta !== undefined && item.delta !== 0 && (
+            <span
+              className={`px-1.5 py-0.5 rounded-md text-[10.5px] font-black leading-none ${
+                item.delta > 0
+                  ? 'bg-brand-red-light text-brand-red'
+                  : 'bg-brand-blue-light text-brand-blue'
+              }`}
+            >
+              {item.delta > 0 ? '+' : '-'} {Math.abs(item.delta)}억
+              {formatDeltaPercent(item.deltaPercent)}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1172,7 +1200,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             data-testid="timeline-segment-tabs"
             className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border/60 w-full"
           >
-            <div role="group" aria-label="실거래 세그먼트 필터" className={getToggleTrackClass('flex-wrap sm:inline-flex w-full sm:w-auto')}>
+            <div role="tablist" aria-label="실거래 세그먼트 필터" className={getToggleTrackClass('flex-wrap sm:inline-flex w-full sm:w-auto')}>
               <button
                 type="button"
                 role="tab"
@@ -1190,6 +1218,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               </button>
               <button
                 type="button"
+                role="tab"
                 data-segment-btn="true"
                 data-testid="timeline-segment-favorites"
                 aria-selected={activeSegment === 'favorites'}
@@ -1208,7 +1237,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               </button>
               <button
                 type="button"
-                role={activeSegment === 'favorites' ? undefined : 'tab'}
+                role="tab"
                 data-testid="timeline-segment-new-high"
                 aria-selected={activeSegment === 'new_high'}
                 onClick={() => setActiveSegment('new_high')}
@@ -1288,8 +1317,8 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
 
           <TimelineFilterControls
             headerLeftNode={
-              <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                <h2 className="text-[14px] xs:text-[15px] sm:text-[18px] font-black text-primary tracking-tight whitespace-nowrap shrink-0">
+              <div className="flex items-center gap-2 min-w-0 w-full sm:w-auto flex-wrap">
+                <h2 className="text-[15px] sm:text-[18px] font-black text-primary tracking-tight whitespace-nowrap shrink-0">
                   일자별 최근 실거래
                 </h2>
 
@@ -1324,7 +1353,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
 
                 {/* Quick Period Selector (1d / 7d / 30d / 90d / 1y) */}
                 {setPeriodFilter && (
-                  <div className={getToggleTrackClass('sm:ml-1')}>
+                  <div className={getToggleTrackClass('w-full sm:w-auto sm:ml-1 grid grid-cols-5 sm:inline-flex')}>
                     {(['1d', '7d', '30d', '90d', '1y'] as const).map((p) => {
                       const labelMap: Record<string, string> = { '1d': '오늘', '7d': '7일', '30d': '30일', '90d': '90일', '1y': '1년' };
                       const isSelected = periodFilter === p;
@@ -1344,7 +1373,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                           className={getToggleBtnClass({
                             active: isSelected,
                             size: 'sm',
-                            extraClass: 'tabular-nums min-h-[28px] sm:min-h-[30px]',
+                            extraClass: 'px-1 sm:px-2.5 tabular-nums min-h-[28px] sm:min-h-[30px]',
                           })}
                         >
                           {labelMap[p]}
@@ -1443,17 +1472,24 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                 className="p-3.5 rounded-2xl bg-elevated flex flex-col justify-between gap-1 min-w-0"
               >
                 <span className="text-[11px] font-bold text-tertiary truncate">최고 실거래 · 체결 온도</span>
-                <div className="text-[14px] sm:text-[15.5px] font-black text-primary tabular-nums truncate">
-                  {inlineStats.maxApt
-                    ? `${inlineStats.maxApt.displayAptName} ${inlineStats.maxApt.priceEok}`
-                    : '해당 내역 없음'}
+                <div className="flex items-baseline justify-between gap-1.5 text-[14px] sm:text-[15.5px] font-black text-primary tabular-nums min-w-0">
+                  {inlineStats.maxApt ? (
+                    <>
+                      <span className="truncate min-w-0">{inlineStats.maxApt.displayAptName}</span>
+                      <span className="shrink-0 whitespace-nowrap text-blue-600 dark:text-blue-400">
+                        {formatTimelinePriceText(inlineStats.maxApt.priceEok)}
+                      </span>
+                    </>
+                  ) : (
+                    <span>해당 내역 없음</span>
+                  )}
                 </div>
-                <div className="flex items-center gap-1.5 text-[10.5px] font-extrabold tabular-nums truncate">
-                  <span className="text-red-600 dark:text-red-400">신고가 {inlineStats.highCount}건</span>
+                <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10.5px] font-extrabold tabular-nums">
+                  <span className="text-red-600 dark:text-red-400 whitespace-nowrap">신고가 {inlineStats.highCount}건</span>
                   <span className="text-tertiary">·</span>
-                  <span className="text-red-500">상승 {inlineStats.risingCount}건</span>
+                  <span className="text-red-500 whitespace-nowrap">상승 {inlineStats.risingCount}건</span>
                   <span className="text-tertiary">·</span>
-                  <span className="text-blue-600 dark:text-blue-400">하락 {inlineStats.fallingCount}건</span>
+                  <span className="text-blue-600 dark:text-blue-400 whitespace-nowrap">하락 {inlineStats.fallingCount}건</span>
                 </div>
               </div>
             </div>
@@ -1489,6 +1525,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                   type="button"
                   role="tab"
                   data-testid="timeline-tab-transactions"
+                  aria-label="일자별 실거래 내역"
                   aria-selected={activeSectionTab === 'timeline'}
                   onClick={() => {
                     trackEvent('timeline_section_tab_click', { tab: 'timeline' });
@@ -1497,11 +1534,12 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                   className={getToggleBtnClass({
                     active: activeSectionTab === 'timeline',
                     tone: 'blue',
-                    extraClass: 'px-2 xs:px-3 sm:px-3.5 text-[11px] xs:text-[12px] sm:text-[13px] min-w-0',
+                    extraClass: 'px-1.5 sm:px-3.5 gap-1 sm:gap-1.5 text-[11.5px] sm:text-[13px] min-w-0',
                   })}
                 >
-                  <span className="truncate">일자별 실거래 내역</span>
-                  <span className="px-1.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-[10.5px] xs:text-[11px] font-black tabular-nums shrink-0">
+                  <span className="sm:hidden truncate">실거래</span>
+                  <span className="hidden sm:inline truncate">일자별 실거래 내역</span>
+                  <span className="px-1.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-[10.5px] sm:text-[11px] font-black tabular-nums shrink-0">
                     {effectiveTotalCount}
                   </span>
                 </button>
@@ -1510,6 +1548,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                     type="button"
                     role="tab"
                     data-testid="timeline-tab-live-rankings"
+                    aria-label="실시간 시장 랭킹"
                     aria-selected={activeSectionTab === 'live_ranking'}
                     onClick={() => {
                       trackEvent('timeline_section_tab_click', { tab: 'live_ranking' });
@@ -1518,11 +1557,12 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                     className={getToggleBtnClass({
                       active: activeSectionTab === 'live_ranking',
                       tone: 'blue',
-                      extraClass: 'px-2 xs:px-3 sm:px-3.5 text-[11px] xs:text-[12px] sm:text-[13px] min-w-0',
+                      extraClass: 'px-1.5 sm:px-3.5 gap-1 sm:gap-1.5 text-[11.5px] sm:text-[13px] min-w-0',
                     })}
                   >
-                    <span className="truncate">실시간 시장 랭킹</span>
-                    <span className="px-1.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-[10.5px] xs:text-[11px] font-black tabular-nums shrink-0">
+                    <span className="sm:hidden truncate">실시간</span>
+                    <span className="hidden sm:inline truncate">실시간 시장 랭킹</span>
+                    <span className="px-1.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-[10.5px] sm:text-[11px] font-black tabular-nums shrink-0">
                       LIVE
                     </span>
                   </button>
@@ -1532,6 +1572,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                     type="button"
                     role="tab"
                     data-testid="timeline-tab-rankings"
+                    aria-label="단지별 평당가 랭킹"
                     aria-selected={activeSectionTab === 'ranking'}
                     onClick={() => {
                       trackEvent('timeline_section_tab_click', { tab: 'ranking' });
@@ -1540,11 +1581,12 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                     className={getToggleBtnClass({
                       active: activeSectionTab === 'ranking',
                       tone: 'emerald',
-                      extraClass: 'px-2 xs:px-3 sm:px-3.5 text-[11px] xs:text-[12px] sm:text-[13px] min-w-0',
+                      extraClass: 'px-1.5 sm:px-3.5 gap-1 sm:gap-1.5 text-[11.5px] sm:text-[13px] min-w-0',
                     })}
                   >
-                    <span className="truncate">단지별 평당가 랭킹</span>
-                    <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-[10.5px] xs:text-[11px] font-black tabular-nums shrink-0">
+                    <span className="sm:hidden truncate">평당가</span>
+                    <span className="hidden sm:inline truncate">단지별 평당가 랭킹</span>
+                    <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-[10.5px] sm:text-[11px] font-black tabular-nums shrink-0">
                       TOP {Math.min(20, pyeongRankings.length)}
                     </span>
                   </button>
@@ -1580,22 +1622,26 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
           {effectiveInlineExpanded && (
             <div
               data-testid="timeline-inline-date-rail"
-              className="lg:col-span-4 xl:col-span-3 flex flex-col gap-2 bg-elevated/70 dark:bg-slate-900/50 rounded-2xl p-3 border border-border/60 max-h-[680px] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full w-full box-border"
+              className="lg:col-span-4 xl:col-span-3 flex flex-col gap-2 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-3 max-h-[680px] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full w-full box-border"
             >
-              <div className="flex items-center justify-between px-1 pb-1.5 border-b border-border/50">
-                <span className="text-[11.5px] font-black text-primary tracking-tight">
+              <div className="flex items-center justify-between gap-2 px-1 pb-2 border-b border-[#f2f4f6] dark:border-[#202027]">
+                <span className="text-[12px] font-black text-primary tracking-tight tabular-nums">
                   일자별 요약 ({segmentedSourceData.length}일)
                 </span>
-                {selectedDateJump && (
+                {selectedDateJump ? (
                   <button
                     type="button"
                     data-testid="timeline-date-rail-reset"
                     onClick={() => handleSelectDate(null)}
-                    className="inline-flex items-center gap-1 text-[10.5px] font-extrabold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                    className="inline-flex items-center gap-1 text-[10.5px] font-extrabold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer shrink-0"
                   >
                     <RotateCcw size={10} />
                     <span>전체 일자</span>
                   </button>
+                ) : (
+                  <span className="text-[10.5px] font-bold text-tertiary whitespace-nowrap shrink-0">
+                    막대: 최다일 대비 거래량
+                  </span>
                 )}
               </div>
 
@@ -1604,10 +1650,10 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                 data-testid="timeline-date-rail-all"
                 aria-pressed={selectedDateJump === null}
                 onClick={() => handleSelectDate(null)}
-                className={`w-full text-left p-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                className={`w-full text-left p-2.5 rounded-xl transition-colors cursor-pointer flex items-center justify-between gap-2 ${
                   selectedDateJump === null
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-surface hover:bg-slate-100 dark:hover:bg-slate-800/80 text-primary border border-border/50'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-surface hover:bg-[#f2f4f6] dark:hover:bg-[#202027] text-primary'
                 }`}
               >
                 <span className="text-[12px] font-black">전체 일자 한눈에</span>
@@ -1615,7 +1661,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                   className={`px-2 py-0.5 rounded-md text-[10.5px] font-black tabular-nums ${
                     selectedDateJump === null
                       ? 'bg-white/20 text-white'
-                      : 'bg-elevated text-secondary'
+                      : 'bg-[#f2f4f6] dark:bg-[#202027] text-secondary'
                   }`}
                 >
                   총 {totalCalculatedItems}건
@@ -1627,12 +1673,8 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                 const gCount = group.totalCount ?? group.items.length;
                 const gAvg = group.avgPriceEok || formatDailyAvgPrice(group.items);
                 const gNewHigh = group.items.filter((it) => it.type === 'high' || it.isNewHigh).length;
-                const gTopApt =
-                  group.highestPriceApt ||
-                  (group.items.length > 0
-                    ? group.items.reduce((max, cur) => (cur.priceVal > max.priceVal ? cur : max), group.items[0])
-                    : null);
-                const widthPct = Math.max(8, Math.min(100, Math.round((gCount / maxDateGroupCount) * 100)));
+                const safeDivisor = Math.max(1, maxDateGroupCount);
+                const widthPct = gCount > 0 ? Math.max(8, Math.min(100, Math.round((gCount / safeDivisor) * 100))) : 0;
 
                 return (
                   <button
@@ -1641,40 +1683,39 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                     data-testid={`timeline-date-rail-item-${group.dateStr}`}
                     aria-pressed={isDateSelected}
                     onClick={() => handleSelectDate(isDateSelected ? null : group.dateStr)}
-                    className={`w-full text-left p-2.5 rounded-xl transition-all cursor-pointer flex flex-col gap-1.5 ${
+                    className={`w-full text-left p-2.5 rounded-xl transition-colors cursor-pointer flex flex-col gap-1.5 ${
                       isDateSelected
-                        ? 'bg-blue-50 dark:bg-blue-950/40 ring-2 ring-blue-600/40 border border-blue-500/40'
-                        : 'bg-surface hover:bg-slate-100/90 dark:hover:bg-slate-800/60 border border-border/50'
+                        ? 'bg-blue-50/90 dark:bg-blue-950/40 ring-2 ring-blue-600/35'
+                        : 'bg-surface hover:bg-[#f2f4f6] dark:hover:bg-[#202027]'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-1.5 w-full">
-                      <span className="text-[12px] font-black text-primary tabular-nums truncate">
+                      <span className="text-[12px] font-black text-primary tabular-nums whitespace-nowrap">
                         {group.dateStr}
                       </span>
                       <div className="flex items-center gap-1 shrink-0">
                         {gNewHigh > 0 && (
-                          <span className="px-1.5 py-0.5 rounded bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-[9.5px] font-black tabular-nums">
+                          <span className="px-1.5 py-0.5 rounded-md bg-brand-red-light text-brand-red text-[10px] font-black tabular-nums">
                             신고가 {gNewHigh}
                           </span>
                         )}
-                        <span className="px-1.5 py-0.5 rounded bg-elevated text-secondary text-[10px] font-extrabold tabular-nums">
+                        <span className="px-1.5 py-0.5 rounded-md bg-[#f2f4f6] dark:bg-[#202027] text-secondary text-[10.5px] font-extrabold tabular-nums">
                           {gCount}건
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between gap-2 text-[10.5px] text-secondary tabular-nums">
+                    <div className="flex items-center justify-between gap-2 text-[11px] tabular-nums">
                       <span className="font-bold text-blue-600 dark:text-blue-400">
                         {gAvg ? `평균 ${gAvg}` : '-'}
                       </span>
-                      {gTopApt && (
-                        <span className="text-tertiary truncate max-w-[140px]">
-                          최고 {(gTopApt as HighestPriceAptInfo).displayAptName || gTopApt.aptName} {gTopApt.priceEok}
-                        </span>
-                      )}
                     </div>
 
-                    <div className="w-full h-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <div
+                      className="w-full h-1.5 rounded-full bg-[#f2f4f6] dark:bg-[#202027] overflow-hidden"
+                      title={`${group.dateStr} 거래량 ${gCount}건 (최다 ${safeDivisor}건 대비 ${widthPct}%)`}
+                      aria-hidden="true"
+                    >
                       <div
                         className="h-full rounded-full bg-blue-500/80 transition-all duration-300"
                         style={{ width: `${widthPct}%` }}
@@ -2110,7 +2151,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                               : "bg-slate-300 dark:bg-slate-600"
                         }`}
                       />
-                      <h3 className="text-[12.5px] xs:text-[13.5px] font-black text-primary flex items-center gap-1.5 truncate">
+                      <h3 className="text-[13px] sm:text-[13.5px] font-black text-primary flex items-center gap-1.5 truncate">
 
                         <span>{group.dateStr}</span>
                         <span className="px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/40 text-[9.5px] font-extrabold shrink-0">
@@ -2128,12 +2169,11 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                       {showHighestPriceBadge && highestApt && (
                         <span
                           data-testid={`highest-price-badge-${group.dateStr}`}
-                          className="px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 text-[10px] xs:text-[10.5px] font-black flex items-center gap-1 shadow-xs"
+                          className="px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 text-[10.5px] font-black inline-flex items-center gap-1 shadow-xs"
                         >
-
-                          <span>최고가:</span>
-                          <span className="max-w-[100px] xs:max-w-[140px] truncate">{highestApt.displayAptName || highestApt.aptName}</span>
-                          <span>{highestApt.priceEok}</span>
+                          <span className="shrink-0">최고가:</span>
+                          <span className="max-w-[120px] sm:max-w-[180px] truncate">{highestApt.displayAptName || highestApt.aptName}</span>
+                          <span className="shrink-0">{formatTimelinePriceText(highestApt.priceEok)}</span>
                         </span>
                       )}
                       {groupNewHighCount > 0 && (
@@ -2145,11 +2185,11 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                           <span>{`최고가경신 ${groupNewHighCount}건`}</span>
                         </span>
                       )}
-                      <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-secondary text-[10px] xs:text-[10.5px] font-extrabold">
+                      <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-secondary text-[10.5px] font-extrabold">
                         총 {groupItemCount}건 거래
                       </span>
                       {avgPriceText && (
-                        <span className="px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[10px] xs:text-[10.5px] font-black hidden xs:inline-block">
+                        <span className="px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[10.5px] font-black hidden sm:inline-flex">
                           평균 {avgPriceText}
                         </span>
                       )}
@@ -2196,7 +2236,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                         })}
                       </div>
                     ) : (
-                      <div className={`grid grid-cols-1 ${compactHeroMode && !effectiveInlineExpanded ? '' : 'md:grid-cols-2 lg:grid-cols-3'} gap-2 w-full box-border`}>
+                      <div className={`grid grid-cols-1 ${compactHeroMode && !effectiveInlineExpanded ? '' : 'md:grid-cols-2'} gap-2.5 w-full box-border`}>
                         {group.items.map((item, idx) => {
                           const isSelected = !!effectiveSelectedApt && (
                             effectiveSelectedApt === item.aptName ||
@@ -2264,7 +2304,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                     captureScrollBeforeExpand();
                     setVisibleTimelineCount((prev) => Math.min(effectiveTotalCount, prev + 20));
                   }}
-                  className="flex-1 py-2.5 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-[12px] xs:text-[12.5px] font-bold text-secondary rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:scale-[0.99]"
+                  className="flex-1 py-2.5 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-[12px] sm:text-[12.5px] font-bold text-secondary rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:scale-[0.99]"
                 >
                   <span>최근 실거래 더보기 (+20개 / 남은 {effectiveTotalCount - effectiveVisibleCount}개)</span>
                   <ChevronDown size={14} />

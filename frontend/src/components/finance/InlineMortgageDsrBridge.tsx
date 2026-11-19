@@ -2,15 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import {
-  Calculator,
-  Landmark,
-  ChevronDown,
-  ChevronUp,
-  ArrowUpRight,
-  ShieldCheck,
-  AlertTriangle,
-} from 'lucide-react';
+import { DviewIcon } from '@/components/common/DviewIcon';
 import {
   calculateEqualPrincipalAndInterest,
   calculateEqualPrincipal,
@@ -26,6 +18,10 @@ import {
   persistPendingCalculatorContext,
   type PendingCalculatorContextPayload,
 } from '@/lib/utils/pendingCalculatorContext';
+import {
+  OPEN_INLINE_FINANCE_DRAWER_EVENT,
+  type OpenInlineFinanceDrawerDetail,
+} from '@/components/finance/TopLandingCalculatorQuickBar';
 
 export type { PendingCalculatorContextPayload };
 
@@ -60,6 +56,7 @@ export interface InlineMortgageDsrBridgeProps {
   defaultFocus?: 'mortgage' | 'tax';
   initialPriceTierManwon?: 60000 | 90000 | 120000;
   compact?: boolean;
+  bridgeId?: string;
   onOpenMortgage?: (aptName: string, priceWon?: number, trigger?: string) => void;
   onOpenTaxCalculator?: (aptName: string, trigger?: string) => void;
   onOpenJeonseSafety?: (aptName: string, trigger?: string) => void;
@@ -158,6 +155,7 @@ export default function InlineMortgageDsrBridge({
   defaultFocus = 'mortgage',
   initialPriceTierManwon = 90000,
   compact = false,
+  bridgeId,
   onOpenMortgage,
   onOpenTaxCalculator,
   onOpenJeonseSafety,
@@ -201,8 +199,51 @@ export default function InlineMortgageDsrBridge({
     setPriceSource(hasVerifiedPrice ? 'verified' : 'tier');
   }, [hasVerifiedPrice, verifiedPriceManwon]);
 
+  const resolvedBridgeId =
+    bridgeId || (surface === 'guide_top_summary' ? 'guide-top-finance-bridge' : undefined);
   const isUsingVerifiedPrice = hasVerifiedPrice && priceSource === 'verified';
   const effectivePriceManwon = isUsingVerifiedPrice ? verifiedPriceManwon : fallbackTierManwon;
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !resolvedBridgeId) return;
+    if (onOpenMortgage && onOpenTaxCalculator) return;
+
+    const handleExternalDrawerOpen = (e: Event) => {
+      const detail = (e as CustomEvent<OpenInlineFinanceDrawerDetail>).detail;
+      if (!detail || (detail.targetId && detail.targetId !== resolvedBridgeId)) return;
+      const nextTab: 'mortgage' | 'tax' = detail.tab === 'tax' ? 'tax' : 'mortgage';
+      setActiveDrawerTab(nextTab);
+      setIsDrawerOpen(true);
+      trackedDrawerTabsRef.current.add(nextTab);
+      if (!detail.alreadyTrackedOpen) {
+        trackEvent('open_calculator', {
+          calculator_type: nextTab === 'tax' ? 'property_tax' : 'mortgage',
+          surface,
+          trigger: `${trigger}_quick_bar_${nextTab}`,
+          apartment_name: apartmentName || undefined,
+          apt_name: apartmentName || undefined,
+          dong: dong || undefined,
+          guide_slug: guideSlug || undefined,
+          benchmark_price_manwon: effectivePriceManwon,
+        });
+      }
+    };
+
+    window.addEventListener(OPEN_INLINE_FINANCE_DRAWER_EVENT, handleExternalDrawerOpen);
+    return () => {
+      window.removeEventListener(OPEN_INLINE_FINANCE_DRAWER_EVENT, handleExternalDrawerOpen);
+    };
+  }, [
+    resolvedBridgeId,
+    onOpenMortgage,
+    onOpenTaxCalculator,
+    surface,
+    trigger,
+    apartmentName,
+    dong,
+    guideSlug,
+    effectivePriceManwon,
+  ]);
   const effectivePriceWon = Math.max(0, effectivePriceManwon * 10_000);
   const loanPrincipalWon = Math.round(effectivePriceWon * (ltvPercent / 100));
   const loanPrincipalManwon = Math.round(loanPrincipalWon / 10_000);
@@ -479,7 +520,7 @@ export default function InlineMortgageDsrBridge({
           {/* Controls Row */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[11px] font-extrabold tabular-nums">
-              <Calculator size={12} className="shrink-0" />
+              <DviewIcon name="calculator" size={12} />
               <span>
                 {isUsingVerifiedPrice
                   ? `${apartmentName ? `${apartmentName} · ` : ''}실거래 ${formatManwonLabel(effectivePriceManwon)}`
@@ -622,9 +663,9 @@ export default function InlineMortgageDsrBridge({
                 }`}
               >
                 {calcMetrics.isWithinDsr ? (
-                  <ShieldCheck size={11} className="shrink-0" />
+                  <DviewIcon name="shield-check" size={11} />
                 ) : (
-                  <AlertTriangle size={11} className="shrink-0" />
+                  <DviewIcon name="alert-triangle" size={11} />
                 )}
                 <span>{calcMetrics.isWithinDsr ? '한도 이내' : '한도 초과'}</span>
               </span>
@@ -654,13 +695,13 @@ export default function InlineMortgageDsrBridge({
                 : 'bg-blue-600 hover:bg-blue-700 text-white'
             }`}
           >
-            <Calculator size={13} className="shrink-0" />
+            <DviewIcon name="calculator" size={13} />
             <span>주담대·DSR 계산기</span>
             {!onOpenMortgage &&
               (isDrawerOpen && activeDrawerTab === 'mortgage' ? (
-                <ChevronUp size={13} className="shrink-0" />
+                <DviewIcon name="chevron-up" size={13} />
               ) : (
-                <ChevronDown size={13} className="shrink-0" />
+                <DviewIcon name="chevron-down" size={13} />
               ))}
           </button>
 
@@ -674,13 +715,13 @@ export default function InlineMortgageDsrBridge({
                 : 'bg-surface dark:bg-[#202027] hover:bg-slate-100 dark:hover:bg-[#2c2c35] text-secondary hover:text-primary'
             }`}
           >
-            <Landmark size={13} className="shrink-0" />
+            <DviewIcon name="landmark" size={13} />
             <span>취득세 계산기</span>
             {!onOpenTaxCalculator &&
               (isDrawerOpen && activeDrawerTab === 'tax' ? (
-                <ChevronUp size={13} className="shrink-0" />
+                <DviewIcon name="chevron-up" size={13} />
               ) : (
-                <ChevronDown size={13} className="shrink-0" />
+                <DviewIcon name="chevron-down" size={13} />
               ))}
           </button>
 
@@ -691,7 +732,7 @@ export default function InlineMortgageDsrBridge({
               onClick={handleJeonseSafetyCta}
               className="inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl text-xs font-extrabold transition-colors cursor-pointer whitespace-nowrap bg-surface dark:bg-[#202027] hover:bg-slate-100 dark:hover:bg-[#2c2c35] text-secondary hover:text-primary"
             >
-              <ShieldCheck size={13} className="shrink-0" />
+              <DviewIcon name="shield-check" size={13} />
               <span>전세 안전진단</span>
             </button>
           )}
@@ -742,7 +783,7 @@ export default function InlineMortgageDsrBridge({
                   ? `${apartmentName} 전체 시뮬레이터 열기`
                   : '전체 금융 계산기 모달 열기'}
               </span>
-              <ArrowUpRight size={12} className="shrink-0" />
+              <DviewIcon name="arrow-up-right" size={12} />
             </Link>
           </div>
 

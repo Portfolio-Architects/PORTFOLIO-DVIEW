@@ -15,6 +15,7 @@ import {
 import PageHeroHeader from '@/components/PageHeroHeader';
 import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock from '@/components/pwa/MobileDock';
+import TopLandingCalculatorQuickBar from '@/components/finance/TopLandingCalculatorQuickBar';
 import TechnoValleyBounceDefenseBridge from '@/components/technovalley/TechnoValleyBounceDefenseBridge';
 import {
   selectPeerTechnoValleyJisans,
@@ -403,6 +404,20 @@ export default function TechnoValleyClient({
         />
 
         <div className="max-w-[2000px] mx-auto w-full max-w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-0 overflow-x-hidden min-w-0">
+          {!suppressHeroBridge && (
+            <TopLandingCalculatorQuickBar
+              variant="technovalley"
+              surface="technovalley_top_quick_bar"
+              targetName={effectiveSelectedJisan?.name}
+              benchmarkPriceManwon={
+                latestSaleTx?.priceRaw && latestSaleTx.priceRaw > 0
+                  ? latestSaleTx.priceRaw
+                  : undefined
+              }
+              className="mb-4"
+            />
+          )}
+
           {!suppressHeroBridge && effectiveSelectedJisan && selectedLabel && (
             <section
               id="technovalley-selected-jisan-hero-banner"

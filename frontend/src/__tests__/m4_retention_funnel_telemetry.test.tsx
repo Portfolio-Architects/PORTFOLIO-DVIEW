@@ -270,14 +270,14 @@ describe('M4 GA4 Retention Funnel Telemetry Verification (All 10 Events)', () =>
         />
       );
 
-      const favoritesTab = screen.getByRole('button', { name: /내 관심단지/ });
+      const favoritesTab = screen.getByRole('tab', { name: /내 관심단지/ });
       fireEvent.click(favoritesTab);
 
       expect(trackEventSpy).toHaveBeenCalledWith('timeline_segment_tab_click', {
         segment: 'favorites',
       });
 
-      const newHighTab = screen.getByRole('button', { name: /신고가 경신만/ });
+      const newHighTab = screen.getByRole('tab', { name: /신고가 경신만/ });
       fireEvent.click(newHighTab);
 
       expect(trackEventSpy).toHaveBeenCalledWith('timeline_segment_tab_click', {

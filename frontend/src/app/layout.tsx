@@ -30,6 +30,7 @@ import PreHydrationInlineScript from '@/components/common/PreHydrationInlineScri
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import ScrollOptimizer from '@/components/ui/ScrollOptimizer';
 import MobileStickyAnchorAd from '@/components/layout/MobileStickyAnchorAd';
+import DviewIconSprite from '@/components/common/DviewIconSprite';
 import { logger } from '@/lib/services/logger';
 
 const CustomA2HSModal = dynamic(() =>
@@ -67,7 +68,7 @@ export const metadata: Metadata = {
     },
   },
   other: {
-    'ai-search-crawling': 'allowed', 'naver-site-verification': 'e0240efa3f3f36785b2ca54faa765e9058f3707a',
+    'naver-site-verification': 'e0240efa3f3f36785b2ca54faa765e9058f3707a',
   },
   openGraph: {
     title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (1·2신도시 184개 가격 순위·전세가율) | D-VIEW',
@@ -151,7 +152,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://t1.kakaocdn.net" />
         <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
         <link rel="dns-prefetch" href="https://t1.kakaocdn.net" />
-        <meta name="naver-site-verification" content="e0240efa3f3f36785b2ca54faa765e9058f3707a" />
         <meta name="google-adsense-account" content={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-1103228112872356'} />
         {/* Google AdSense — Direct SSR <head> async script (itemProp prevents React 19 resource hoisting ahead of #dview-adsense-noindex-guard; suppressHydrationWarning prevents mismatch when adsbygoogle.js stamps data-checked-head="true" before hydration) */}
         {(process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || process.env.NODE_ENV === 'production') && (
@@ -190,7 +190,7 @@ export default function RootLayout({
                   <InAppBrowserBypass />
                   <OfflineBanner />
                   <SiteTracker />
-                  {/* Global SVG Gradients for D-VIEW Logo */}
+                  {/* Global SVG Gradients & Lucide Sprite Sheet for D-VIEW */}
                   <svg xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
                     <defs>
                       <linearGradient id="dview-logo-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
@@ -199,6 +199,7 @@ export default function RootLayout({
                       </linearGradient>
                     </defs>
                   </svg>
+                  <DviewIconSprite />
                   <div id="dview-main-content" className="flex-1 flex flex-col">
                     {children}
                   </div>
