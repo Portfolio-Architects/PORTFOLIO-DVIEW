@@ -12,13 +12,11 @@ import {
 } from '@/lib/design-system/copyDiet';
 
 const AnchorTenantSkeleton = () => (
-  <div className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border animate-pulse">
-    <div className="flex items-center justify-between mb-2 pb-3 border-b border-border">
-      <div className="w-40 h-5 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-    </div>
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+  <div className="pt-6 border-t border-[#f2f4f6] dark:border-[#202027]">
+    <div className="w-40 h-5 bg-[#f2f4f6] dark:bg-[#202027] rounded-lg mb-4 animate-shimmer" />
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
       {[1, 2, 3, 4].map(i => (
-        <div key={i} className="bg-slate-100 dark:bg-slate-900 rounded-2xl p-5 border border-border flex flex-col gap-3 min-h-[140px]" />
+        <div key={i} className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 min-h-[168px] animate-shimmer" />
       ))}
     </div>
   </div>
@@ -102,71 +100,66 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
   return (
     <section 
       id="sec-infra-metrics" 
-      className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14 snap-start`}
+      className="bg-transparent flex flex-col gap-7 scroll-mt-14 snap-start"
     >
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="flex flex-col w-full">
-        <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-          <MapPin size={18} className="text-blue-600 dark:text-blue-400"/> 단지 입지정보
-        </h2>
+        <div className="flex items-center justify-between gap-2 mb-5">
+          <h2 className="text-[18px] md:text-[20px] font-extrabold tracking-tight text-primary">
+            입지 · 교통 정보
+          </h2>
+          <button
+            type="button"
+            onClick={() => handleShareSection('infra')}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 font-semibold text-[12px] rounded-lg transition-colors cursor-pointer border-none bg-transparent text-tertiary hover:text-primary hover:bg-[#f2f4f6] dark:hover:bg-[#202027]"
+            title="생활 인프라 분석 결과 공유하기"
+          >
+            {copiedStatus === 'infra-link' ? (
+              <Check size={13} strokeWidth={2.4} className="text-emerald-600 dark:text-emerald-400" />
+            ) : (
+              <Share size={13} strokeWidth={2.2} />
+            )}
+            <span>{copiedStatus === 'infra-link' ? '링크 복사됨' : '공유'}</span>
+          </button>
+        </div>
 
         {/* ─── 생활 인프라 종합 지수 (Infra Index) ─── */}
         {(() => {
           const infraScoreInfo = calculateInfraScore(report.metrics);
           const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
-            S: { bg: 'bg-emerald-50 dark:bg-emerald-950/40', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800/50', descBg: 'bg-emerald-500/5', scoreText: 'text-emerald-600 dark:text-emerald-400' },
-            A: { bg: 'bg-blue-50 dark:bg-blue-950/40', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800/50', descBg: 'bg-blue-600/5', scoreText: 'text-blue-600 dark:text-blue-400' },
-            B: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200/50', descBg: 'bg-blue-600/5', scoreText: 'text-blue-600' },
-            C: { bg: 'bg-slate-50 dark:bg-slate-800/60', text: 'text-slate-600 dark:text-slate-300', border: 'border-slate-200 dark:border-slate-700/60', descBg: 'bg-slate-500/5', scoreText: 'text-slate-600 dark:text-slate-300' }
+            S: { bg: 'bg-emerald-50 dark:bg-emerald-950/40', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800/50', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-emerald-600 dark:text-emerald-400' },
+            A: { bg: 'bg-blue-50 dark:bg-blue-950/40', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800/50', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-blue-600 dark:text-blue-400' },
+            B: { bg: 'bg-blue-50 dark:bg-blue-950/40', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200/50 dark:border-blue-800/50', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-blue-600 dark:text-blue-400' },
+            C: { bg: 'bg-slate-100 dark:bg-slate-800/60', text: 'text-slate-600 dark:text-slate-300', border: 'border-slate-200 dark:border-slate-700/60', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-slate-600 dark:text-slate-300' }
           };
           const colors = scoreColors[infraScoreInfo.grade] || scoreColors.C;
           
           return (
-            <div className="mb-8">
-              <div className="flex items-center justify-between gap-2 mb-4 border-l-[3px] border-toss-blue pl-2.5">
-                <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">생활 인프라 지표</span>
-                <button
-                  onClick={() => handleShareSection('infra')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-[12px] rounded-xl transition-all border shadow-sm cursor-pointer transform duration-200 active:scale-[0.94] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 ${
-                    copiedStatus === 'infra-link'
-                      ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
-                      : 'bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100/80 dark:hover:bg-blue-900/40 active:bg-blue-200/70 text-blue-600 dark:text-blue-400 border-blue-200/70 dark:border-blue-800/50'
-                  }`}
-                  title="생활 인프라 분석 결과 카카오톡 공유하기"
-                >
-                  {copiedStatus === 'infra-link' ? (
-                    <Check size={12} strokeWidth={2.5} className="text-emerald-500" />
-                  ) : (
-                    <Share size={12} strokeWidth={2.5} className={copiedStatus === 'infra-link' ? 'text-emerald-500/80' : 'text-blue-600/80 dark:text-blue-400/80'} />
-                  )}
-                  <span>{copiedStatus === 'infra-link' ? '공유 링크 복사됨!' : '평가 결과 공유하기'}</span>
-                </button>
-              </div>
-              
-              <div className="bg-body rounded-2xl p-5 md:p-6 border border-border flex flex-col md:flex-row items-center gap-6">
+            <div className="mb-7">
+              <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-center gap-6">
                 <div className="flex flex-col items-center justify-center shrink-0">
-                  <div className={`w-24 h-24 rounded-full flex flex-col items-center justify-center border-4 ${colors.border} ${colors.bg} shadow-sm relative group`}>
-                    <span className="text-[12px] font-extrabold text-secondary tracking-wider">GRADE</span>
-                    <span className={`text-[36px] font-black leading-none ${colors.text} -mt-0.5`}>{infraScoreInfo.grade}</span>
+                  <div className={`w-20 h-20 rounded-full flex flex-col items-center justify-center border-2 ${colors.border} ${colors.bg} relative`}>
+                    <span className="text-[10px] font-bold text-tertiary tracking-wider">GRADE</span>
+                    <span className={`text-[30px] font-black leading-none ${colors.text}`}>{infraScoreInfo.grade}</span>
                   </div>
                 </div>
                 
                 <div className="flex-1 w-full text-center md:text-left">
-                  <div className="flex flex-col md:flex-row md:items-baseline justify-center md:justify-start gap-1 mb-2">
-                    <span className="text-[16px] font-bold text-secondary">종합 생활 인프라 지수:</span>
+                  <div className="flex flex-col md:flex-row md:items-baseline justify-center md:justify-start gap-1.5 mb-1.5">
+                    <span className="text-[14px] font-bold text-secondary">생활 인프라 점수</span>
                     <div className="flex items-baseline justify-center gap-0.5 tabular-nums">
-                      <span className={`text-[28px] font-black tracking-tight ${colors.scoreText}`}>{infraScoreInfo.score}</span>
-                      <span className="text-[14px] font-bold text-secondary mt-auto pb-0.5">/ 100 점</span>
+                      <span className={`text-[26px] font-black tracking-tight ${colors.scoreText}`}>{infraScoreInfo.score}</span>
+                      <span className="text-[13px] font-semibold text-tertiary mt-auto pb-0.5">/ 100점</span>
                     </div>
                   </div>
-                  <p className="text-[12.5px] font-bold text-secondary mb-2">
-                    지하철 · 트램 접근성 · 500m 앵커 상권 밀집도 종합
+                  <p className="text-[12.5px] font-medium text-tertiary mb-2.5">
+                    지하철 · 트램 접근성 · 500m 상권 밀집도 종합
                   </p>
                   
-                  <details className={getSeoAccordionClass(`${colors.descBg} border border-toss-blue/10 text-left`)}>
+                  <details className={getSeoAccordionClass(`${colors.descBg} text-left`)}>
                     <summary className={getSeoAccordionSummaryClass()}>
                       <span>생활 인프라 산정 기준 더보기</span>
                       <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
@@ -185,11 +178,11 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
 
         {/* ─── 교통 Section ─── */}
         {(report.metrics.distanceToSubway > 0 || (report.metrics.distanceToIndeokwon != null && report.metrics.distanceToIndeokwon > 0) || (report.metrics.distanceToTram != null && report.metrics.distanceToTram > 0)) && (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
-              <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">교통망 정보</span>
+          <div className="mb-7">
+            <div className="mb-3">
+              <span className="text-[14px] font-bold text-secondary tracking-tight">교통망 정보</span>
             </div>
-            <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-3 md:gap-3">
+            <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-1 sm:grid sm:grid-cols-3">
               {[
                 { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#2563eb', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
                 { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestStationCoords, color: '#2563eb', bgFrom: '#eff6ff', bgTo: '#dbeafe' },
@@ -198,47 +191,29 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                 const dist = station.dist ?? 0;
                 const percent = Math.min((dist / 1200) * 100, 100);
                 return (
-                  <div key={station.label} className="w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
-                    <div className="flex items-center justify-between mb-2 md:mb-3">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
-                          {station.label}
-                        </span>
-                        {dist <= 400 && (
-                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 shrink-0 leading-none">초역세</span>
-                        )}
-                        {dist > 400 && dist <= 800 && (
-                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 shrink-0 leading-none">역세권</span>
-                        )}
-                      </div>
+                  <div key={station.label} className="w-[160px] shrink-0 sm:w-auto bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 flex flex-col justify-between transition-colors">
+                    <div className="flex items-center justify-between gap-1.5 mb-2">
+                      <span className="text-[12.5px] font-bold text-secondary truncate">
+                        {station.label}
+                      </span>
                       {dist <= 400 ? (
-                        <span className="relative flex h-2 w-2 shrink-0">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: station.color }}></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: station.color }}></span>
-                        </span>
-                      ) : (
-                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: station.color }} />
-                      )}
+                        <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 shrink-0">초역세</span>
+                      ) : dist <= 800 ? (
+                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0">역세권</span>
+                      ) : null}
                     </div>
-                    <div className="flex flex-col lg:flex-row lg:items-baseline gap-1.5 lg:gap-2 mt-1 lg:mt-0">
-                      <div className="flex items-baseline gap-0.5">
-                        <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">
-                          {Math.round(dist).toLocaleString()}
-                        </span>
-                        <span className="text-[12px] md:text-[14px] font-bold text-secondary mt-auto pb-0.5">
-                          m
-                        </span>
-                      </div>
-                      <span 
-                        className="text-[11px] md:text-[12px] px-2 py-0.5 rounded-md w-fit whitespace-nowrap font-bold shadow-sm"
-                        style={{ backgroundColor: station.bgFrom, color: station.color }}
-                      >
+                    <div className="flex items-baseline gap-1.5 mt-0.5 tabular-nums">
+                      <span className="text-[22px] md:text-[26px] font-extrabold text-primary tracking-tight leading-none">
+                        {Math.round(dist).toLocaleString()}
+                      </span>
+                      <span className="text-[12px] font-semibold text-tertiary">m</span>
+                      <span className="text-[11.5px] font-bold text-blue-600 dark:text-blue-400 ml-auto whitespace-nowrap">
                         도보 {Math.ceil(dist / 80)}분
                       </span>
                     </div>
 
                     {/* Toss-style Distance Gauge Bar */}
-                    <div className="mt-3.5 w-full bg-slate-100 dark:bg-slate-800/60 h-2 rounded-full overflow-hidden relative shadow-inner">
+                    <div className="mt-3 w-full bg-slate-200/70 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                       <div 
                         className="h-full rounded-full transition-all duration-500 ease-out"
                         style={{ 
@@ -252,12 +227,11 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                       <a 
                         href={station.coords ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.coords)}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.name + (station.name.includes('정거장') ? ' 동탄' : ' 역'))}`}
                         target="_blank" rel="noopener noreferrer"
-                        className="text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 rounded-xl px-2.5 py-2 text-center text-secondary transition-all duration-300 hover:scale-[1.02] active:scale-95 bg-surface border border-border shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-[color:var(--hover-color)] hover:text-[color:var(--hover-color)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1"
-                        style={{ '--hover-color': station.color } as React.CSSProperties}
+                        className="text-[11.5px] flex items-center gap-1 font-semibold mt-3 text-tertiary hover:text-primary transition-colors"
                         title={`${station.name} 구글 지도에서 보기`}
                       >
-                        <MapPin size={12} className="shrink-0 md:w-3.5 md:h-3.5" />
-                        <span className="truncate leading-tight block">{station.name}</span>
+                        <MapPin size={12} className="shrink-0" />
+                        <span className="truncate">{station.name}</span>
                       </a>
                     )}
                   </div>
@@ -270,10 +244,10 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
         {/* ─── 생활 인프라 Section ─── */}
         {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
           <div>
-            <div className="flex items-center gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
-              <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">생활권 인프라</span>
+            <div className="mb-3">
+              <span className="text-[14px] font-bold text-secondary tracking-tight">주변 상권 (500m)</span>
             </div>
-            <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-1 md:gap-3">
+            <div className="flex flex-col gap-3">
               {(() => {
                 const restaurantData = Object.entries(report.metrics.restaurantCategories || {}).map(([cat, cnt]) => {
                   let tag = '기타';
@@ -324,23 +298,22 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                 const sortedRestTags = Object.entries(restTagSums).sort((a, b) => b[1].count - a[1].count);
 
                 return (
-                  <div className="w-full bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
-                    <div className="flex items-center justify-between mb-2 md:mb-3">
-                      <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
-                        음식점·카페·500m
+                  <div className="w-full bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 md:p-5 flex flex-col">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[13px] font-bold text-secondary truncate pr-1">
+                        음식점·카페 (반경 500m)
                       </span>
-                      <span className="w-2 h-2 rounded-full shrink-0 bg-blue-600" />
                     </div>
                     
-                    <div className="flex items-baseline gap-0.5 mb-4 whitespace-nowrap">
-                      <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
-                      <span className="text-[12px] md:text-[14px] font-bold text-secondary ml-1 pb-0.5">개</span>
+                    <div className="flex items-baseline gap-0.5 mb-3.5 whitespace-nowrap">
+                      <span className="text-[24px] md:text-[28px] font-extrabold text-primary tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
+                      <span className="text-[12.5px] font-semibold text-tertiary ml-1 pb-0.5">개</span>
                     </div>
 
                     {totalRestaurantCount > 0 && (
-                      <div className="mb-4">
+                      <div className="mb-3.5">
                         {/* 수평 비율 게이지 바 */}
-                        <div className="w-full h-3 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-800 shadow-inner mb-3">
+                        <div className="w-full h-2.5 rounded-full overflow-hidden flex bg-slate-200/70 dark:bg-slate-800 mb-2.5">
                           {sortedRestTags.map(([tag, data]) => {
                             const percent = (data.count / totalRestaurantCount) * 100;
                             return (
@@ -359,11 +332,11 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                           {sortedRestTags.map(([tag, data]) => {
                             const percent = (data.count / totalRestaurantCount) * 100;
                             return (
-                              <div key={tag} className="flex items-center gap-1.5 text-[11px] font-bold text-secondary">
+                              <div key={tag} className="flex items-center gap-1.5 text-[11px] font-semibold text-secondary tabular-nums">
                                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
                                 <span>{tag}</span>
-                                <span className="text-primary">{data.count}개</span>
-                                <span className="opacity-60 text-[10px]">({Math.round(percent)}%)</span>
+                                <span className="text-primary font-bold">{data.count}개</span>
+                                <span className="text-tertiary text-[10px]">({Math.round(percent)}%)</span>
                               </div>
                             );
                           })}
@@ -372,14 +345,14 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                     )}
 
                     {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 border-t border-border/40 pt-4 mt-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 border-t border-[#f2f4f6] dark:border-[#202027] pt-3.5 mt-1">
                         {Object.entries(report.metrics.restaurantCategories)
                           .sort(([,a], [,b]) => (b as number) - (a as number))
                           .slice(0, 5)
                           .map(([cat, cnt]) => (
-                            <div key={cat} className="flex justify-between items-center bg-surface/60 hover:bg-surface border border-border/20 rounded-xl px-3 py-1.5 transition-all duration-200">
-                              <span className="text-[11px] md:text-[13px] font-bold text-secondary truncate mr-2">{cat}</span>
-                              <span className="font-extrabold text-[11px] md:text-[13px] text-toss-blue shrink-0 tabular-nums">{cnt as number}개</span>
+                            <div key={cat} className="flex justify-between items-center bg-surface dark:bg-[#202027] rounded-xl px-3 py-2">
+                              <span className="text-[12px] font-semibold text-secondary truncate mr-2">{cat}</span>
+                              <span className="font-bold text-[12px] text-primary shrink-0 tabular-nums">{cnt as number}개</span>
                             </div>
                           ))}
                       </div>

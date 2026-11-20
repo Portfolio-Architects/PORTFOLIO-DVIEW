@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Shield, ShieldAlert, AlertTriangle, Coins, TrendingUp, CheckCircle2, ChevronRight, ChevronDown, MessageSquare } from 'lucide-react';
-import { shareJeonseSafetyToKakao } from '@/lib/utils/kakaoShare';
-import { usePWA } from '@/components/pwa/PWAProvider';
+import { Shield, ShieldAlert, AlertTriangle, Coins, TrendingUp, CheckCircle2, ChevronRight, ChevronDown } from 'lucide-react';
 import {
   getSeoAccordionClass,
   getSeoAccordionSummaryClass,
@@ -30,9 +28,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
   latestDeposit,
   volume3M,
   householdCount,
-  onOpenAdModal
 }: JeonseSafetyReportProps) {
-  const { showToast } = usePWA();
   // Safe Fallback for inputs
   const safeLatestPrice = Math.max(0, latestPrice || 0);
   const safeLatestDeposit = Math.max(0, latestDeposit || 0);
@@ -163,19 +159,6 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
     }
   }[grade];
 
-  const handleKakaoShare = () => {
-    shareJeonseSafetyToKakao({
-      aptName,
-      dong,
-      marketPrice: safeLatestPrice,
-      jeonseAmount: safeLatestDeposit,
-      lienAmount: 0,
-      debtRatio: jeonseRatePercent,
-      riskLabel: gradeLabel,
-      riskLevel: grade,
-    }, showToast);
-  };
-
   // Circle path parameters
   const radius = 50;
   const strokeWidth = 8;
@@ -215,18 +198,18 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
   }, [aptName, dong, safeLatestPrice, safeLatestDeposit, gradeLabel, totalScore, jeonseRatePercent, ratioScore, auctionLimit, marginScore, safeVolume3M, liquidityScore, safeHouseholdCount, scaleScore]);
 
   return (
-    <div className="flex flex-col w-full gap-8 mt-4">
+    <div className="flex flex-col w-full gap-6 mt-2">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       {/* ─── 전세 안전성 스코어 대시보드 ─── */}
       <div>
-        <div className="flex items-center gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
-          <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">보증금 반환 안전성 진단</span>
+        <div className="mb-3">
+          <span className="text-[14px] font-bold text-secondary tracking-tight">보증금 반환 안전성 진단</span>
         </div>
 
-        <div className="bg-body border border-border rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-center gap-6">
+        <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-center gap-6">
           {/* SVG Progress Ring */}
           <div 
             className="relative flex items-center justify-center shrink-0 w-32 h-32"
@@ -292,8 +275,8 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
 
       {/* ─── 4대 안전 진단 영역 리스트 ─── */}
       <div>
-        <div className="flex items-center gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
-          <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">진단 부문별 채점 상세</span>
+        <div className="mb-3">
+          <span className="text-[14px] font-bold text-secondary tracking-tight">진단 항목별 점수</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 tabular-nums">
@@ -376,35 +359,26 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
 
       {/* ─── HUG 반환보증 공식 가이드 안내 배너 ─── */}
       {(grade === 'caution' || grade === 'danger') && (
-        <div className="border border-red-500/20 bg-red-500/5 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="bg-red-50/60 dark:bg-red-950/25 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex-1 text-center sm:text-left min-w-0">
-            <p className="text-[14px] font-black text-primary mb-1 flex items-center gap-1.5 justify-center sm:justify-start">
+            <p className="text-[13.5px] font-bold text-primary mb-1 flex items-center gap-1.5 justify-center sm:justify-start">
               <AlertTriangle size={15} className="text-red-500 shrink-0" />
               <span>임차인 필수: 전세보증금 반환보증보험 가입 요건 확인</span>
             </p>
-            <p className="text-[12px] font-bold text-secondary tabular-nums">
-              전세가율 {jeonseRatePercent.toFixed(1)}% · HUG 반환보증 가입 가능 여부 사전 점검 필수
+            <p className="text-[12px] font-medium text-secondary tabular-nums">
+              전세가율 {jeonseRatePercent.toFixed(1)}% · HUG 반환보증 가입 가능 여부 사전 점검 권장
             </p>
           </div>
           <button
+            type="button"
             onClick={() => window.open('https://www.khug.or.kr/web/ig/dr/igdr000001.jsp', '_blank', 'noopener,noreferrer')}
-            className="shrink-0 bg-red-600 hover:bg-red-500 text-white font-extrabold text-[12px] px-4 py-2.5 rounded-xl flex items-center gap-1 active:scale-[0.97] transition-all cursor-pointer border-none shadow-md"
+            className="shrink-0 bg-surface hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-red-600 dark:text-red-400 font-bold text-[12px] px-3.5 py-2 rounded-[10px] flex items-center gap-1 active:scale-[0.97] transition-colors cursor-pointer border-none"
           >
             <span>HUG 공식 기준 확인</span>
             <ChevronRight size={14} strokeWidth={2.5} />
           </button>
         </div>
       )}
-      {/* 카카오톡 1-Click 공유 플로팅 버튼 (FAB) */}
-      <div className="sticky bottom-4 left-0 right-0 z-30 flex justify-center w-full pointer-events-none mt-4">
-        <button
-          onClick={handleKakaoShare}
-          className="pointer-events-auto bg-[#fee500] hover:bg-[#fddc00] active:scale-95 text-[#191919] font-black text-[13.5px] px-6 py-3.5 rounded-full flex items-center gap-2 shadow-xl shadow-slate-900/15 transition-all cursor-pointer border-none animate-pulse"
-        >
-          <MessageSquare size={16} className="fill-[#191919] text-[#191919]" />
-          <span>진단 결과 1초 만에 카카오톡으로 공유하기</span>
-        </button>
-      </div>
     </div>
   );
 });

@@ -1,11 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
-import {
-  X, Camera, Building, Info, Shield, ShieldAlert, ShieldCheck, ChevronDown, ArrowLeft, Download, Check,
-  Crown, ChevronRight, Calculator, Bell,
-  Activity, Layers, GraduationCap, TrendingUp, Building2, Globe2, FileText
-} from 'lucide-react';
+import { X, Camera, ArrowLeft } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { normalize84Price } from '@/lib/utils/valuation';
@@ -20,6 +16,7 @@ import {
 import type { FieldReportData } from '@/lib/DashboardFacade';
 import type { User } from 'firebase/auth';
 import { usePreventElasticBounce } from '@/hooks/usePreventElasticBounce';
+import { acquireBodyScrollLock } from '@/lib/utils/bodyScrollLock';
 import { safeReload } from '@/lib/utils/safeReload';
 import { TransactionListSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
@@ -423,6 +420,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
   const { areaUnit } = useSettingsValues();
   const { showToast } = usePWA();
+  const backdropRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   usePreventElasticBounce(modalRef);
 
@@ -498,11 +496,19 @@ const ApartmentModal = React.memo(function ApartmentModal({
     });
   }, [activeChapter]);
 
-  // Reset area filter and active chapter when switching apartments
+  // Reset area filter, active chapter, and drawer scroll position when switching apartments
   useEffect(() => {
     setSelectedAreaFilter('전체');
     setActiveChapter('chapter-01-overview');
-  }, [report?.apartmentName]);
+    setShowScrollTop(false);
+    if (!inline && modalRef.current) {
+      if (typeof modalRef.current.scrollTo === 'function') {
+        modalRef.current.scrollTo({ top: 0, behavior: 'auto' });
+      } else {
+        modalRef.current.scrollTop = 0;
+      }
+    }
+  }, [report?.apartmentName, inline]);
 
   // Viewport proximity observation for pre-mounting chapters within 350px
   useEffect(() => {
@@ -826,36 +832,59 @@ const ApartmentModal = React.memo(function ApartmentModal({
     });
   }, [inline, report?.apartmentName, report?.dong, canonicalAptSlug]);
 
+  // Lock outer document scroll across both desktop & mobile while the overlay drawer is open
+  // (ref-counted with scrollbar width compensation so stacked modals never prematurely unlock or shift layout)
   useEffect(() => {
-    if (inline || typeof document === 'undefined' || typeof window === 'undefined') return;
-    const originalOverflow = document.body.style.overflow;
-    const originalOverscroll = document.documentElement.style.overscrollBehavior;
-    let isLocked = false;
-
-    const syncScrollLock = () => {
-      if (window.innerWidth < 768) {
-        if (!isLocked) {
-          document.body.style.overflow = 'hidden';
-          document.documentElement.style.overscrollBehavior = 'none';
-          isLocked = true;
-        }
-      } else if (isLocked) {
-        document.body.style.overflow = originalOverflow;
-        document.documentElement.style.overscrollBehavior = originalOverscroll;
-        isLocked = false;
-      }
-    };
-
-    syncScrollLock();
-    window.addEventListener('resize', syncScrollLock, { passive: true });
-    return () => {
-      window.removeEventListener('resize', syncScrollLock);
-      if (isLocked) {
-        document.body.style.overflow = originalOverflow;
-        document.documentElement.style.overscrollBehavior = originalOverscroll;
-      }
-    };
+    if (inline || typeof document === 'undefined') return;
+    return acquireBodyScrollLock();
   }, [inline]);
+
+  // Dismiss overlay drawer with Escape key while respecting stacked dropdowns / child / calculator modals
+  useEffect(() => {
+    if (inline || typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+
+      if (isToolDropdownOpen) {
+        e.preventDefault();
+        setIsToolDropdownOpen(false);
+        return;
+      }
+
+      if (fullscreenImage) {
+        e.preventDefault();
+        setFullscreenImage(null);
+        return;
+      }
+
+      if (isUploadModalOpen || isPushModalOpen) return;
+
+      const openDialogs = Array.from(
+        document.querySelectorAll('[role="dialog"][aria-modal="true"]')
+      );
+      const topDialog = openDialogs[openDialogs.length - 1];
+      if (topDialog && backdropRef.current && topDialog !== backdropRef.current) {
+        return;
+      }
+
+      e.preventDefault();
+      handleModalClose();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [
+    inline,
+    isToolDropdownOpen,
+    setIsToolDropdownOpen,
+    fullscreenImage,
+    isUploadModalOpen,
+    isPushModalOpen,
+    handleModalClose,
+  ]);
 
   const handleRecircSelectApartment = useCallback(
     (targetAptName: string) => {
@@ -1308,10 +1337,10 @@ const ApartmentModal = React.memo(function ApartmentModal({
     />
   ), [filteredTransactions, report.apartmentName, typeMap, filterOutliers, chartType]);
 
-  const chapterScrollMarginClass = inline ? 'scroll-mt-14 md:scroll-mt-36' : 'scroll-mt-14';
+  const chapterScrollMarginClass = inline ? 'scroll-mt-14 md:scroll-mt-36' : 'scroll-mt-3';
 
   const retentionAndBridgeBlock = (
-    <div className={inline ? '-mb-4 w-full space-y-2.5' : 'w-full space-y-2.5'}>
+    <div className={inline ? '-mb-4 w-full space-y-3' : 'w-full'}>
       <ApartmentLandingRetentionStrip
         currentAptName={report.apartmentName}
         currentDong={report.dong || '동탄'}
@@ -1324,37 +1353,39 @@ const ApartmentModal = React.memo(function ApartmentModal({
         onOpenCompare={handleRecircOpenCompare}
         onOpenPushModal={() => setIsPushModalOpen(true)}
       />
-      <InlineMortgageDsrBridge
-        apartmentName={displayAptName}
-        canonicalSlug={canonicalAptSlug}
-        dong={report.dong || undefined}
-        benchmarkPriceManwon={jeonseSafetyData?.latestPrice || txSummary?.latestPrice || 0}
-        surface={inline ? 'apartment_inline_top' : 'apartment_modal_top'}
-        trigger={inline ? 'apartment_inline_top_bridge' : 'apartment_modal_top_bridge'}
-        compact
-        onOpenMortgage={
-          onOpenMortgage
-            ? (bridgedApt, priceWon, trig) =>
-                onOpenMortgage(bridgedApt ? report.apartmentName : '', priceWon, trig)
-            : undefined
-        }
-        onOpenTaxCalculator={
-          onOpenTaxCalculator
-            ? (bridgedApt, trig) =>
-                onOpenTaxCalculator(bridgedApt ? report.apartmentName : '', trig)
-            : undefined
-        }
-        onOpenJeonseSafety={
-          onOpenJeonseSafety
-            ? (bridgedApt, trig) =>
-                onOpenJeonseSafety(bridgedApt ? report.apartmentName : '', trig)
-            : undefined
-        }
-      />
+      {inline && (
+        <InlineMortgageDsrBridge
+          apartmentName={displayAptName}
+          canonicalSlug={canonicalAptSlug}
+          dong={report.dong || undefined}
+          benchmarkPriceManwon={jeonseSafetyData?.latestPrice || txSummary?.latestPrice || 0}
+          surface="apartment_inline_top"
+          trigger="apartment_inline_top_bridge"
+          compact
+          onOpenMortgage={
+            onOpenMortgage
+              ? (bridgedApt, priceWon, trig) =>
+                  onOpenMortgage(bridgedApt ? report.apartmentName : '', priceWon, trig)
+              : undefined
+          }
+          onOpenTaxCalculator={
+            onOpenTaxCalculator
+              ? (bridgedApt, trig) =>
+                  onOpenTaxCalculator(bridgedApt ? report.apartmentName : '', trig)
+              : undefined
+          }
+          onOpenJeonseSafety={
+            onOpenJeonseSafety
+              ? (bridgedApt, trig) =>
+                  onOpenJeonseSafety(bridgedApt ? report.apartmentName : '', trig)
+              : undefined
+          }
+        />
+      )}
     </div>
   );
 
-  const content = (
+  const headerAndNav = (
     <>
       <ApartmentModalHeader
         report={report}
@@ -1384,19 +1415,17 @@ const ApartmentModal = React.memo(function ApartmentModal({
         scrollContainerRef={inline ? undefined : modalRef}
         compact={!inline}
         className={inline ? 'md:top-[80px]' : ''}
-        apartmentName={report.apartmentName}
-        displayAptName={displayAptName}
-        canonicalSlug={canonicalAptSlug}
-        dong={report.dong || undefined}
-        inline={inline}
-        onOpenPushModal={() => setIsPushModalOpen(true)}
       />
+    </>
+  );
 
+  const magazineBody = (
+    <>
       {/* Magazine Content Wrapper with 8 Discrete Analytical Chapters */}
-      <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4 gap-8' : 'px-3 pt-1.5 pb-4 md:px-6 md:py-4 gap-5 md:gap-7'} flex flex-col w-full`}>
+      <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4 gap-8' : 'px-4 sm:px-6 pt-3 pb-12 md:px-7 md:pt-4 gap-8 md:gap-10'} flex flex-col w-full`}>
         {inline && retentionAndBridgeBlock}
 
-        {/* Chapter 01: 개요 및 실거래 궤적 (Overview & Price) */}
+        {/* Chapter 01: 시세·실거래 */}
         <section
           id="chapter-01-overview"
           data-testid="chapter-01-overview"
@@ -1428,29 +1457,28 @@ const ApartmentModal = React.memo(function ApartmentModal({
           </ErrorBoundary>
         </section>
 
-        {/* Bottom-sheet (!inline): First-fold Data-First UX places Retention & Mortgage Bridge below Chapter 01 */}
+        {/* Overlay drawer (!inline): Calm peer comparison strip below Chapter 01 */}
         {!inline && retentionAndBridgeBlock}
 
-        {/* Chapter 02: 거래량 회전율 분석 (Turnover & Volume) */}
+        {/* Chapter 02: 거래량 */}
         <section
           id="chapter-02-volume"
           data-testid="chapter-02-volume"
-          className={`${chapterScrollMarginClass} snap-start w-full`}
+          className={`${chapterScrollMarginClass} snap-start w-full pt-6 border-t border-[#f2f4f6] dark:border-[#202027]`}
         >
           <div className="flex flex-col gap-3 w-full">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h2 className="text-[18px] md:text-[20px] font-bold text-primary flex items-center gap-2">
-                <Activity size={20} className="text-blue-600 dark:text-blue-400" />
-                거래량 및 회전율 분석
+            <div className="flex items-baseline justify-between gap-2 pb-1">
+              <h2 className="text-[18px] md:text-[20px] font-extrabold tracking-tight text-primary">
+                거래량 · 기간별 시세
               </h2>
               {txSummary && (
                 <span className="text-[12px] sm:text-[13px] font-medium text-tertiary tabular-nums">
-                  최근 3개월 {txSummary.avg3MTxCount || 0}건 거래
+                  최근 3개월 {txSummary.avg3MTxCount || 0}건
                 </span>
               )}
             </div>
             {isChapterMounted('chapter-02-volume') && (!isTxLoading || filteredTransactions.length > 0) ? (
-              <ErrorBoundary key="ch02-ready" name="거래량 회전율 분석">
+              <ErrorBoundary key="ch02-ready" name="거래량 분석">
                 <TransactionSummaryMetrics 
                   transactions={filteredTransactions} 
                   apartmentName={report.apartmentName}
@@ -1462,7 +1490,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
             ) : (
               <div
                 key="ch02-loading"
-                className="w-full h-[520px] sm:h-[430px] rounded-[20px] border border-border/40 animate-shimmer flex items-center justify-center"
+                className="w-full h-[520px] sm:h-[430px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] animate-shimmer flex items-center justify-center"
               >
                 <span className="text-tertiary text-[12px] font-bold">거래량 분석 로딩 중...</span>
               </div>
@@ -1489,55 +1517,55 @@ const ApartmentModal = React.memo(function ApartmentModal({
           </div>
         )}
 
-        {/* Chapter 03: 전세가율 갭투자 매트릭스 (Jeonse Gap) */}
+        {/* Chapter 03: 전세·갭 */}
         <section
           id="chapter-03-gap"
           data-testid="chapter-03-gap"
-          className={`${chapterScrollMarginClass} snap-start w-full`}
+          className={`${chapterScrollMarginClass} snap-start w-full pt-6 border-t border-[#f2f4f6] dark:border-[#202027]`}
         >
-          <div className="bg-surface py-5 md:py-6 border-b border-border flex flex-col gap-5">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h2 className="text-[18px] md:text-[20px] font-bold text-primary flex items-center gap-2">
-                <Layers size={20} className="text-blue-600 dark:text-blue-400" />
-                전세가율 및 갭투자 매트릭스
+          <div className="bg-surface flex flex-col gap-4">
+            <div className="flex items-baseline justify-between gap-2">
+              <h2 className="text-[18px] md:text-[20px] font-extrabold tracking-tight text-primary">
+                전세 · 갭 요약
               </h2>
               {jeonseSafetyData && (
-                <span className="text-[12px] sm:text-[13px] font-semibold text-secondary">
-                  실거래 전세가율 {jeonseSafetyData.ratio.toFixed(1)}%
+                <span className="text-[12px] sm:text-[13px] font-medium text-tertiary tabular-nums">
+                  전세가율 {jeonseSafetyData.ratio.toFixed(1)}%
                 </span>
               )}
             </div>
 
             {isChapterMounted('chapter-03-gap') ? (
-              <div key="ch03-ready" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
-                <div className="bg-elevated rounded-2xl p-4.5 flex flex-col justify-between">
-                  <span className="text-[12px] font-bold text-tertiary">실구매 필요차액 (매매-전세 갭)</span>
-                  <div className="mt-2 text-right">
-                    <span className="text-[20px] font-black text-toss-blue tabular-nums">
+              <div key="ch03-ready" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-2">
+                  <span className="text-[12px] font-semibold text-tertiary">매매-전세 차이 (갭)</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-[20px] font-black text-primary tabular-nums">
                       {jeonseSafetyData && jeonseSafetyData.latestPrice > 0 && jeonseSafetyData.latestDeposit > 0
                         ? `${Math.max(0, Math.round((jeonseSafetyData.latestPrice - jeonseSafetyData.latestDeposit) / 10000))}억`
                         : '산정 중'}
                     </span>
-                    <span className="text-[12px] font-bold text-secondary ml-1">필요</span>
+                    {jeonseSafetyData && jeonseSafetyData.latestPrice > 0 && jeonseSafetyData.latestDeposit > 0 && (
+                      <span className="text-[12px] font-semibold text-tertiary">필요</span>
+                    )}
                   </div>
                 </div>
 
-                <div className="bg-elevated rounded-2xl p-4.5 flex flex-col justify-between">
-                  <span className="text-[12px] font-bold text-tertiary">실거래 전세가율</span>
-                  <div className="mt-2 text-right">
+                <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-2">
+                  <span className="text-[12px] font-semibold text-tertiary">전세가율</span>
+                  <div className="flex items-baseline gap-1">
                     <span className="text-[20px] font-black text-blue-600 dark:text-blue-400 tabular-nums">
-                      {jeonseSafetyData && jeonseSafetyData.ratio > 0 ? `${jeonseSafetyData.ratio.toFixed(1)}%` : '데이터 수집 중'}
+                      {jeonseSafetyData && jeonseSafetyData.ratio > 0 ? `${jeonseSafetyData.ratio.toFixed(1)}%` : '집계 중'}
                     </span>
-                    <span className="text-[12px] font-bold text-secondary ml-1">기록</span>
                   </div>
                 </div>
 
-                <div className="bg-elevated rounded-2xl p-4.5 flex flex-col justify-between sm:col-span-2 md:col-span-1">
-                  <span className="text-[12px] font-bold text-tertiary">DCF 밸류에이션 판정</span>
-                  <div className="mt-2 text-right">
+                <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-2 sm:col-span-2 md:col-span-1">
+                  <span className="text-[12px] font-semibold text-tertiary">적정가 대비</span>
+                  <div>
                     <span className={`text-[18px] font-black tabular-nums ${
-                      valuation.status === 'undervalued' ? 'text-emerald-500' :
-                      valuation.status === 'overvalued' ? 'text-red-500' : 'text-primary'
+                      valuation.status === 'undervalued' ? 'text-emerald-600 dark:text-emerald-400' :
+                      valuation.status === 'overvalued' ? 'text-red-500 dark:text-red-400' : 'text-primary'
                     }`}>
                       {valuation.amount}
                     </span>
@@ -1545,18 +1573,18 @@ const ApartmentModal = React.memo(function ApartmentModal({
                 </div>
               </div>
             ) : (
-              <div key="ch03-loading" className="w-full h-28 rounded-2xl border border-border/40 animate-shimmer flex items-center justify-center">
-                <span className="text-tertiary text-[12px] font-bold">갭투자 매트릭스 산정 중...</span>
+              <div key="ch03-loading" className="w-full h-28 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] animate-shimmer flex items-center justify-center">
+                <span className="text-tertiary text-[12px] font-bold">전세·갭 정보 불러오는 중...</span>
               </div>
             )}
           </div>
         </section>
 
-        {/* Chapter 04: 학군 및 하이퍼로컬 인프라 (Schools & Infra) */}
+        {/* Chapter 04: 학군·입지 */}
         <section
           id="chapter-04-infra"
           data-testid="chapter-04-infra"
-          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-8`}
+          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-8 pt-6 border-t border-[#f2f4f6] dark:border-[#202027]`}
         >
           {isAnimationFinished && isChapterMounted('chapter-04-infra') ? (
             <>
@@ -1593,16 +1621,16 @@ const ApartmentModal = React.memo(function ApartmentModal({
           )}
         </section>
 
-        {/* Chapter 05: 주담대 LDI 및 역전세 센티넬 (Mortgage LDI) */}
+        {/* Chapter 05: 대출·전세안전 */}
         <section
           id="chapter-05-mortgage"
           data-testid="chapter-05-mortgage"
-          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-6`}
+          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-8 pt-6 border-t border-[#f2f4f6] dark:border-[#202027]`}
         >
           {isAnimationFinished && isChapterMounted('chapter-05-mortgage') ? (
             <>
-              {/* Mortgage LDI Sentinel Card */}
-              <ErrorBoundary name="주담대 LDI 센티넬">
+              {/* Interactive Mortgage & DSR Simulator */}
+              <ErrorBoundary name="대출·DSR 시뮬레이터">
                 <MortgageLdiSentinelCard
                   aptName={report.apartmentName}
                   dong={report.dong || '동탄'}
@@ -1626,11 +1654,25 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
               {/* Jeonse Safety Section */}
               {jeonseSafetyData && (
-                <div className="bg-surface py-5 md:py-6 border-b border-border">
+                <div className="bg-surface pt-6 border-t border-[#f2f4f6] dark:border-[#202027]">
                   <div className="flex flex-col w-full">
-                    <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-                      <ShieldAlert size={18} className="text-blue-600 dark:text-blue-400"/> 전세 안전진단 · 주담대 LDI
-                    </h2>
+                    <div className="flex items-center justify-between gap-2 mb-5">
+                      <h2 className="text-[18px] md:text-[20px] font-extrabold tracking-tight text-primary">
+                        전세 보증금 안전진단
+                      </h2>
+                      {onOpenJeonseSafety && (
+                        <button
+                          type="button"
+                          data-testid="chapter05-jeonse-safety-cta"
+                          onClick={() => onOpenJeonseSafety(report.apartmentName, 'chapter05_cta')}
+                          onMouseEnter={preloadCalculators}
+                          onFocus={preloadCalculators}
+                          className="h-8 px-3 rounded-lg bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary text-[12px] font-semibold border-none cursor-pointer transition-colors whitespace-nowrap shrink-0"
+                        >
+                          전세 안전 계산기
+                        </button>
+                      )}
+                    </div>
                     <div className="relative w-full">
                       <div>
                         <ErrorBoundary name="전세 안전성 진단">
@@ -1651,65 +1693,6 @@ const ApartmentModal = React.memo(function ApartmentModal({
                   </div>
                 </div>
               )}
-
-              {/* Calculators CTA */}
-              <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center items-center w-full">
-                {onOpenMortgage && (
-                  <button
-                    onClick={() =>
-                      onOpenMortgage(
-                        report.apartmentName,
-                        currentPriceWon > 0 ? currentPriceWon : undefined,
-                        'chapter05_cta'
-                      )
-                    }
-                    onMouseEnter={preloadCalculators}
-                    onFocus={preloadCalculators}
-                    className="w-full sm:w-auto px-5 py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
-                  >
-                    <Calculator size={16} />
-                    <span>주담대 및 DSR 대출 한도 계산하기</span>
-                  </button>
-                )}
-
-                {onOpenJeonseSafety && (
-                  <button
-                    type="button"
-                    data-testid="chapter05-jeonse-safety-cta"
-                    onClick={() => onOpenJeonseSafety(report.apartmentName, 'chapter05_cta')}
-                    onMouseEnter={preloadCalculators}
-                    onFocus={preloadCalculators}
-                    className="w-full sm:w-auto px-5 py-3.5 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white active:scale-[0.98] text-white dark:text-slate-900 font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
-                  >
-                    <ShieldCheck size={16} />
-                    <span>전세 보증 · 안전진단 계산하기</span>
-                  </button>
-                )}
-
-                {onOpenTaxCalculator && (
-                  <button
-                    onClick={() => onOpenTaxCalculator(report.apartmentName, 'chapter05_cta')}
-                    onMouseEnter={preloadCalculators}
-                    onFocus={preloadCalculators}
-                    className="w-full sm:w-auto px-5 py-3.5 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
-                  >
-                    <Calculator size={16} />
-                    <span>나의 예상 취득세 및 복비 계산하기</span>
-                  </button>
-                )}
-
-                {onOpenSellTimingCalculator && (
-                  <button
-                    onClick={() => onOpenSellTimingCalculator(report.apartmentName, 'chapter05_cta')}
-                    onMouseEnter={preloadCalculators}
-                    onFocus={preloadCalculators}
-                    className="w-full sm:w-auto px-5 py-3.5 bg-red-500 hover:bg-red-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
-                  >
-                    <Calculator size={16} />
-                    <span>지금 팔면 호구일까? AI 매도 진단하기</span>
-                  </button>
-                )}
-              </div>
             </>
           ) : (
             transactions.length > 0 && <JeonseSafetySkeleton />
@@ -1735,14 +1718,14 @@ const ApartmentModal = React.memo(function ApartmentModal({
           </div>
         )}
 
-        {/* Chapter 06: 세대수 및 평형별 거래 대장 (Pyeong Ledger) */}
+        {/* Chapter 06: 단지정보 */}
         <section
           id="chapter-06-ledger"
           data-testid="chapter-06-ledger"
-          className={`${chapterScrollMarginClass} snap-start w-full`}
+          className={`${chapterScrollMarginClass} snap-start w-full pt-6 border-t border-[#f2f4f6] dark:border-[#202027]`}
         >
           {isAnimationFinished && isChapterMounted('chapter-06-ledger') ? (
-            <ErrorBoundary name="단지 기본정보 및 평형 대장">
+            <ErrorBoundary name="단지 기본정보">
               <ApartmentSpecsSection
                 report={report}
                 inline={inline}
@@ -1750,20 +1733,20 @@ const ApartmentModal = React.memo(function ApartmentModal({
               />
             </ErrorBoundary>
           ) : (
-            <div className="w-full h-32 rounded-[20px] border border-border/40 animate-shimmer mt-4" />
+            <div className="w-full h-32 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] animate-shimmer mt-2" />
           )}
         </section>
 
-        {/* Chapter 07: 거시 체제 및 지역 상관도 (Macro Correlation) */}
+        {/* Chapter 07: 적정가·금리 */}
         <section
           id="chapter-07-macro"
           data-testid="chapter-07-macro"
-          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-4`}
+          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-6 pt-6 border-t border-[#f2f4f6] dark:border-[#202027]`}
         >
           {isAnimationFinished && isChapterMounted('chapter-07-macro') ? (
             <div className="relative w-full">
               <div>
-                <ErrorBoundary name="거시 체제 및 밸류에이션 분석">
+                <ErrorBoundary name="적정가·금리 분석">
                   <LazyRender estimatedHeight={400}>
                     <AdvancedValuationMetrics key={report.id || report.apartmentName} report={report} transactions={transactions} />
                   </LazyRender>
@@ -1776,11 +1759,11 @@ const ApartmentModal = React.memo(function ApartmentModal({
           )}
         </section>
 
-        {/* Chapter 08: 단지 종합 평가 리포트 (Executive Monograph) */}
+        {/* Chapter 08: 임장·후기 */}
         <section
           id="chapter-08-report"
           data-testid="chapter-08-report"
-          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-8`}
+          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-8 pt-6 border-t border-[#f2f4f6] dark:border-[#202027]`}
         >
           {isAnimationFinished && isChapterMounted('chapter-08-report') ? (
             <>
@@ -1792,67 +1775,60 @@ const ApartmentModal = React.memo(function ApartmentModal({
                 };
                 const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
                 return (
-                  <div className="bg-surface py-5 md:py-6 border-b border-border overflow-hidden relative">
-                    <div className="absolute top-6 md:top-8 right-6 md:right-8 flex items-center gap-2 md:gap-3 z-10">
-                      <span className="text-[13px] font-bold text-tertiary tabular-nums">{report.images.length}장</span>
-                      <button 
+                  <div className="bg-surface overflow-hidden relative">
+                    <div className="flex items-center justify-between gap-2 mb-4">
+                      <h2 className="text-[18px] md:text-[20px] font-extrabold tracking-tight text-primary">
+                        단지 사진 <span className="text-[14px] font-semibold text-tertiary tabular-nums ml-1">{report.images.length}장</span>
+                      </h2>
+                      <button
+                        type="button"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
                           setIsUploadModalOpen(true);
                         }}
-                        className="text-[13px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-3 py-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors"
+                        className="h-8 px-3 rounded-lg bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary text-[12px] font-semibold border-none cursor-pointer transition-colors"
                       >
-                        + 사진 추가
+                        + 사진 올리기
                       </button>
                     </div>
-                    <details className="w-full overflow-hidden" open>
-                      <summary className="text-[20px] font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3 cursor-pointer list-none pr-32">
-                        <Camera size={20} className="text-blue-600 dark:text-blue-400"/>
-                        우리 단지 갤러리
-                      </summary>
-                      <ApartmentGallery aptName={report.apartmentName} images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
-                    </details>
+                    <ApartmentGallery aptName={report.apartmentName} images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
                   </div>
                 );
               })() : (
-                <div className="bg-surface py-5 md:py-6 border-b border-border overflow-hidden relative group">
-                  <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-                    <Camera size={20} className="text-blue-600 dark:text-blue-400"/> 우리 단지 갤러리
+                <div className="bg-surface overflow-hidden">
+                  <h2 className="text-[18px] md:text-[20px] font-extrabold tracking-tight text-primary mb-4">
+                    단지 사진
                   </h2>
-                  <div className="w-full relative overflow-hidden rounded-2xl bg-elevated p-8 md:p-12 flex flex-col items-center justify-center min-h-[280px]">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600 mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
-                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-600 mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
-                    <div className="w-16 h-16 bg-surface shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-border/40 dark:border-white/10 rounded-[20px] flex items-center justify-center mb-5 relative z-10">
-                      <Camera className="text-blue-600 dark:text-blue-400" size={32} strokeWidth={1.5} />
+                  <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] px-6 py-8 md:py-10 flex flex-col items-center justify-center text-center gap-3">
+                    <div className="w-11 h-11 rounded-2xl bg-surface dark:bg-[#202027] flex items-center justify-center text-tertiary">
+                      <Camera size={22} strokeWidth={1.8} />
                     </div>
-                    <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight mb-2 relative z-10 text-center break-keep">
-                      데이터가 담지 못하는 우리 단지의 진정한 가치
-                    </h3>
-                    <p className="text-[14px] md:text-[15px] text-secondary font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center break-keep">
-                      매수자의 첫인상을 결정하는 대표 이미지 1장.<br className="hidden md:block" />
-                      입주민의 시선으로 <strong className="text-blue-600 dark:text-blue-400">우리 단지의 품격</strong>을 직접 완성해 주세요.
-                    </p>
-                    <button 
+                    <div className="space-y-1">
+                      <h3 className="text-[15px] md:text-[16px] font-bold text-primary tracking-tight break-keep">
+                        아직 등록된 단지 사진이 없어요
+                      </h3>
+                      <p className="text-[13px] text-tertiary font-medium break-keep">
+                        정문·조경·주차장 사진을 올려주시면 다른 분들에게 도움이 됩니다.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         setIsUploadModalOpen(true);
                       }}
-                      className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-blue-600 hover:shadow-[0_4px_12px_rgba(49,130,246,0.3)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer"
+                      className="mt-1 h-9 px-4 rounded-xl bg-surface hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-primary text-[13px] font-bold border-none cursor-pointer transition-colors"
                     >
-                      <span>우리 단지 첫 번째 앰배서더 되기</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 group-hover:bg-surface animate-pulse" />
+                      첫 사진 올리기
                     </button>
-                    <p className="text-[12px] text-tertiary font-medium mt-5 relative z-10 text-center">
-                      * 고화질 사진이 풍부한 단지는 <span className="text-primary font-bold">인기 단지 탐색 상단에 우선 노출</span>됩니다.
-                    </p>
                   </div>
                 </div>
               )}
 
               {/* Scouting Report Detail */}
-              <ErrorBoundary name="스카우팅 리포트 상세">
+              <ErrorBoundary name="현장 임장 상세">
                 <ScoutingReportDetailSection report={report} inline={inline} />
               </ErrorBoundary>
             </>
@@ -1881,33 +1857,6 @@ const ApartmentModal = React.memo(function ApartmentModal({
             <AdSlot format="banner" className="w-full" />
           </div>
         )}
-
-        {/* Kakao Share CTA */}
-        <div className="flex flex-col gap-6 mt-8 mb-4">
-          <button 
-            onClick={handleKakaoShare}
-            disabled={isSharing}
-            className="w-full bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] rounded-[20px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.01] active:scale-[0.99] shadow-[0_12px_40px_rgba(0,0,0,0.06)] group border-none text-left disabled:opacity-85"
-          >
-            <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-1">
-              <span className="text-[13px] font-bold opacity-80 uppercase tracking-widest">
-                {isSharing ? '공유 이미지 카드 준비 중...' : '가장 빠른 동탄 소식'}
-              </span>
-              <span className="text-[16px] sm:text-[18px] font-extrabold tracking-tight">
-                {isSharing ? '잠시만 기다려주시면 카카오톡 전송 창이 열립니다' : '이 아파트 분석 리포트 카톡으로 지인에게 공유하기'}
-              </span>
-            </div>
-            <div className="w-12 h-12 bg-white/40 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
-              {isSharing ? (
-                <div className="w-5 h-5 border-2 border-[#3A1D1D] border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                  <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
-                </svg>
-              )}
-            </div>
-          </button>
-        </div>
       </div>
     </>
   );
@@ -1915,14 +1864,16 @@ const ApartmentModal = React.memo(function ApartmentModal({
   if (inline) {
     return (
       <div key="apartment-inline-report" data-testid="apartment-inline-report" className="w-full flex flex-col">
-        {content}
+        {headerAndNav}
+        {magazineBody}
         {showScrollTop && (
           <button
+            type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="fixed bottom-20 md:bottom-6 right-6 z-50 p-3.5 rounded-full bg-blue-600 text-white shadow-xl hover:bg-blue-700 transition-all active:scale-95 cursor-pointer border-none"
+            className="fixed bottom-20 md:bottom-6 right-5 z-50 p-2.5 rounded-full bg-surface/95 dark:bg-[#202027]/95 text-secondary hover:text-primary border border-[#e5e8eb] dark:border-[#2c2c35] shadow-sm transition-colors active:scale-95 cursor-pointer"
             aria-label="맨 위로 이동"
           >
-            <ArrowLeft size={20} className="rotate-90" />
+            <ArrowLeft size={18} className="rotate-90" />
           </button>
         )}
         <PhotoUploadModal
@@ -1953,73 +1904,98 @@ const ApartmentModal = React.memo(function ApartmentModal({
   }
 
   return (
-    <div 
-      data-testid="apartment-inspector-backdrop"
-      className="fixed inset-0 z-[10000] md:static md:inset-auto md:z-auto md:w-full md:h-dvh md:max-h-[calc(100dvh-80px)] flex items-end md:items-stretch justify-center md:justify-end p-0 bg-black/60 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none overscroll-none animate-in fade-in duration-200"
-      onWheel={(e) => e.stopPropagation()}
-      onClick={(e) => {
-        if (e.target === e.currentTarget && (typeof window === 'undefined' || window.innerWidth < 768)) {
-          handleModalClose();
-        }
-      }}
-    >
-      <div 
-        ref={modalRef}
-        data-testid="apartment-inspector-panel"
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-full md:w-[52vw] lg:w-[780px] xl:w-[880px] md:min-w-[380px] lg:min-w-[780px] xl:min-w-[880px] shrink-0 h-[94dvh] max-h-[94dvh] md:h-dvh md:max-h-[calc(100dvh-80px)] md:max-w-[780px] xl:max-w-[880px] bg-surface rounded-t-3xl md:rounded-none md:rounded-l-3xl shadow-2xl overflow-y-auto overscroll-contain overflow-x-hidden flex flex-col border-t md:border-t-0 md:border-l border-border/80 outline-none animate-in slide-in-from-bottom md:slide-in-from-right duration-300"
+    <>
+      <div
+        ref={backdropRef}
+        data-testid="apartment-inspector-backdrop"
+        data-scroll-interactive="true"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${displayAptName} 상세 분석 시트`}
+        className="fixed inset-0 z-[10010] flex items-end md:items-stretch justify-center md:justify-end p-0 bg-black/50 md:bg-black/35 backdrop-blur-[2px] overscroll-none animate-in fade-in duration-200"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            handleModalClose();
+          }
+        }}
       >
-        <div className="md:hidden w-full pt-2 pb-0.5 flex justify-center shrink-0 bg-surface" aria-hidden="true">
-          <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
-        </div>
-        <button
-          onClick={handleModalClose}
-          aria-label="닫기"
-          className="absolute top-3 right-3.5 z-[80] p-2 rounded-full bg-surface/90 hover:bg-surface text-secondary hover:text-primary border border-border shadow-sm transition-all cursor-pointer outline-none"
+        <div
+          data-testid="apartment-inspector-panel"
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full md:w-[min(92vw,780px)] lg:w-[780px] xl:w-[880px] md:min-w-[380px] lg:min-w-[780px] xl:min-w-[880px] shrink-0 h-[94dvh] max-h-[94dvh] md:h-dvh md:max-h-dvh md:max-w-[780px] xl:max-w-[880px] bg-surface rounded-t-3xl md:rounded-none md:rounded-l-3xl shadow-2xl overflow-hidden flex flex-col border-t md:border-t-0 md:border-l border-border/80 outline-none animate-in slide-in-from-bottom md:slide-in-from-right duration-300"
         >
-          <X size={20} />
-        </button>
-
-
-        {content}
-
-        {showScrollTop && (
-          <button
-            onClick={() => modalRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="fixed bottom-6 right-6 z-50 p-3.5 rounded-full bg-blue-600 text-white shadow-xl hover:bg-blue-700 transition-all active:scale-95 cursor-pointer border-none"
-            aria-label="맨 위로 이동"
+          {/* Fixed Top Chrome: Complex Header, Close Button & Chapter Nav stay pinned during scroll */}
+          <div
+            data-testid="apartment-drawer-sticky-chrome"
+            data-scroll-interactive="true"
+            className="relative shrink-0 z-[70] bg-surface"
           >
-            <ArrowLeft size={20} className="rotate-90" />
-          </button>
-        )}
+            <div className="md:hidden w-full pt-2 pb-0.5 flex justify-center shrink-0 bg-surface" aria-hidden="true">
+              <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+            </div>
+            <button
+              type="button"
+              onClick={handleModalClose}
+              aria-label="닫기"
+              title="닫기 (ESC)"
+              className="absolute top-3.5 md:top-3.5 right-3.5 md:right-5 z-[80] p-2 rounded-xl bg-transparent hover:bg-[#f2f4f6] dark:hover:bg-[#202027] text-tertiary hover:text-primary border-none transition-colors active:scale-95 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+            >
+              <X size={20} />
+            </button>
 
-        <PhotoUploadModal
-          isOpen={isUploadModalOpen}
-          onClose={() => setIsUploadModalOpen(false)}
-          apartmentId={report.id}
-          apartmentName={report.apartmentName}
-          user={user}
-        />
+            {headerAndNav}
+          </div>
 
-        <PushSubscriptionModal 
-          isOpen={isPushModalOpen}
-          onClose={() => setIsPushModalOpen(false)}
-          aptName={displayAptName}
-          canonicalSlug={canonicalAptSlug}
-          dong={report.dong || undefined}
-        />
+          {/* Single Scrollable Drawer Body — Eliminates outer/nested scroll collisions */}
+          <div
+            ref={modalRef}
+            data-testid="apartment-inspector-scroll-body"
+            className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain custom-scrollbar relative"
+            style={{ WebkitOverflowScrolling: 'touch', scrollbarGutter: 'stable' }}
+          >
+            {magazineBody}
+          </div>
 
-        {mounted && (
-          <ApartmentModalKakaoCard
-            shareCardRef={shareCardRef}
-            report={report}
-            displayAptName={displayAptName}
-            transactions={transactions}
-            valuation={valuation}
-          />
-        )}
+          {showScrollTop && (
+            <button
+              type="button"
+              data-scroll-interactive="true"
+              onClick={() => modalRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="absolute bottom-5 right-5 z-[75] p-2.5 rounded-full bg-surface/95 dark:bg-[#202027]/95 text-secondary hover:text-primary border border-[#e5e8eb] dark:border-[#2c2c35] shadow-sm transition-colors active:scale-95 cursor-pointer"
+              aria-label="맨 위로 이동"
+            >
+              <ArrowLeft size={16} className="rotate-90" />
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+
+      <PhotoUploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        apartmentId={report.id}
+        apartmentName={report.apartmentName}
+        user={user}
+      />
+
+      <PushSubscriptionModal
+        isOpen={isPushModalOpen}
+        onClose={() => setIsPushModalOpen(false)}
+        aptName={displayAptName}
+        canonicalSlug={canonicalAptSlug}
+        dong={report.dong || undefined}
+      />
+
+      {mounted && (
+        <ApartmentModalKakaoCard
+          shareCardRef={shareCardRef}
+          report={report}
+          displayAptName={displayAptName}
+          transactions={transactions}
+          valuation={valuation}
+        />
+      )}
+    </>
   );
 });
 

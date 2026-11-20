@@ -686,7 +686,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   return (
     <ChartErrorBoundary fallbackText="아파트 실거래가 차트를 로드할 수 없습니다.">
       <div className="w-full flex flex-col h-full">
-      <div ref={chartRef} className={`bg-surface rounded-2xl ring-1 ring-black/5 dark:ring-white/10 flex-1 flex flex-col h-full relative overflow-hidden touch-pan-y ${compact ? 'p-2.5 sm:p-4 md:p-5' : 'p-4 md:p-6'}`}>
+      <div ref={chartRef} className={`bg-surface rounded-2xl flex-1 flex flex-col h-full relative overflow-hidden touch-pan-y ${compact ? 'px-0.5 py-1 sm:p-2' : 'p-4 md:p-6 ring-1 ring-[#f2f4f6] dark:ring-[#202027]'}`}>
         {jsonLd && (
           <script
             type="application/ld+json"
@@ -750,7 +750,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
               )}
               <button 
                 onClick={handleCaptureChart}
-                className={`${compact ? 'w-7 h-7 sm:w-8 sm:h-8' : 'w-8 h-8'} flex items-center justify-center bg-transparent hover:bg-body text-secondary hover:text-primary rounded-lg transition-colors border border-border shrink-0 cursor-pointer`}
+                className={`${compact ? 'w-7 h-7 sm:w-8 sm:h-8' : 'w-8 h-8'} flex items-center justify-center bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary rounded-[10px] transition-colors border-none shrink-0 cursor-pointer`}
                 title="차트 이미지로 저장"
               >
                 <Camera size={15} strokeWidth={2} />
@@ -801,15 +801,14 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
             return (
               <div 
                 key={item.label} 
-                className={`flex flex-col min-w-0 relative rounded-xl border transition-all duration-200 ${compact ? 'px-2.5 py-1 sm:px-3.5 sm:py-2.5' : 'px-3 py-2.5 sm:px-4 sm:py-3.5'} ${
+                className={`flex flex-col min-w-0 relative rounded-xl transition-colors ${compact ? 'px-2.5 py-1.5 sm:px-3.5 sm:py-2.5' : 'px-3 py-2.5 sm:px-4 sm:py-3.5'} ${
                   isTarget 
-                    ? 'bg-surface border-blue-600 shadow-[0_4px_12px_rgba(49,130,246,0.08)] ring-1 ring-blue-600/10 z-10' 
-                    : 'bg-surface border-border/60 hover:bg-body/30'
+                    ? 'bg-blue-50/70 dark:bg-blue-950/30' 
+                    : 'bg-[#f9fafb] dark:bg-[#17171c]'
                 }`}
               >
-                <div className={`${compact ? 'text-[10.5px] sm:text-[12px] mb-0.5' : 'text-[11px] sm:text-[12.5px] mb-1'} font-bold flex items-center justify-between w-full whitespace-nowrap gap-1.5 ${isTarget ? 'text-blue-600 dark:text-blue-400' : 'text-tertiary'}`}>
+                <div className={`${compact ? 'text-[10.5px] sm:text-[12px] mb-0.5' : 'text-[11px] sm:text-[12.5px] mb-1'} font-semibold flex items-center justify-between w-full whitespace-nowrap gap-1.5 ${isTarget ? 'text-blue-600 dark:text-blue-400' : 'text-tertiary'}`}>
                   <span>{item.label} 평균</span>
-                  {isTarget && <div className="w-1.5 h-1.5 shrink-0 bg-blue-600 rounded-full animate-pulse shadow-[0_0_6px_rgba(49,130,246,0.3)]" />}
                 </div>
                 <span className={`${compact ? 'text-[13.5px] sm:text-[16px]' : 'text-[14.5px] sm:text-[17px]'} whitespace-nowrap tabular-nums ${isTarget ? 'text-blue-600 dark:text-blue-400 font-black tracking-tight' : 'text-primary font-extrabold'}`}>
                   {formatAvgPriceEok(item.val)}

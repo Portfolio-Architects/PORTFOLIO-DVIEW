@@ -135,59 +135,53 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
   return (
     <section 
       id="sec-education" 
-      className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14 overflow-hidden w-full snap-start`}
+      className="bg-transparent pt-6 border-t border-[#f2f4f6] dark:border-[#202027] flex flex-col gap-7 scroll-mt-14 overflow-hidden w-full snap-start"
     >
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="flex flex-col w-full">
-        <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-          <GraduationCap size={18} className="text-blue-600 dark:text-blue-400"/> 학군/육아 분석
-        </h2>
+        <div className="flex items-center justify-between gap-2 mb-5">
+          <h2 className="text-[18px] md:text-[20px] font-extrabold tracking-tight text-primary">
+            학군 · 육아 환경
+          </h2>
+          <button
+            type="button"
+            onClick={() => handleShareSection('childcare')}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 font-semibold text-[12px] rounded-lg transition-colors cursor-pointer border-none bg-transparent text-tertiary hover:text-primary hover:bg-[#f2f4f6] dark:hover:bg-[#202027]"
+            title="학군/육아 분석 결과 공유하기"
+          >
+            {copiedStatus === 'edu-link' ? (
+              <Check size={13} strokeWidth={2.4} className="text-emerald-600 dark:text-emerald-400" />
+            ) : (
+              <Share size={13} strokeWidth={2.2} />
+            )}
+            <span>{copiedStatus === 'edu-link' ? '링크 복사됨' : '공유'}</span>
+          </button>
+        </div>
 
         <div className="relative w-full">
-          <div className="flex flex-col w-full gap-8">
+          <div className="flex flex-col w-full gap-7">
 
             {/* ─── 육아 친화도 지수 (Childcare Index) ─── */}
             {(() => {
               const eduScoreInfo = calculateEducationScore(report.metrics);
               const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
-                S: { bg: 'bg-blue-50 dark:bg-blue-950/30', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200/60 dark:border-blue-800/50', descBg: 'bg-blue-600/5', scoreText: 'text-blue-600 dark:text-blue-400' },
-                A: { bg: 'bg-emerald-50 dark:bg-emerald-950/30', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200/60 dark:border-emerald-800/50', descBg: 'bg-emerald-600/5', scoreText: 'text-emerald-600 dark:text-emerald-400' },
-                B: { bg: 'bg-slate-50 dark:bg-slate-800/60', text: 'text-blue-600 dark:text-blue-400', border: 'border-slate-200/60 dark:border-slate-700/50', descBg: 'bg-blue-600/5', scoreText: 'text-blue-600 dark:text-blue-400' },
-                C: { bg: 'bg-slate-50 dark:bg-slate-800/60', text: 'text-slate-600 dark:text-slate-400', border: 'border-slate-200/60 dark:border-slate-700/50', descBg: 'bg-slate-500/5', scoreText: 'text-slate-600 dark:text-slate-400' }
+                S: { bg: 'bg-blue-50 dark:bg-blue-950/30', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200/60 dark:border-blue-800/50', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-blue-600 dark:text-blue-400' },
+                A: { bg: 'bg-emerald-50 dark:bg-emerald-950/30', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200/60 dark:border-emerald-800/50', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-emerald-600 dark:text-emerald-400' },
+                B: { bg: 'bg-slate-100 dark:bg-slate-800/60', text: 'text-blue-600 dark:text-blue-400', border: 'border-slate-200/60 dark:border-slate-700/50', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-blue-600 dark:text-blue-400' },
+                C: { bg: 'bg-slate-100 dark:bg-slate-800/60', text: 'text-slate-600 dark:text-slate-400', border: 'border-slate-200/60 dark:border-slate-700/50', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-slate-600 dark:text-slate-400' }
               };
               const colors = scoreColors[eduScoreInfo.grade] || scoreColors.C;
               
               return (
-                <div className="mb-8">
-                  <div className="flex items-center justify-between gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
-                    <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">육아 친화 지표</span>
-                    <button
-                      onClick={() => handleShareSection('childcare')}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-[12px] rounded-xl transition-all border shadow-sm cursor-pointer transform duration-200 active:scale-[0.94] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 ${
-                        copiedStatus === 'edu-link'
-                          ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
-                          : 'bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100/70 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-200/80 dark:border-blue-800/60'
-                      }`}
-                      title="학군/육아 분석 결과 카카오톡 공유하기"
-                    >
-                      {copiedStatus === 'edu-link' ? (
-                        <Check size={12} strokeWidth={2.5} className="text-emerald-500" />
-                      ) : (
-                        <Share size={12} strokeWidth={2.5} className="text-blue-600 dark:text-blue-400" />
-                      )}
-                      <span>{copiedStatus === 'edu-link' ? '공유 링크 복사됨!' : '평가 결과 공유하기'}</span>
-                    </button>
-                  </div>
-                  
-                  <div className="bg-body rounded-2xl p-5 md:p-6 border border-border flex flex-col md:flex-row items-center gap-6">
+                <div>
+                  <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-center gap-6">
                     <div className="flex flex-col items-center justify-center shrink-0">
-                      <div className="relative w-24 h-24 flex items-center justify-center">
+                      <div className="relative w-20 h-20 flex items-center justify-center">
                         {/* Radial Progress SVG (Toss-style Score Wheel) */}
                         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                          {/* Background Circle */}
                           <circle
                             cx="50"
                             cy="50"
@@ -196,7 +190,6 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                             strokeWidth="6"
                             fill="transparent"
                           />
-                          {/* Progress Circle with transition */}
                           <circle
                             cx="50"
                             cy="50"
@@ -209,10 +202,9 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                             strokeLinecap="round"
                           />
                         </svg>
-                        {/* Grade display overlay */}
                         <div className="absolute flex flex-col items-center justify-center">
-                          <span className="text-[10px] font-black text-secondary tracking-wider leading-none">GRADE</span>
-                          <span className={`text-[32px] font-black leading-none ${colors.text} -mt-0.5`}>
+                          <span className="text-[9.5px] font-bold text-tertiary tracking-wider leading-none">GRADE</span>
+                          <span className={`text-[26px] font-black leading-none ${colors.text}`}>
                             {eduScoreInfo.grade}
                           </span>
                         </div>
@@ -220,18 +212,18 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                     </div>
                     
                     <div className="flex-1 w-full text-center md:text-left">
-                      <div className="flex flex-col md:flex-row md:items-baseline justify-center md:justify-start gap-1 mb-2">
-                        <span className="text-[16px] font-bold text-secondary">종합 육아 환경 지수:</span>
+                      <div className="flex flex-col md:flex-row md:items-baseline justify-center md:justify-start gap-1.5 mb-1.5">
+                        <span className="text-[14px] font-bold text-secondary">학군 · 육아 점수</span>
                         <div className="flex items-baseline justify-center gap-0.5 tabular-nums">
-                          <span className={`text-[28px] font-black tracking-tight ${colors.scoreText}`}>{eduScoreInfo.score}</span>
-                          <span className="text-[14px] font-bold text-secondary mt-auto pb-0.5">/ 100 점</span>
+                          <span className={`text-[26px] font-black tracking-tight ${colors.scoreText}`}>{eduScoreInfo.score}</span>
+                          <span className="text-[13px] font-semibold text-tertiary mt-auto pb-0.5">/ 100점</span>
                         </div>
                       </div>
-                      <p className="text-[12.5px] font-bold text-secondary mb-2">
+                      <p className="text-[12.5px] font-medium text-tertiary mb-2.5">
                         초등학교 도보권 · 중·고교 접근성 · 500m 학원 밀집도 종합
                       </p>
                       
-                      <details className={getSeoAccordionClass(`${colors.descBg} border border-blue-600/10 text-left`)}>
+                      <details className={getSeoAccordionClass(`${colors.descBg} text-left`)}>
                         <summary className={getSeoAccordionSummaryClass()}>
                           <span>육아 환경 산정 기준 · 해설 더보기</span>
                           <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
@@ -250,11 +242,11 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
 
             {/* ─── 배정 학교 정보 (Assigned Schools) ─── */}
             {(report.metrics.distanceToElementary > 0 || report.metrics.distanceToMiddle > 0 || report.metrics.distanceToHigh > 0) && (
-              <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
-                  <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">안심 학군 배정 정보</span>
+              <div>
+                <div className="mb-3">
+                  <span className="text-[14px] font-bold text-secondary tracking-tight">배정 학교 · 통학 거리</span>
                 </div>
-                <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-3 md:gap-3">
+                <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-1 sm:grid sm:grid-cols-3">
                   {[
                     { label: '배정 초등학교', dist: report.metrics.distanceToElementary, name: report.metrics.nearestSchoolNames?.elementary },
                     { label: '인근 중학교', dist: report.metrics.distanceToMiddle, name: report.metrics.nearestSchoolNames?.middle },
@@ -263,130 +255,70 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                     const dist = school.dist ?? 0;
                     const percent = Math.min((dist / 1000) * 100, 100);
                     const grade = dist <= 300 ? 'excellent' : dist <= 700 ? 'good' : dist <= 1000 ? 'average' : 'far';
-                    const gradeStyles = {
-                      excellent: { dot: 'bg-emerald-500', timeBadge: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300', linkBadge: 'bg-surface border border-border text-secondary hover:text-emerald-600 hover:border-emerald-500/30 shadow-sm' },
-                      good: { dot: 'bg-emerald-500', timeBadge: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300', linkBadge: 'bg-surface border border-border text-secondary hover:text-emerald-600 hover:border-emerald-500/30 shadow-sm' },
-                      average: { dot: 'bg-blue-500', timeBadge: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300', linkBadge: 'bg-surface border border-border text-secondary hover:text-blue-600 hover:border-blue-500/30 shadow-sm' },
-                      far: { dot: 'bg-red-500', timeBadge: 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300', linkBadge: 'bg-surface border border-border text-secondary hover:text-red-600 hover:border-red-500/30 shadow-sm' },
-                    };
-                    const s = gradeStyles[grade];
-                    
-                    const perf = getSchoolPerformance(school.name);
-                    
-                    // Premium school badge
-                    let schoolBadge = null;
-                    if (school.label.includes('초등학교')) {
-                      if (dist <= 300) {
-                        schoolBadge = { text: '초품아 (극상)', bg: 'bg-brand-blue-light text-brand-blue dark:bg-brand-blue-light/10 border border-brand-blue/20' };
-                      } else if (dist <= 500) {
-                        schoolBadge = { text: '초인접 (우수)', bg: 'bg-brand-green-light text-brand-green dark:bg-brand-green-light/10 border border-brand-green/20' };
-                      }
-                    } else {
-                      if (perf) {
-                        if (school.label.includes('중학교')) {
-                          schoolBadge = { text: `학업 ${perf.achievement} (진학률 ${perf.rate}%)`, bg: 'bg-brand-blue-light text-brand-blue dark:bg-brand-blue-light/10 border border-brand-blue/20' };
-                        } else {
-                          schoolBadge = { text: `진학 ${perf.achievement} (${perf.rate}%)`, bg: 'bg-brand-blue-light text-brand-blue dark:bg-brand-blue-light/10 border border-brand-blue/20' };
-                        }
-                      } else if (dist <= 500) {
-                        schoolBadge = { text: '학세권 (우수)', bg: 'bg-brand-green-light text-brand-green dark:bg-brand-green-light/10 border border-brand-green/20' };
-                      }
-                    }
+                    const timeColor =
+                      grade === 'excellent' || grade === 'good'
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : grade === 'average'
+                        ? 'text-blue-600 dark:text-blue-400'
+                        : 'text-red-600 dark:text-red-400';
 
-                    // Safety tier info for elementary school
-                    let safetyBadge = null;
-                    let safetyGuide = null;
-                    if (school.label === '배정 초등학교') {
-                      if (dist <= 300) {
-                        safetyBadge = { text: '안심 1등급', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/30' };
-                        safetyGuide = '단지 직결 안심통학로';
-                      } else if (dist <= 500) {
-                        safetyBadge = { text: '안심 2등급', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/30' };
-                        safetyGuide = '신호횡단 최소화 구간';
-                      } else if (dist <= 1000) {
-                        safetyBadge = { text: '일반 3등급', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/30' };
-                        safetyGuide = '스쿨존 펜스 통학 권장';
-                      } else {
-                        safetyBadge = { text: '주의 4등급', bg: 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-100/50 dark:border-red-900/30' };
-                        safetyGuide = '차량 동행 통학 권장';
-                      }
+                    const perf = getSchoolPerformance(school.name);
+
+                    let tagText: string | null = null;
+                    if (school.label.includes('초등학교')) {
+                      if (dist <= 300) tagText = '초품아';
+                      else if (dist <= 500) tagText = '초인접';
+                    } else if (perf) {
+                      tagText = school.label.includes('중학교')
+                        ? `진학률 ${perf.rate}%`
+                        : `대입 ${perf.rate}%`;
+                    } else if (dist <= 500) {
+                      tagText = '학세권';
                     }
 
                     return (
-                      <div key={school.label} className={`w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10 ${school.label === '배정 초등학교' ? 'border border-emerald-500/30 dark:border-emerald-500/20 bg-emerald-50/5 dark:bg-emerald-950/5' : ''}`}>
-                        <div className="flex items-center justify-between mb-2 md:mb-3 min-w-0 gap-1">
-                          <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
+                      <div key={school.label} className="w-[165px] shrink-0 sm:w-auto bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 flex flex-col justify-between">
+                        <div className="flex items-center justify-between gap-1.5 mb-2">
+                          <span className="text-[12.5px] font-bold text-secondary truncate">
                             {school.label}
                           </span>
-                          {schoolBadge && (
-                            <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none shrink-0 ${schoolBadge.bg} ${schoolBadge.text.includes('초품아') ? 'animate-badge-sparkle' : ''}`}>
-                              {schoolBadge.text}
+                          {tagText && (
+                            <span className={`text-[10.5px] font-bold shrink-0 ${timeColor}`}>
+                              {tagText}
                             </span>
                           )}
-                          {grade === 'excellent' && !schoolBadge ? (
-                            <span className="relative flex h-2 w-2 shrink-0">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                            </span>
-                          ) : !schoolBadge ? (
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${s.dot}`} />
-                          ) : null}
                         </div>
-                        
-                        {/* Detailed safety badge for elementary school */}
-                        {school.label === '배정 초등학교' && safetyBadge && (
-                          <div className="flex flex-wrap gap-1 mb-2">
-                            <span className={`text-[9.5px] font-black px-1.5 py-0.5 rounded leading-none ${safetyBadge.bg}`}>
-                              {safetyBadge.text}
-                            </span>
-                          </div>
-                        )}
 
-                        <div className="flex flex-col lg:flex-row lg:items-baseline gap-1.5 lg:gap-2 mt-1 lg:mt-0">
-                          <div className="flex items-baseline gap-0.5">
-                            <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">
-                              {Math.round(dist).toLocaleString()}
-                            </span>
-                            <span className="text-[12px] md:text-[14px] font-bold text-secondary mt-auto pb-0.5">
-                              m
-                            </span>
-                          </div>
-                          <span className={`text-[11px] md:text-[12px] px-2 py-0.5 rounded-md w-fit whitespace-nowrap font-bold ${s.timeBadge} shadow-sm`}>도보 {Math.ceil(dist / 80)}분</span>
+                        <div className="flex items-baseline gap-1 mt-0.5 tabular-nums">
+                          <span className="text-[22px] md:text-[26px] font-extrabold text-primary tracking-tight leading-none">
+                            {Math.round(dist).toLocaleString()}
+                          </span>
+                          <span className="text-[12px] font-semibold text-tertiary">m</span>
+                          <span className={`text-[11.5px] font-bold ml-auto whitespace-nowrap ${timeColor}`}>
+                            도보 {Math.ceil(dist / 80)}분
+                          </span>
                         </div>
 
                         {/* Toss-style Distance Gauge Bar */}
-                        <div className="mt-3.5 w-full bg-slate-100 dark:bg-slate-800/60 h-2 rounded-full overflow-hidden relative shadow-inner">
+                        <div className="mt-3 w-full bg-slate-200/70 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                           <div 
                             className={`h-full rounded-full transition-all duration-500 ease-out ${
-                              grade === 'excellent' ? 'bg-emerald-500' :
-                              grade === 'good' ? 'bg-emerald-500' :
+                              grade === 'excellent' || grade === 'good' ? 'bg-emerald-500' :
                               grade === 'average' ? 'bg-blue-500' : 'bg-red-500'
                             }`}
                             style={{ width: `${percent}%` }}
                           />
                         </div>
 
-                        {school.label === '배정 초등학교' && safetyGuide && (
-                          <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mt-3 bg-emerald-50/50 dark:bg-emerald-950/20 p-2 rounded-xl border border-emerald-100/30 dark:border-emerald-900/10 text-center leading-normal">
-                            {safetyGuide}
-                          </p>
-                        )}
-
-                        {school.label !== '배정 초등학교' && perf && (
-                          <p className="text-[11px] font-bold text-blue-600 dark:text-blue-400 mt-3 bg-blue-50/50 dark:bg-blue-950/20 p-2 rounded-xl border border-blue-100/30 dark:border-blue-900/10 text-center leading-normal">
-                            {perf.desc}
-                          </p>
-                        )}
-
                         {school.name && (
                           <a 
                             href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.name + ' 화성시')}`}
                             target="_blank" rel="noopener noreferrer"
-                            className={`text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 ${s.linkBadge} rounded-xl px-2.5 py-2 text-center transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_2px_8px_rgba(0,0,0,0.02)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1`}
+                            className="text-[11.5px] flex items-center gap-1 font-semibold mt-3 text-tertiary hover:text-primary transition-colors"
                             title={`${school.name} 구글 지도에서 보기`}
                           >
-                            <MapPin size={12} className="shrink-0 md:w-3.5 md:h-3.5" />
-                            <span className="truncate leading-tight block">{school.name}</span>
+                            <MapPin size={12} className="shrink-0" />
+                            <span className="truncate">{school.name}</span>
                           </a>
                         )}
                       </div>
@@ -398,27 +330,24 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
 
             {/* ─── 전문가 학군 및 통학로 분석 (Expert School/Route Review) ─── */}
             {(report.sections?.ecosystem?.schoolText || report.sections?.ecosystem?.schoolImg) && (
-              <div className="mb-8 bg-body rounded-2xl p-5 md:p-6 border border-border">
-                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
-                  <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">전문가 임장 분석 및 통학로 리포트</span>
+              <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5">
+                <div className="mb-3">
+                  <span className="text-[14px] font-bold text-primary tracking-tight">통학로 임장 메모</span>
                 </div>
-                <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div className="flex flex-col md:flex-row gap-5 items-start">
                   {report.sections.ecosystem.schoolImg && (
-                    <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group shrink-0">
-                      <Image src={report.sections.ecosystem.schoolImg} alt="학군 및 통학로 실사" fill sizes="280px" className="object-cover" priority />
-                      <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 flex items-center gap-2 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity z-10">
-                        <span className="font-extrabold text-white/70 text-[14px] md:text-[16px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] select-none tracking-tighter">
+                    <div className="relative w-full md:w-[260px] h-[190px] rounded-2xl overflow-hidden bg-surface group shrink-0">
+                      <Image src={report.sections.ecosystem.schoolImg} alt="학군 및 통학로 실사" fill sizes="260px" className="object-cover" priority />
+                      <div className="absolute bottom-3 right-3 flex items-center gap-2 pointer-events-none opacity-80 z-10">
+                        <span className="font-extrabold text-white/70 text-[14px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] select-none tracking-tighter">
                           D-VIEW
                         </span>
                       </div>
                     </div>
                   )}
-                  <div className="flex-1 w-full space-y-2.5">
-                    <h4 className="text-[13px] font-bold bg-brand-blue-light text-brand-blue dark:bg-brand-blue-light/10 border border-brand-blue/20 inline-block px-3 py-1 rounded-lg">
-                      학군 · 통학로 보행 안정성 검증
-                    </h4>
+                  <div className="flex-1 w-full space-y-2">
                     {report.sections.ecosystem.schoolText && (
-                      <details className={getSeoAccordionClass('bg-surface dark:bg-[#17171c]')}>
+                      <details className={getSeoAccordionClass('bg-surface dark:bg-[#202027]')}>
                         <summary className={getSeoAccordionSummaryClass()}>
                           <span>통학로 임장 상세 분석 더보기</span>
                           <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
@@ -438,20 +367,20 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
             {/* ─── 주변 학원가 분석 (Academy Density) ─── */}
             {report.metrics.academyDensity > 0 && (
               <div>
-                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
-                  <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">주변 학원가 구성 (500m 반경)</span>
+                <div className="mb-3">
+                  <span className="text-[14px] font-bold text-secondary tracking-tight">주변 학원가 (500m)</span>
                 </div>
                 
-                <div className="bg-body rounded-2xl p-5 md:p-6 border border-border flex flex-col gap-5">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-brand-blue-light dark:bg-brand-blue-light/10 flex items-center justify-center shrink-0">
-                      <GraduationCap className="text-brand-blue" size={24} />
+                <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5 flex flex-col gap-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-surface dark:bg-[#202027] flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
+                      <GraduationCap size={20} />
                     </div>
                     <div>
-                      <p className="text-[13px] font-bold text-secondary leading-none">500m 반경 교육시설</p>
-                      <div className="flex items-baseline gap-0.5 mt-1.5">
-                        <span className="text-[26px] font-black text-primary tracking-tight leading-none tabular-nums">{report.metrics.academyDensity}</span>
-                        <span className="text-[13px] font-bold text-secondary ml-1">개소 밀집</span>
+                      <p className="text-[12px] font-semibold text-tertiary leading-none">500m 반경 교육시설</p>
+                      <div className="flex items-baseline gap-0.5 mt-1">
+                        <span className="text-[24px] font-black text-primary tracking-tight leading-none tabular-nums">{report.metrics.academyDensity}</span>
+                        <span className="text-[12.5px] font-semibold text-tertiary ml-1">개소</span>
                       </div>
                     </div>
                   </div>
@@ -563,30 +492,15 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                   })()}
                   
                   {report.metrics.academyCategories && Object.keys(report.metrics.academyCategories).length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 border-t border-border/40 pt-4 mt-1">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 border-t border-[#f2f4f6] dark:border-[#202027] pt-3.5 mt-1">
                       {Object.entries(report.metrics.academyCategories)
                         .sort(([,a], [,b]) => (b as number) - (a as number))
-                        .map(([cat, cnt]) => {
-                          let theme = { bg: 'bg-emerald-50/60 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-300 border-emerald-200/50 dark:border-emerald-800/40', tag: '학업' };
-                          
-                          if (cat.includes('음악') || cat.includes('미술') || cat.includes('피아노') || cat.includes('예술') || cat.includes('그림') || cat.includes('무용') || cat.includes('서예')) {
-                            theme = { bg: 'bg-blue-50/60 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 border-blue-200/50 dark:border-blue-800/40', tag: '예체능' };
-                          } else if (cat.includes('태권도') || cat.includes('무술') || cat.includes('체육') || cat.includes('스포츠') || cat.includes('축구') || cat.includes('레크리에이션') || cat.includes('검도') || cat.includes('유도')) {
-                            theme = { bg: 'bg-emerald-50/40 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-300 border-emerald-200/40 dark:border-emerald-800/40', tag: '체육/활동' };
-                          } else if (cat.includes('요가') || cat.includes('필라테스') || cat.includes('헬스') || cat.includes('취미') || cat.includes('바둑') || cat.includes('컴퓨터')) {
-                            theme = { bg: 'bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 border-slate-200/60 dark:border-slate-700/50', tag: '건강/취미' };
-                          }
-                          
-                          return (
-                            <div key={cat} className={`flex justify-between items-center ${theme.bg} border rounded-xl px-4 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm`}>
-                              <div className="flex flex-col min-w-0">
-                                <span className="text-[13px] font-extrabold text-primary truncate leading-tight">{cat}</span>
-                                <span className="text-[10px] font-bold opacity-60 mt-0.5 leading-none">{theme.tag}</span>
-                              </div>
-                              <span className="font-black text-[14px] shrink-0 tabular-nums pl-2">{cnt as number}개</span>
-                            </div>
-                          );
-                        })}
+                        .map(([cat, cnt]) => (
+                          <div key={cat} className="flex justify-between items-center bg-surface dark:bg-[#202027] rounded-xl px-3.5 py-2.5">
+                            <span className="text-[12.5px] font-semibold text-secondary truncate pr-2">{cat}</span>
+                            <span className="font-bold text-[13px] text-primary shrink-0 tabular-nums">{cnt as number}개</span>
+                          </div>
+                        ))}
                     </div>
                   )}
                 </div>

@@ -77,6 +77,12 @@ async function printLiveGa4OrganicLandingPages() {
       dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
       dimensions: [{ name: 'sessionSourceMedium' }, { name: 'pagePath' }],
       metrics: [{ name: 'sessions' }, { name: 'activeUsers' }, { name: 'screenPageViews' }, { name: 'averageSessionDuration' }],
+      dimensionFilter: {
+        filter: {
+          fieldName: 'hostName',
+          stringFilter: { matchType: 'EXACT', value: 'dongtanview.com' },
+        },
+      },
       orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
       limit: 40,
     });

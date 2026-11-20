@@ -1891,7 +1891,7 @@ const DashboardClient = React.memo(function DashboardClient({
                 onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
                 onSelectApt={handleAptClickByName}
                 preloadApartmentTx={preloadApartmentTx}
-                isSplitMode={isSplitDetailOpen}
+                isSplitMode={false}
                 isSlimmedSsr={isSlimmedSsr}
               />
             </ErrorBoundary>
@@ -1908,7 +1908,6 @@ const DashboardClient = React.memo(function DashboardClient({
     );
   }, [
     isInlineApartmentPage,
-    isSplitDetailOpen,
     activeTab,
     mounted,
     sheetApartments,
@@ -1951,20 +1950,16 @@ const DashboardClient = React.memo(function DashboardClient({
           />
         )}
 
-        {/* Animated Master-Detail Split Workspace */}
+        {/* Workspace + Overlay Slide Drawer Host (Master pane preserves 100% width & scroll position) */}
         <div
           data-testid="master-detail-workspace"
           data-split-open={String(isSplitDetailOpen)}
-          className="flex-1 flex flex-col md:flex-row items-start w-full max-w-[2000px] mx-auto min-w-0 relative transition-opacity duration-200 ease-out"
+          className="flex-1 flex flex-col w-full max-w-[2000px] mx-auto min-w-0 relative"
         >
-          {/* Left Master Pane (Dashboard / Inline Apartment Page) */}
+          {/* Left Master Pane (Dashboard / Inline Apartment Page — Never shrinks when drawer opens) */}
           <div
             data-testid="master-workspace-pane"
-            className={`flex-1 min-w-0 max-w-full flex flex-col transition-opacity duration-200 ease-out ${
-              isSplitDetailOpen
-                ? 'w-full md:w-[calc(100%-52vw)] lg:w-[calc(100%-780px)] xl:w-[calc(100%-880px)]'
-                : 'w-full'
-            }`}
+            className="flex-1 min-w-0 w-full max-w-full flex flex-col"
           >
             {/* Main Container */}
             <main 
@@ -2059,17 +2054,17 @@ const DashboardClient = React.memo(function DashboardClient({
             </main>
           </div>
 
-          {/* Right Detail Pane (Animated Split Inspector on Desktop / Bottom Sheet on Mobile) */}
+          {/* Right Overlay Slide Drawer Host (Desktop Slide-Over Drawer / Mobile Bottom Sheet) */}
           {!isInlineApartmentPage && (
             <aside
               data-testid="detail-workspace-pane"
               aria-label="아파트 상세 리포트 인스펙터"
               aria-hidden={!isSplitDetailOpen}
-              className={`shrink-0 transition-opacity duration-200 ease-out ${
+              className={
                 isSplitDetailOpen
-                  ? 'w-full md:w-[52vw] lg:w-[780px] xl:w-[880px] md:max-w-[780px] xl:max-w-[880px] md:h-dvh md:max-h-[calc(100dvh-80px)] md:sticky md:top-[80px] md:overflow-hidden opacity-100 z-[60] md:z-40'
-                  : 'w-0 max-w-0 h-0 md:h-dvh md:max-h-[calc(100dvh-80px)] md:sticky md:top-[80px] opacity-0 md:translate-x-8 overflow-hidden pointer-events-none border-0'
-              }`}
+                  ? 'fixed inset-0 z-[10010]'
+                  : 'w-0 max-w-0 h-0 overflow-hidden pointer-events-none border-0'
+              }
             >
               {isSplitDetailOpen && selectedReport && (
                 <ErrorBoundary name="아파트 상세 정보">

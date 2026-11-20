@@ -591,7 +591,7 @@ describe('M4 Dynamic Recirculation Hub & Shallow Routing PV Multiplier', () => {
 
       // Chapter 08 contains both ViralPaywallGate and TerminalRecirculationHub
       const ch08 = screen.getByTestId('chapter-08-report');
-      expect(ch08.textContent).toContain('단지 정밀 가치분석 인사이트');
+      expect(ch08.textContent).toContain('이 단지 핵심 요약 공유');
       expect(screen.getByTestId('terminal-recirculation-hub')).toBeTruthy();
 
       // Clicking close button restores '/' and calls onClose

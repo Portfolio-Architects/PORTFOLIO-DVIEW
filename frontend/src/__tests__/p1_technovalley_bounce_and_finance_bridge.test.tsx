@@ -1332,25 +1332,28 @@ describe('P1 Track 2: InlineMortgageDsrBridge & /guide/* + /apartment/* Conversi
       </SettingsProvider>
     );
 
-    // Wait for split-view ApartmentModal + InlineMortgageDsrBridge to mount
-    let modalBridge: HTMLElement | undefined;
+    // Wait for overlay ApartmentModal header to mount (duplicate apartment_modal_top bridge is intentionally omitted)
     await waitFor(() => {
-      modalBridge = screen
-        .getAllByTestId('inline-mortgage-dsr-bridge')
-        .find((el) => el.getAttribute('data-surface') === 'apartment_modal_top');
-      expect(modalBridge).toBeDefined();
+      expect(screen.getByRole('button', { name: /분석 및 금융 도구/i })).toBeInTheDocument();
     });
+    expect(
+      screen
+        .queryAllByTestId('inline-mortgage-dsr-bridge')
+        .some((el) => el.getAttribute('data-surface') === 'apartment_modal_top')
+    ).toBe(false);
 
-    // 1. Select '소득 1억' on modal bridge and click mortgage CTA -> ExploreClient forwards trigger + price + income to MortgageCalculator
-    const income1EokBtn = Array.from(modalBridge!.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === '소득 1억'
-    )!;
-    fireEvent.click(income1EokBtn);
-
-    const openMortgageBtn = modalBridge!.querySelector(
-      '[data-testid="inline-mortgage-dsr-open-btn"]'
-    ) as HTMLButtonElement;
-    fireEvent.click(openMortgageBtn);
+    // 1. Pending context (priceManwon: 148000, annualIncomeManwon: 10000) + header tool menu mortgage CTA
+    //    -> ExploreClient forwards trigger + price + income to MortgageCalculator
+    persistPendingCalculatorContext({
+      aptName: '동탄역롯데캐슬',
+      priceManwon: 148000,
+      annualIncomeManwon: 10000,
+    });
+    fireEvent.click(screen.getByRole('button', { name: /분석 및 금융 도구/i }));
+    const mortgageMenuBtn = within(screen.getByTestId('apt-header-tool-menu')).getByRole('button', {
+      name: '대출 계산기',
+    });
+    fireEvent.click(mortgageMenuBtn);
 
     await waitFor(() => {
       expect(trackEventSpy).toHaveBeenCalledWith(
@@ -1359,7 +1362,7 @@ describe('P1 Track 2: InlineMortgageDsrBridge & /guide/* + /apartment/* Conversi
           calculator_type: 'mortgage',
           apartment_name: '동탄역롯데캐슬',
           surface: 'explore_modal',
-          trigger: 'apartment_modal_top_bridge',
+          trigger: 'header_tool_menu',
         })
       );
       expect(screen.getByTestId('mortgage-price-basis-card').textContent).toContain('14.8억원');

@@ -68,7 +68,7 @@ const ApartmentSpecsSection = React.memo(function ApartmentSpecsSection({
   return (
     <section 
       id="sec-specs" 
-      className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border`}
+      className="bg-transparent flex flex-col gap-4"
     >
       {jsonLd && (
         <script
@@ -76,10 +76,10 @@ const ApartmentSpecsSection = React.memo(function ApartmentSpecsSection({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <h2 className="text-title-lg font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3">
-        <Building size={18} className="text-toss-blue"/> 단지 기본정보
+      <h2 className="text-[18px] md:text-[20px] font-extrabold tracking-tight text-primary">
+        단지 기본정보
       </h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {[
           {
             key: 'name-brand',
@@ -159,10 +159,10 @@ const ApartmentSpecsSection = React.memo(function ApartmentSpecsSection({
         ].map((spec) => (
           <div 
             key={`apt-spec-card-${spec.key}`} 
-            className={`bg-body p-3.5 sm:p-4 rounded-xl border border-border ${spec.className}`}
+            className={`bg-[#f9fafb] dark:bg-[#17171c] p-4 rounded-2xl ${spec.className}`}
           >
-            <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">{spec.label}</p>
-            <div className="text-body-normal text-primary font-bold tabular-nums apt-spec-value">
+            <p className="text-[11.5px] text-tertiary font-semibold mb-1.5 whitespace-nowrap apt-spec-label">{spec.label}</p>
+            <div className="text-[14.5px] text-primary font-bold tabular-nums apt-spec-value">
               {spec.value}
             </div>
           </div>

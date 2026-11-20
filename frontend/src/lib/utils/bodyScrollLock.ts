@@ -7,6 +7,8 @@
 
 let activeScrollLockCount = 0;
 let savedInlineBodyOverflow = '';
+let savedInlineBodyPaddingRight = '';
+let savedInlineHtmlOverscroll = '';
 
 export function acquireBodyScrollLock(): () => void {
   if (typeof document === 'undefined' || !document.body) {
@@ -15,6 +17,18 @@ export function acquireBodyScrollLock(): () => void {
 
   if (activeScrollLockCount === 0) {
     savedInlineBodyOverflow = document.body.style.overflow;
+    savedInlineBodyPaddingRight = document.body.style.paddingRight;
+    savedInlineHtmlOverscroll = document.documentElement?.style.overscrollBehavior ?? '';
+
+    if (typeof window !== 'undefined' && document.documentElement) {
+      const scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+      if (scrollbarWidth > 0) {
+        const computedPaddingRight =
+          parseFloat(window.getComputedStyle(document.body).paddingRight || '0') || 0;
+        document.body.style.paddingRight = `${computedPaddingRight + scrollbarWidth}px`;
+      }
+      document.documentElement.style.overscrollBehavior = 'none';
+    }
     document.body.style.overflow = 'hidden';
   }
   activeScrollLockCount += 1;
@@ -26,7 +40,13 @@ export function acquireBodyScrollLock(): () => void {
     activeScrollLockCount = Math.max(0, activeScrollLockCount - 1);
     if (activeScrollLockCount === 0 && typeof document !== 'undefined' && document.body) {
       document.body.style.overflow = savedInlineBodyOverflow;
+      document.body.style.paddingRight = savedInlineBodyPaddingRight;
+      if (document.documentElement) {
+        document.documentElement.style.overscrollBehavior = savedInlineHtmlOverscroll;
+      }
       savedInlineBodyOverflow = '';
+      savedInlineBodyPaddingRight = '';
+      savedInlineHtmlOverscroll = '';
     }
   };
 }
@@ -38,8 +58,14 @@ export function getActiveBodyScrollLockCount(): number {
 export function resetBodyScrollLockForTests(): void {
   activeScrollLockCount = 0;
   savedInlineBodyOverflow = '';
+  savedInlineBodyPaddingRight = '';
+  savedInlineHtmlOverscroll = '';
   if (typeof document !== 'undefined' && document.body) {
     document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+    if (document.documentElement) {
+      document.documentElement.style.overscrollBehavior = '';
+    }
   }
 }
 

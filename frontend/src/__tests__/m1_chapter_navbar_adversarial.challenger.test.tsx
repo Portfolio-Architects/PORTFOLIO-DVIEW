@@ -601,7 +601,7 @@ describe('ApartmentChapterNavBar Empirical Adversarial Stress Suite', () => {
       // Remount the nav bar with different active chapter
       rerender(<TestContainer showNav={true} active="chapter-05-mortgage" />);
 
-      const activeBtn = screen.getByRole('button', { name: /주담대 LDI 및 역전세 센티넬/i });
+      const activeBtn = screen.getByRole('button', { name: /대출·전세안전/i });
       expect(activeBtn).toHaveAttribute('aria-current', 'page');
     });
   });
@@ -685,7 +685,7 @@ describe('ApartmentChapterNavBar Empirical Adversarial Stress Suite', () => {
       }).not.toThrow();
 
       // Ensure component still renders buttons
-      expect(screen.getByText('개요 및 실거래 궤적')).toBeInTheDocument();
+      expect(screen.getByText('시세·실거래')).toBeInTheDocument();
     });
 
     it('4.5 renders unmapped activeChapter gracefully without crash or rogue pills', () => {

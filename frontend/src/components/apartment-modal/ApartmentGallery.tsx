@@ -132,17 +132,16 @@ export const ApartmentGallery = React.memo(function ApartmentGallery({ images, t
         
         return (
           <div key={tag} className="flex flex-col">
-            <div className="flex items-center justify-between mb-3 px-1">
-              <h3 className="text-[15px] font-extrabold text-primary flex items-center gap-1.5">
-                <span className="w-1.5 h-4 bg-toss-blue rounded-full inline-block"></span>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[14.5px] font-bold text-primary">
                 {label}
               </h3>
-              <span className="text-[12px] font-bold text-tertiary bg-body px-2 py-0.5 rounded-md">
+              <span className="text-[12px] font-semibold text-tertiary tabular-nums">
                 {categoryImages.length}장
               </span>
             </div>
             
-            <GalleryRow className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x shrink-0 w-full [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <GalleryRow className="flex gap-3 overflow-x-auto pb-3 custom-scrollbar snap-x shrink-0 w-full [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {categoryImages.map((img, i) => {
                 const altText = aptName 
                   ? `동탄 ${aptName} ${img.caption ? img.caption : `${label} 전경 및 임장 사진`} - D-VIEW`
@@ -152,7 +151,7 @@ export const ApartmentGallery = React.memo(function ApartmentGallery({ images, t
                   <button
                     key={i}
                     type="button"
-                    className="relative shrink-0 w-[240px] md:w-[280px] aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group border border-border shadow-sm snap-start text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
+                    className="relative shrink-0 w-[240px] md:w-[280px] aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group border-none bg-[#f9fafb] dark:bg-[#17171c] snap-start text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
                     onClick={() => onImageClick(img.url)}
                     aria-label={`${altText} 크게 보기`}
                   >

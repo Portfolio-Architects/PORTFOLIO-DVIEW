@@ -269,12 +269,12 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
   if (transactions.length === 0 || metrics.periodData.length === 0) return null;
 
   return (
-    <div className="bg-surface w-full px-4 md:px-10 pb-6 border-b border-border">
+    <div className="bg-surface w-full pb-2">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(metrics.jsonLd) }}
       />
-      <div className="pt-4">
+      <div className="pt-2">
         <div className="flex items-center justify-between gap-2 mb-3 flex-wrap w-full">
           <div className="flex items-center gap-2 justify-between w-full sm:w-auto sm:justify-start">
             <h3 className="text-[16px] md:text-[18px] font-bold text-secondary flex items-center gap-1.5">기간별 평균가격
@@ -326,35 +326,34 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
 
         {/* 주거 안정 및 전세가율 요약 카드 (선택된 평형 필터 대응) */}
         {metrics.avgSalePrice > 0 && metrics.avgJeonsePrice > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-5 mt-3">
-            <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex items-center justify-between shadow-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5 mt-3">
+            <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 flex items-center justify-between">
               <div className="flex flex-col gap-0.5">
-                <span className="text-[12px] font-bold text-tertiary">실구매 필요차액 (매매-전세 갭)</span>
+                <span className="text-[12px] font-semibold text-tertiary">실구매 필요차액 (매매-전세 갭)</span>
                 <span className="text-[11px] text-tertiary font-medium">
-                  {metrics.isRecentFallback ? '전체 평균 대체 기준' : '최근 6개월 평균 실거래 기준'}
+                  {metrics.isRecentFallback ? '전체 평균 기준' : '최근 6개월 평균 기준'}
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-[18px] font-black text-toss-blue tabular-nums">{metrics.gapPriceEok}</span>
-                <span className="text-[12px] font-bold text-secondary ml-0.5">필요</span>
+                <span className="text-[18px] font-black text-primary tabular-nums">{metrics.gapPriceEok}</span>
+                <span className="text-[12px] font-semibold text-tertiary ml-0.5">필요</span>
               </div>
             </div>
-            <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex items-center justify-between shadow-sm">
+            <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 flex items-center justify-between">
               <div className="flex flex-col gap-0.5">
-                <span className="text-[12px] font-bold text-tertiary">실거래 전세가율</span>
+                <span className="text-[12px] font-semibold text-tertiary">실거래 전세가율</span>
                 <span className="text-[11px] text-tertiary font-medium">
-                  {metrics.isRecentFallback ? '전체 평균 대체 기준 (매매 대비 전세 비율)' : '매매 대비 전세 가격 비율'}
+                  {metrics.isRecentFallback ? '전체 평균 기준' : '매매 대비 전세 비율'}
                 </span>
               </div>
               <div className="text-right">
                 <span className="text-[18px] font-black text-blue-600 dark:text-blue-400 tabular-nums">{metrics.jeonseRatio.toFixed(1)}%</span>
-                <span className="text-[12px] font-bold text-secondary ml-0.5">기록</span>
               </div>
             </div>
           </div>
         )}
 
-        <div className="overflow-x-auto custom-scrollbar -mx-4 md:-mx-10 px-4 md:px-10 mt-1">
+        <div className="overflow-x-auto custom-scrollbar mt-1">
           <table className="w-full text-sm min-w-[600px] border-t border-body">
             <thead>
               <tr className="border-b border-border text-tertiary text-[13px] md:text-[14px] font-bold bg-body">

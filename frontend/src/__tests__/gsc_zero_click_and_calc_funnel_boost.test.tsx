@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { metadata as rootMetadata } from '@/app/layout';
 import { metadata as homeMetadata } from '@/app/page';
@@ -90,8 +90,27 @@ describe('/boost — ① GSC 0-Click SERP Metadata & Rich Snippets + ② Calcula
         params: Promise.resolve({ slug: 'dongtan-school-zone-top-apartments' }),
       });
       expect(String(schoolMeta.title)).toMatch(/^동탄 학군지·학원가 TOP 4 초품아/);
+      expect(String(schoolMeta.title).length).toBeLessThanOrEqual(50);
+      expect(String(schoolMeta.title)).toContain('실거래가·배정학교');
+      expect(String(schoolMeta.description)).toContain('동탄 학군');
       expect(String(schoolMeta.description)).toContain('동탄 학원가');
       expect(String(schoolMeta.keywords)).toContain('동탄학군');
+
+      const SchoolJsx = await GuideArticlePage({
+        params: Promise.resolve({ slug: 'dongtan-school-zone-top-apartments' }),
+      });
+      const schoolRender = render(SchoolJsx);
+      const schoolLd = JSON.parse(
+        schoolRender.container.querySelector('script[type="application/ld+json"]')?.innerHTML || '{}'
+      );
+      const schoolFaqNode = schoolLd['@graph'].find(
+        (n: { '@type': string }) => n['@type'] === 'FAQPage'
+      );
+      expect(schoolFaqNode.mainEntity.length).toBeGreaterThanOrEqual(4);
+      expect(schoolFaqNode.mainEntity[0].name).toContain('동탄 학군지');
+      schoolRender.unmount();
+
+      expect(String(compMeta.title).slice(0, 36)).toContain('시세 10억 vs 16억');
 
       const budgetMeta = await generateGuideMetadata({
         params: Promise.resolve({ slug: 'dongtan-budget-tier-ranking' }),
@@ -148,6 +167,7 @@ describe('/boost — ① GSC 0-Click SERP Metadata & Rich Snippets + ② Calcula
       const jisanList = await getTechnoValleyJisanList();
       const hubMeta = buildTechnoValleySeoMetadata(jisanList, undefined, 'https://dongtanview.com');
       expect(String(hubMeta.title)).toContain('입주기업');
+      expect(String(hubMeta.title).length).toBeLessThanOrEqual(52);
       expect(String(hubMeta.keywords)).toContain('동탄금강펜테리움ix타워');
 
       const ixMeta = buildTechnoValleySeoMetadata(
@@ -155,6 +175,9 @@ describe('/boost — ① GSC 0-Click SERP Metadata & Rich Snippets + ② Calcula
         '동탄금강펜테리움 IX타워',
         'https://dongtanview.com'
       );
+      const ixTitle = String(ixMeta.title);
+      expect(ixTitle).toContain('실거래가·취득세 35% 감면');
+      expect(ixTitle.indexOf('실거래가·취득세 35% 감면')).toBeLessThan(ixTitle.indexOf('연면적'));
       expect(String(ixMeta.keywords)).toContain('동탄금강펜테리움ix타워');
 
       const hubLd = buildTechnoValleyJsonLd(jisanList, 'https://dongtanview.com', null);
@@ -171,8 +194,8 @@ describe('/boost — ① GSC 0-Click SERP Metadata & Rich Snippets + ② Calcula
     });
   });
 
-  describe('2. Apartment Top Summary Quick-Pills, Guide Multi-Tier Funnel & GA4 open_calculator Precision', () => {
-    it('renders 1-click mortgage & tax quick pills in ApartmentModalHeader and guards zero/invalid sale price boundaries', () => {
+  describe('2. Apartment Unified Finance Tool Menu, Guide Multi-Tier Funnel & GA4 open_calculator Precision', () => {
+    it('routes mortgage & tax calculators through the single primary tool menu in ApartmentModalHeader and guards zero/invalid sale price boundaries', () => {
       const onOpenMortgage = jest.fn();
       const onOpenTaxCalculator = jest.fn();
 
@@ -187,7 +210,7 @@ describe('/boost — ① GSC 0-Click SERP Metadata & Rich Snippets + ② Calcula
           handleDownloadShareCard={jest.fn()}
           setIsPushModalOpen={jest.fn()}
           copiedStatus={null}
-          isToolDropdownOpen={false}
+          isToolDropdownOpen={true}
           setIsToolDropdownOpen={jest.fn()}
           toolDropdownRef={{ current: null }}
           preloadCalculators={jest.fn()}
@@ -196,22 +219,19 @@ describe('/boost — ① GSC 0-Click SERP Metadata & Rich Snippets + ② Calcula
         />
       );
 
-      fireEvent.click(screen.getByTestId('apt-header-quick-mortgage-btn'));
-      expect(onOpenMortgage).toHaveBeenCalledWith(
-        '동탄역롯데캐슬',
-        1_580_000_000,
-        'modal_header_quick_pill'
-      );
+      // Duplicate header quick pills are intentionally eliminated
+      expect(screen.queryByTestId('apt-header-quick-mortgage-btn')).toBeNull();
+      expect(screen.queryByTestId('apt-header-quick-tax-btn')).toBeNull();
 
-      fireEvent.click(screen.getByTestId('apt-header-quick-tax-btn'));
-      expect(onOpenTaxCalculator).toHaveBeenCalledWith(
-        '동탄역롯데캐슬',
-        'modal_header_quick_pill_tax'
-      );
-      expect(consumePendingCalculatorContext()?.priceManwon).toBe(158000);
+      const toolMenu = screen.getByTestId('apt-header-tool-menu');
+      fireEvent.click(within(toolMenu).getByRole('button', { name: '대출 계산기' }));
+      expect(onOpenMortgage).toHaveBeenCalledWith('동탄역롯데캐슬', 1_580_000_000);
+
+      fireEvent.click(within(toolMenu).getByRole('button', { name: '취득세 계산기' }));
+      expect(onOpenTaxCalculator).toHaveBeenCalledWith('동탄역롯데캐슬');
 
       // Boundary: zero/negative verifiedSalePriceManwon NEVER passes fabricated 0원 or negative priceWon,
-      // while inline={true} ALSO exposes both quick mortgage and quick tax pills
+      // while inline={true} also routes cleanly via the unified tool menu
       onOpenMortgage.mockClear();
       onOpenTaxCalculator.mockClear();
       rerender(
@@ -225,7 +245,7 @@ describe('/boost — ① GSC 0-Click SERP Metadata & Rich Snippets + ② Calcula
           handleDownloadShareCard={jest.fn()}
           setIsPushModalOpen={jest.fn()}
           copiedStatus={null}
-          isToolDropdownOpen={false}
+          isToolDropdownOpen={true}
           setIsToolDropdownOpen={jest.fn()}
           toolDropdownRef={{ current: null }}
           preloadCalculators={jest.fn()}
@@ -234,18 +254,12 @@ describe('/boost — ① GSC 0-Click SERP Metadata & Rich Snippets + ② Calcula
         />
       );
 
-      fireEvent.click(screen.getByTestId('apt-header-quick-mortgage-btn'));
-      expect(onOpenMortgage).toHaveBeenCalledWith(
-        '임대전용단지',
-        undefined,
-        'inline_header_quick_pill'
-      );
+      const inlineToolMenu = screen.getByTestId('apt-header-tool-menu');
+      fireEvent.click(within(inlineToolMenu).getByRole('button', { name: '대출 계산기' }));
+      expect(onOpenMortgage).toHaveBeenCalledWith('임대전용단지', undefined);
 
-      fireEvent.click(screen.getByTestId('apt-header-quick-tax-btn'));
-      expect(onOpenTaxCalculator).toHaveBeenCalledWith(
-        '임대전용단지',
-        'inline_header_quick_pill_tax'
-      );
+      fireEvent.click(within(inlineToolMenu).getByRole('button', { name: '취득세 계산기' }));
+      expect(onOpenTaxCalculator).toHaveBeenCalledWith('임대전용단지');
       expect(consumePendingCalculatorContext()).toBeNull();
 
       // Boundary: when zero tool handlers are passed, empty dropdown trigger is hidden
@@ -450,8 +464,13 @@ describe('/boost — ① GSC 0-Click SERP Metadata & Rich Snippets + ② Calcula
       const cardBtn = await screen.findByRole('button', { name: /리포트: 동탄역롯데캐슬/ });
       fireEvent.click(cardBtn);
 
-      const quickMortgageBtn = await screen.findByTestId('apt-header-quick-mortgage-btn');
-      fireEvent.click(quickMortgageBtn);
+      const toolTriggerBtn = await screen.findByTestId('apt-header-tool-menu-btn');
+      fireEvent.click(toolTriggerBtn);
+      const mortgageMenuItem = within(screen.getByTestId('apt-header-tool-menu')).getByRole(
+        'button',
+        { name: '대출 계산기' }
+      );
+      fireEvent.click(mortgageMenuItem);
 
       expect(trackEventSpy).toHaveBeenCalledWith(
         'open_calculator',
@@ -460,7 +479,7 @@ describe('/boost — ① GSC 0-Click SERP Metadata & Rich Snippets + ② Calcula
           apartment_name: '동탄역롯데캐슬',
           zone: 'gbcx',
           surface: 'zone_detail_modal',
-          trigger: 'modal_header_quick_pill',
+          trigger: 'header_tool_menu',
         })
       );
       expect(mockRouterPush).toHaveBeenCalledWith(
@@ -495,6 +514,32 @@ describe('/boost — ① GSC 0-Click SERP Metadata & Rich Snippets + ② Calcula
       const { AuthProvider } = await import('@/contexts/AuthContext');
       const { PWAProvider } = await import('@/components/pwa/PWAProvider');
 
+      // 1) Tier-mode InlineMortgageDsrBridge (used on inline/guide pages) preserves priceManwon + annualIncomeManwon
+      //    without attaching an unrelated apartment name when launching mortgage calculator
+      const onTierMortgage = jest.fn();
+      const bridgeRender = render(
+        <InlineMortgageDsrBridge
+          surface="apartment_inline_top"
+          trigger="apartment_inline_price_strip"
+          onOpenMortgage={onTierMortgage}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: '6억' }));
+      fireEvent.click(screen.getByRole('button', { name: '소득 1억' }));
+      fireEvent.click(screen.getByTestId('inline-mortgage-dsr-open-btn'));
+
+      expect(onTierMortgage).toHaveBeenCalledWith('', 600_000_000, 'apartment_inline_price_strip');
+      const tierPending = consumePendingCalculatorContext();
+      expect(tierPending).toEqual(
+        expect.objectContaining({
+          aptName: undefined,
+          canonicalSlug: undefined,
+          priceManwon: 60000,
+          annualIncomeManwon: 10000,
+        })
+      );
+      bridgeRender.unmount();
+
       const zoneRender = render(
         <SettingsProvider>
           <AuthProvider>
@@ -508,25 +553,8 @@ describe('/boost — ① GSC 0-Click SERP Metadata & Rich Snippets + ② Calcula
       const cardBtn = await screen.findByRole('button', { name: /리포트: 동탄역롯데캐슬/ });
       fireEvent.click(cardBtn);
 
-      // 1) Tier-mode bridge inside ZoneDetailClient modal routes to /?calc=mortgage (NOT /apartment/...)
-      //    and preserves priceManwon + annualIncomeManwon with alreadyTrackedOpen=true
-      const tier6Btn = await screen.findByRole('button', { name: '6억' });
-      fireEvent.click(tier6Btn);
-      const income10000Btn = screen.getByRole('button', { name: '소득 1억' });
-      fireEvent.click(income10000Btn);
-      fireEvent.click(screen.getByTestId('inline-mortgage-dsr-open-btn'));
-
-      expect(mockRouterPush).toHaveBeenCalledWith('/?calc=mortgage');
-      const tierPending = consumePendingCalculatorContext();
-      expect(tierPending).toEqual(
-        expect.objectContaining({
-          aptName: undefined,
-          canonicalSlug: undefined,
-          priceManwon: 60000,
-          annualIncomeManwon: 10000,
-          alreadyTrackedOpen: true,
-        })
-      );
+      // Duplicate inline bridge is intentionally omitted inside !inline ZoneDetailClient overlay drawer
+      expect(screen.queryByTestId('inline-mortgage-dsr-bridge')).toBeNull();
 
       // 2) Header dropdown "단지 1:1 비교" on ZoneDetailClient pushes /explore?calc=compare&apt1=...
       mockRouterPush.mockClear();

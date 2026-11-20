@@ -507,7 +507,7 @@ describe('Milestone M2 Empirical Adversarial Challenge: 8-Chapter & AdSlot Invar
       expect(activePill).toBeInTheDocument();
       expect(activePill).toHaveAttribute('data-layout-id', 'activeApartmentChapterPill');
 
-      const ch03Btn = screen.getByRole('button', { name: /전세가율 갭투자 매트릭스/ });
+      const ch03Btn = screen.getByRole('button', { name: /전세·갭/ });
       expect(ch03Btn).toHaveAttribute('aria-current', 'page');
       expect(ch03Btn).toContainElement(activePill);
     });
@@ -526,7 +526,7 @@ describe('Milestone M2 Empirical Adversarial Challenge: 8-Chapter & AdSlot Invar
         />
       );
 
-      const ch04Tab = screen.getByRole('button', { name: /학군 및 하이퍼로컬 인프라/ });
+      const ch04Tab = screen.getByRole('button', { name: /학군·입지/ });
       expect(ch04Tab).toBeInTheDocument();
 
       act(() => {

@@ -262,18 +262,19 @@ describe('Design System Static Verification Guardrails (Challenger Suite)', () =
       expect(fs.existsSync(paywallFile)).toBe(true);
       const content = fs.readFileSync(paywallFile, 'utf8');
 
-      // Must NOT contain forced multi-share lockdown countdown or crown badge
+      // Must NOT contain forced multi-share lockdown countdown, crown badge, or loud #fee500 button
       expect(content).not.toContain('단 3번의 카카오 공유');
       expect(content).not.toContain('animate-bounce');
       expect(content).not.toContain('공유 진행도');
       expect(content).not.toContain('10초 완료 추천!');
+      expect(content.toLowerCase()).not.toContain('#fee500');
 
-      // Must contain native preview card elements and single direct CTA
-      expect(content).toContain('단지 정밀 가치분석 인사이트');
-      expect(content).toContain('카카오톡으로 공유하고 리포트 열람');
+      // Must contain calm native summary-share card elements and single monochrome CTA
+      expect(content).toContain('이 단지 핵심 요약 공유');
+      expect(content).toContain('카카오톡으로 요약 공유하기');
       expect(content).toContain('초품아·학군');
-      expect(content).toContain('적정 밸류');
-      expect(content).toContain('대기수요');
+      expect(content).toContain('적정 시세');
+      expect(content).toContain('거래 흐름');
     });
   });
 });

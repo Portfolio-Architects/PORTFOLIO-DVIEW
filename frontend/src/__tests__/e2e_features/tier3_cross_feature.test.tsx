@@ -305,8 +305,8 @@ describe('Tier 3: Cross-Feature Interactions Suite [F1 ~ F7]', () => {
 
     render(<ChapterDetailView />);
 
-    // Click Chapter 05 (Mortgage & Jeonse LDI)
-    const chapter5Button = screen.getByRole('button', { name: /주담대 LDI 및 역전세 센티넬/i });
+    // Click Chapter 05 (대출·전세안전)
+    const chapter5Button = screen.getByRole('button', { name: /대출·전세안전/i });
     fireEvent.click(chapter5Button);
 
     // Verify adRefreshManager.onTabSwitch was invoked

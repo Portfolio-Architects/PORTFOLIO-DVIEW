@@ -307,7 +307,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
   }, [aptName, jsonLdElements, data, isLoading, error]);
 
   return (
-    <div ref={containerRef} className="bg-body rounded-2xl p-4 sm:p-5 border border-border shadow-sm mt-6">
+    <div ref={containerRef} className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5 mt-6">
       {jsonLd && (
         <script
           type="application/ld+json"
@@ -316,8 +316,8 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
       )}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-1.5">
-          <Users size={16} className="text-emerald-500" />
-          <h3 className="text-[13.5px] font-black text-primary tracking-tight">실수요자 실시간 매수 심리</h3>
+          <Users size={15} className="text-secondary" />
+          <h3 className="text-[14px] font-bold text-primary tracking-tight">매수 · 관망 의견</h3>
         </div>
         {!(isLoading && !data && !error) && !error && (
           <span className="text-[11px] font-bold text-tertiary tabular-nums">
@@ -355,7 +355,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
             <button
               onClick={(e) => handleVote(e, 'buy')}
               disabled={isSubmitting}
-              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-extrabold text-[13px] transition-all bg-emerald-50 hover:bg-emerald-100 text-emerald-600 active:scale-[0.98] border border-emerald-100 relative"
+              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-bold text-[13px] transition-colors bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/35 dark:hover:bg-emerald-950/55 text-emerald-700 dark:text-emerald-300 active:scale-[0.98] border-none cursor-pointer relative"
             >
               <ThumbsUp size={14} className="fill-emerald-600/10" />
               <span>지금 사야 한다</span>
@@ -363,7 +363,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
             <button
               onClick={(e) => handleVote(e, 'wait')}
               disabled={isSubmitting}
-              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-extrabold text-[13px] transition-all bg-slate-100 hover:bg-slate-200 text-slate-700 active:scale-[0.98] border border-slate-200 relative"
+              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-bold text-[13px] transition-colors bg-surface hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary active:scale-[0.98] border-none cursor-pointer relative"
             >
               <HelpCircle size={14} className="fill-slate-700/10" />
               <span>더 기다려야 한다</span>
@@ -385,58 +385,53 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
           <div className="w-full h-8 bg-black/5 dark:bg-surface/10 rounded-xl overflow-hidden flex relative tabular-nums">
             <div
               style={{ width: `${animatedBuyPercent}%` }}
-              className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 flex items-center pl-3"
+              className="h-full bg-emerald-600 flex items-center pl-3"
             >
-              <span className="text-[11.5px] font-black text-white whitespace-nowrap">
+              <span className="text-[11.5px] font-bold text-white whitespace-nowrap">
                 매수 {animatedBuyPercent}%
               </span>
             </div>
             <div
               style={{ width: `${animatedWaitPercent}%` }}
-              className="h-full bg-gradient-to-r from-slate-400 to-slate-600 flex items-center justify-end pr-3"
+              className="h-full bg-slate-500 flex items-center justify-end pr-3"
             >
-              <span className="text-[11.5px] font-black text-white whitespace-nowrap">
+              <span className="text-[11.5px] font-bold text-white whitespace-nowrap">
                 관망 {animatedWaitPercent}%
               </span>
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] font-bold text-tertiary px-1 tabular-nums">
+          <div className="flex items-center justify-between text-[11px] font-semibold text-tertiary px-1 tabular-nums">
             <span className="flex items-center gap-1">
-              {userVote === 'buy' && <Check size={12} className="text-emerald-500" />}
-              매수 찬성 {buyCount}명
+              {userVote === 'buy' && <Check size={12} className="text-emerald-600" />}
+              매수 {buyCount}명
             </span>
-            <span className="text-center text-[10.5px] font-medium text-emerald-600">
+            <span className="text-center text-[10.5px] font-medium text-secondary">
               {userVote === 'buy' ? '"지금 사야 한다"에 투표하셨습니다.' : '"더 기다려야 한다"에 투표하셨습니다.'}
             </span>
             <span className="flex items-center gap-1">
               {userVote === 'wait' && <Check size={12} className="text-slate-600" />}
-              관망 유지 {waitCount}명
+              관망 {waitCount}명
             </span>
           </div>
 
-          {/* AI 가치-심리 매칭 진단 패널 */}
-          <div className="mt-2.5 p-4 rounded-xl border border-border bg-blue-600/5 dark:bg-blue-500/10 text-left">
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="text-[11px] font-black text-blue-600 dark:text-blue-400 bg-blue-600/10 dark:bg-blue-500/20 px-2 py-0.5 rounded">
-                AI 진단
-              </span>
-              <span className="text-[12.5px] font-black text-primary tracking-tight">
-                가치-심리 매칭 분석
-              </span>
+          {/* 시세-심리 참고 요약 */}
+          <div className="mt-2 p-4 rounded-xl bg-surface dark:bg-[#202027] text-left">
+            <div className="text-[12px] font-bold text-primary mb-1.5">
+              적정가 · 매수 심리 참고
             </div>
             <p className="text-[12px] font-medium text-secondary leading-relaxed break-keep tabular-nums">
               {(() => {
                 if (valuationStatus === 'undervalued') {
                   return buyPercent >= 50
-                    ? `AI 가치 분석 결과(저평가 상태, 약 ${valuationAmount} 메리트)와 대중의 매수 우위 심리(${buyPercent}%)가 완전히 일치합니다. 안전마진을 확보한 진입 기회일 수 있습니다.`
-                    : `시장은 저평가 국면(약 ${valuationAmount} 메리트)이지만 대중은 관망세(${waitPercent}%)를 유지하고 있습니다. 군중과 반대로 가는 역발상적 분할 매수를 검토해볼 시점입니다.`;
+                    ? `적정가 대비 저평가 구간(${valuationAmount})이며 매수 의견(${buyPercent}%)이 우세해요. 가격 메리트를 검토해 볼 만한 구간입니다.`
+                    : `적정가 대비 저평가 구간(${valuationAmount})이지만 관망 의견(${waitPercent}%)이 높아요. 거래량 흐름을 보며 천천히 검토해 보세요.`;
                 } else if (valuationStatus === 'overvalued') {
                   return waitPercent >= 50
-                    ? `AI 가치 분석 결과(고평가 상태, 약 ${valuationAmount} 격차)와 대중의 관망 우위 심리(${waitPercent}%)가 일치합니다. 무리한 추격 매수보다는 시장 가격 조정을 차분히 대기하는 것이 유리합니다.`
-                    : `시장은 고평가 상태(약 ${valuationAmount} 고평가)이나 대중의 매수 찬성 심리(${buyPercent}%)가 강하게 작동하고 있습니다. 군중 심리에 휩쓸린 상단 추격 매수를 경계하시기 바랍니다.`;
+                    ? `적정가 대비 고평가 구간(${valuationAmount})이며 관망 의견(${waitPercent}%)이 우세해요. 가격 조정을 지켜보며 신중히 접근하는 편이 안전합니다.`
+                    : `적정가 대비 고평가 구간(${valuationAmount})이지만 매수 의견(${buyPercent}%)이 강해요. 실거래 추격 매수는 한 번 더 점검해 보세요.`;
                 } else {
-                  return `현재 이 아파트의 시세는 DCF 내재가치와 균형(적정가 수준)을 이루고 있습니다. 대중들의 의견(매수 ${buyPercent}% vs 관망 ${waitPercent}%)과 개인의 자금 계획을 매칭하여 판단하시길 권장합니다.`;
+                  return `현재 시세는 적정가와 비슷한 수준이에요. 매수(${buyPercent}%)·관망(${waitPercent}%) 의견과 개인 자금 계획을 함께 비교해 보세요.`;
                 }
               })()}
             </p>

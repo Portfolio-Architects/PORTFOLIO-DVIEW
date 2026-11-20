@@ -1558,7 +1558,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
         searchParams: Promise.resolve({ jisan: 'SH SQUAREⅡ' }),
       });
       expect(String(shSquareMeta.title)).toBe(
-        'SH SQUAREⅡ 지식산업센터 (연면적 35,576.2㎡·453실) — 제조·IT 입주 업종·취득세 35% 감면 | D-VIEW'
+        'SH SQUAREⅡ 지식산업센터 실거래가·취득세 35% 감면 — 제조·IT 입주 업종 (연면적 35,576.2㎡·453실) | D-VIEW'
       );
       expect(String(shSquareMeta.description)).toContain('경기도 화성시 동탄대로 683');
       expect(String(shSquareMeta.description)).toContain('산업시설 14,323.7㎡');
@@ -1571,7 +1571,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
         searchParams: Promise.resolve({ jisan: '동탄 GTOWER' }),
       });
       expect(String(gTowerMeta.title)).toBe(
-        '동탄 GTOWER 지식산업센터 (연면적 32,066.3㎡·284실) — 제조·IT 입주 업종·취득세 35% 감면 | D-VIEW'
+        '동탄 GTOWER 지식산업센터 실거래가·취득세 35% 감면 — 제조·IT 입주 업종 (연면적 32,066.3㎡·284실) | D-VIEW'
       );
 
       // Normalization aliases: Unicode Roman Ⅰ/Ⅱ, ASCII Roman numeral, Arabic numeral, Korean phonetic loanwords, corporate symbol ㈜, percent-encoded, and array searchParams
@@ -1621,7 +1621,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
         searchParams: Promise.resolve({ jisan: '(주)홈에이스산업 지식산업센터' }),
       });
       expect(String(zeroUnitMeta.title)).toBe(
-        '(주)홈에이스산업 지식산업센터 (연면적 34,931.5㎡) — 제조·IT 입주 업종·취득세 35% 감면 | D-VIEW'
+        '(주)홈에이스산업 지식산업센터 실거래가·취득세 35% 감면 — 제조·IT 입주 업종 (연면적 34,931.5㎡) | D-VIEW'
       );
 
       // Synthetic boundary item with 0 area, 0 units, and explicit representativeBusiness
@@ -1639,7 +1639,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
         'https://dongtanview.com'
       );
       expect(String(customBoundaryMeta.title)).toBe(
-        '테스트R&D센터 지식산업센터 — 반도체·AI R&D 입주 업종·취득세 35% 감면 | D-VIEW'
+        '테스트R&D센터 지식산업센터 실거래가·취득세 35% 감면 — 반도체·AI R&D 입주 업종 | D-VIEW'
       );
 
       // Fallback & untrusted input guardrails: 0-arg, empty, whitespace, >200 chars, unknown, and XSS payload NEVER reflect
@@ -1657,7 +1657,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
             : await generateTechnoValleyMetadata({
                 searchParams: Promise.resolve({ jisan: badInput }),
               });
-        expect(String(fallbackMeta.title)).toContain('동탄테크노밸리 56개 지식산업센터 전수 카탈로그');
+        expect(String(fallbackMeta.title)).toContain('동탄테크노밸리 56개 지식산업센터 실거래가');
         expect(String(fallbackMeta.title)).not.toContain('<script>');
         expect(String(fallbackMeta.description)).not.toContain('<script>');
         expect(fallbackMeta.alternates?.canonical).toBe('https://dongtanview.com/technovalley');

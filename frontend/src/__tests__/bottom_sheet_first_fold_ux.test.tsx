@@ -190,18 +190,18 @@ describe('방안 A: 1단 바텀시트(!inline) First-Fold Data-First UX & inline
       expect(screen.queryByText(chapter.subtitle)).toBeNull();
     });
 
-    // 3. First-fold Data-First ordering: Chapter 01 strictly precedes Retention Strip & Mortgage Bridge
+    // 3. First-fold Data-First ordering: Chapter 01 strictly precedes Retention Strip,
+    //    and duplicate bridge / quick-pill / sticky-retention strips are eliminated in !inline drawer
     const chapter1 = screen.getByTestId('chapter-01-overview');
     const retentionStrip = screen.getByTestId('apartment-landing-retention-strip');
-    const mortgageBridge = screen.getByTestId('inline-mortgage-dsr-bridge');
 
     expect(
       chapter1.compareDocumentPosition(retentionStrip) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
-    expect(
-      chapter1.compareDocumentPosition(mortgageBridge) & Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy();
-    expect(mortgageBridge).toHaveAttribute('data-surface', 'apartment_modal_top');
+    expect(screen.queryByTestId('inline-mortgage-dsr-bridge')).toBeNull();
+    expect(screen.queryByTestId('chapter-nav-sticky-retention')).toBeNull();
+    expect(screen.queryByTestId('apt-header-quick-mortgage-btn')).toBeNull();
+    expect(screen.queryByTestId('apt-header-quick-tax-btn')).toBeNull();
 
     // 4. Duplicate favorite button in retention strip is suppressed in !inline
     expect(screen.queryByTestId('landing-retention-action-btn')).toBeNull();
@@ -218,7 +218,7 @@ describe('방안 A: 1단 바텀시트(!inline) First-Fold Data-First UX & inline
     expect(slimHeader).toHaveTextContent('동탄');
   });
 
-  it('상세 페이지(inline=true)에서는 기존 영문 서브타이틀 내비, 상단 브릿지 선행 배치 및 SEO/H2 규칙을 온전히 유지한다', () => {
+  it('상세 페이지(inline=true)에서는 2줄 챕터 내비, 상단 브릿지 선행 배치 및 SEO/H2 규칙을 온전히 유지한다', () => {
     const onBack = jest.fn();
     const { container } = renderModal({ inline: true, onClose: onBack });
 
@@ -231,10 +231,10 @@ describe('방안 A: 1단 바텀시트(!inline) First-Fold Data-First UX & inline
     expect(inlineHeaderEl?.querySelector('h2')).toHaveTextContent('동탄역롯데캐슬');
     expect(backBtn).toBeInTheDocument();
 
-    // Chapter nav keeps full 2-line layout with English subtitles
+    // Chapter nav keeps full 2-line layout with natural Korean subtitles
     const nav = container.querySelector('nav[aria-label="아파트 단지 분석 챕터 내비게이션"]');
     expect(nav).toHaveAttribute('data-compact', 'false');
-    expect(screen.getByText('Overview & Price')).toBeInTheDocument();
+    expect(screen.getByText('실거래 추이')).toBeInTheDocument();
 
     // Retention Strip + Mortgage Bridge remain above Chapter 01 on inline page
     const chapter1 = screen.getByTestId('chapter-01-overview');

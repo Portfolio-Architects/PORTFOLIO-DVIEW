@@ -2397,8 +2397,8 @@ export function buildTechnoValleySeoMetadata(
   if (!matched) {
     const countLabel = jisanList.length > 0 ? `${jisanList.length}개` : '56개';
     const defaultOgImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(`동탄테크노밸리 ${countLabel} 지식산업센터 카탈로그`)}&subtitle=${encodeURIComponent('실거래가·연면적·호실수·제조·IT 입주 업종 및 취득세 35% 세제 감면 | D-VIEW')}`;
-    const defaultTitle = `동탄테크노밸리 ${countLabel} 지식산업센터 전수 카탈로그·실거래가·입주기업·취득세 35% 감면 | D-VIEW`;
-    const defaultDescription = `동탄테크노밸리 · 동탄 지식산업센터 ${countLabel} 국토교통부 실거래가·매매 시세, 입주 기업 리스트, 연면적·호실수·제조·IT 입주 업종 전수 비교. 동탄금강펜테리움 IX타워·에이팩시티 등 주요 센터 스펙과 취득세 35%·재산세 35%·과밀억제권역 법인세 100% 감면 시뮬레이터를 바로 확인하세요.`;
+    const defaultTitle = `동탄테크노밸리 ${countLabel} 지식산업센터 실거래가·입주기업·취득세 35% 감면 | D-VIEW`;
+    const defaultDescription = `동탄테크노밸리 · 동탄 지식산업센터 ${countLabel}(동탄금강펜테리움 IX타워 2,701실·에이팩시티 432실·동탄 SK V1 519실) 국토부 실거래가·매매 시세, 입주기업 리스트, 연면적·제조·IT 입주 업종과 취득세 35%·재산세 35%·법인세 100% 감면 시뮬레이터를 바로 확인하세요.`;
 
     return {
       title: defaultTitle,
@@ -2454,7 +2454,7 @@ export function buildTechnoValleySeoMetadata(
   const customBiz = matched.representativeBusiness?.trim();
   const industryHook = customBiz ? `${customBiz} 입주 업종` : '제조·IT 입주 업종';
 
-  const title = `${centerTitleLabel}${specParen} — ${industryHook}·취득세 35% 감면 | D-VIEW`;
+  const title = `${centerTitleLabel} 실거래가·취득세 35% 감면 — ${industryHook}${specParen} | D-VIEW`;
   const address =
     matched.roadAddress?.trim() || matched.jibunAddress?.trim() || '경기도 화성시 동탄테크노밸리';
 

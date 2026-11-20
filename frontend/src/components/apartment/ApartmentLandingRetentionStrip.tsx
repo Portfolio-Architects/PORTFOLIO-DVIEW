@@ -99,14 +99,13 @@ export const ApartmentLandingRetentionStrip = React.memo(function ApartmentLandi
     <section
       data-testid="apartment-landing-retention-strip"
       aria-label="인접 단지 빠른 비교 및 관심단지 알림"
-      className="w-full min-h-[76px] sm:min-h-[60px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-slate-200/80 dark:border-slate-800/80 px-3.5 py-2.5 sm:px-4 sm:py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 box-border"
+      className="w-full min-h-[76px] sm:min-h-[60px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] px-4 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 box-border"
     >
       {/* Left: Peer Chips Row */}
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar min-w-0 py-0.5">
-        <div className="inline-flex items-center gap-1.5 shrink-0">
-          <ArrowRightLeft className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
-          <span className="text-[11.5px] font-extrabold text-secondary shrink-0">인접·유사 단지</span>
-        </div>
+      <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar min-w-0 py-0.5">
+        <span className="text-[12px] font-bold text-tertiary shrink-0">
+          비슷한 단지
+        </span>
 
         <div className="flex items-center gap-1.5 shrink-0">
           {visibleTargets.map((target, idx) => {
@@ -130,20 +129,20 @@ export const ApartmentLandingRetentionStrip = React.memo(function ApartmentLandi
                   });
                   onSelectPeer(target.aptName);
                 }}
-                className="group inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-surface hover:bg-blue-50/70 dark:hover:bg-blue-950/40 border border-slate-200/80 dark:border-slate-700/80 hover:border-blue-400/60 transition-colors shrink-0 cursor-pointer"
+                className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] border-none transition-colors shrink-0 cursor-pointer"
               >
-                <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold shrink-0 ${clusterMeta.badgeClass}`}>
+                <span className="text-[10.5px] font-semibold text-tertiary shrink-0">
                   {clusterMeta.label}
                 </span>
-                <span className="text-[11.5px] font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 whitespace-nowrap">
+                <span className="text-[12px] font-bold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 whitespace-nowrap">
                   {getDisplayAptName(target.aptName)}
                 </span>
                 {verifiedPrice && (
-                  <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 tabular-nums whitespace-nowrap">
+                  <span className="text-[11.5px] font-bold text-secondary tabular-nums whitespace-nowrap">
                     {verifiedPrice}
                   </span>
                 )}
-                <ArrowUpRight className="w-3 h-3 text-slate-400 group-hover:text-blue-600 shrink-0" />
+                <ArrowUpRight className="w-3 h-3 text-tertiary group-hover:text-primary shrink-0" />
               </button>
             );
           })}
@@ -167,9 +166,9 @@ export const ApartmentLandingRetentionStrip = React.memo(function ApartmentLandi
                 });
                 onOpenCompare(currentAptName, primaryTarget.aptName);
               }}
-              className="h-8 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-extrabold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer border-none"
+              className="h-8 px-3 rounded-xl bg-surface hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-primary text-[12px] font-bold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer border-none"
             >
-              <ArrowRightLeft className="w-3.5 h-3.5 shrink-0" />
+              <ArrowRightLeft className="w-3.5 h-3.5 text-secondary shrink-0" />
               <span>1:1 비교</span>
             </button>
           )}
@@ -200,8 +199,8 @@ export const ApartmentLandingRetentionStrip = React.memo(function ApartmentLandi
               }}
               className={
                 isFavorite
-                  ? 'h-8 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-[12px] font-extrabold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer'
-                  : 'h-8 px-3 rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200 dark:border-slate-700 text-secondary hover:text-blue-600 dark:hover:text-blue-400 text-[12px] font-extrabold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer'
+                  ? 'h-8 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[12px] font-bold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer border-none'
+                  : 'h-8 px-3 rounded-xl bg-surface hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary text-[12px] font-bold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer border-none'
               }
             >
               {isFavorite ? (

@@ -52,14 +52,14 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
     <>
       {/* Hero Section — Layout: Global Filter Bar + (Inline: 35% table / 65% chart | Inspector: Full-width stacked Chart + Table) */}
       <section
-        className={`w-full flex flex-col bg-surface border-b border-border shrink-0 ${
-          inline ? 'py-4 md:py-5 md:h-[700px]' : 'pt-1 pb-3 md:py-3.5'
+        className={`w-full flex flex-col bg-surface shrink-0 ${
+          inline ? 'py-4 md:py-5 md:h-[700px] border-b border-[#f2f4f6] dark:border-[#202027]' : 'pt-1 pb-2 md:py-2'
         }`}
       >
         {/* Global Real Transaction Filter Bar (Zero-CLS Fixed Coordinates on Mobile & Desktop) */}
         <div
-          className={`w-full flex flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border/50 shrink-0 ${
-            inline ? 'pb-4 mb-4 gap-x-2.5 gap-y-2' : 'pb-2 mb-2'
+          className={`w-full flex flex-wrap items-center gap-x-2 gap-y-1.5 shrink-0 ${
+            inline ? 'pb-4 mb-4 gap-x-2.5 gap-y-2 border-b border-[#f2f4f6] dark:border-[#202027]' : 'pb-3 mb-2'
           }`}
         >
           {/* 1. Deal Type Toggle — pinned top-left on both mobile & desktop */}
@@ -147,7 +147,7 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
             className={
               inline
                 ? 'w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch min-h-[320px] md:h-full'
-                : 'w-full shrink-0 flex flex-col min-h-[240px] md:h-[380px]'
+                : 'w-full shrink-0 flex flex-col min-h-[240px]'
             }
           >
             {renderTransactionTable()}

@@ -370,7 +370,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
       {/* Backdrop */}
       <button 
         type="button"
-        className="fixed inset-0 bg-black/45 z-[9999] backdrop-blur-sm transition-opacity border-none cursor-default"
+        className="fixed inset-0 bg-black/45 z-[11000] backdrop-blur-sm transition-opacity border-none cursor-default"
         onClick={onClose}
         aria-label="알림 구독 창 닫기"
       />
@@ -383,7 +383,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
         aria-modal="true"
         aria-labelledby="push-title"
         aria-describedby="push-desc"
-        className="fixed bottom-0 left-0 right-0 z-[10000] bg-surface rounded-t-[32px] shadow-[0_-12px_40px_rgba(0,0,0,0.12)] transform transition-transform duration-300 ease-out max-w-lg mx-auto border-t border-border/40 pb-[calc(env(safe-area-inset-bottom)+24px)] animate-in slide-in-from-bottom duration-300"
+        className="fixed bottom-0 left-0 right-0 z-[11001] bg-surface rounded-t-[32px] shadow-[0_-12px_40px_rgba(0,0,0,0.12)] transform transition-transform duration-300 ease-out max-w-lg mx-auto border-t border-border/40 pb-[calc(env(safe-area-inset-bottom)+24px)] animate-in slide-in-from-bottom duration-300"
       >
         <div className="px-6 pt-6 pb-2">
           {/* Header */}

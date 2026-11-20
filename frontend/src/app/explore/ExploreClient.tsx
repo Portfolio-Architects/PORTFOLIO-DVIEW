@@ -1078,25 +1078,21 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
           <div
             data-testid="master-detail-workspace"
             data-split-open={String(isSplitDetailOpen)}
-            className="flex-1 flex flex-col md:flex-row items-start w-full max-w-[2000px] mx-auto min-w-0 relative transition-all duration-300 ease-out"
+            className="flex-1 flex flex-col w-full max-w-[2000px] mx-auto min-w-0 relative"
           >
-            {/* Left Master Pane (Explore Catalog) */}
+            {/* Left Master Pane (Explore Catalog — Preserves 100% width & scroll position when drawer opens) */}
             <div
               data-testid="master-workspace-pane"
-              className={`flex-1 min-w-0 max-w-full flex flex-col transition-all duration-300 ease-out ${
-                isSplitDetailOpen
-                  ? 'w-full md:w-[calc(100%-52vw)] lg:w-[calc(100%-780px)] xl:w-[calc(100%-880px)]'
-                  : 'w-full'
-              }`}
+              className="flex-1 min-w-0 w-full max-w-full flex flex-col"
             >
-              <main id="main-content" className="flex-1 w-full max-w-full mx-auto min-w-0 min-h-[85vh] min-h-[800px] transition-all duration-300 ease-out">
+              <main id="main-content" className="flex-1 w-full max-w-full mx-auto min-w-0 min-h-[85vh] min-h-[800px]">
                 <div>
                   <section className="w-full bg-transparent min-h-[85vh] min-h-[800px]">
                     <PageHeroHeader 
                       title="D-VIEW 아파트 탐색"
                       subtitleStrong={<MarketStatsStrong />}
                       subtitleLight={<MarketStatsLight />}
-                      isSplitMode={isSplitDetailOpen}
+                      isSplitMode={false}
                     />
                     <ErrorBoundary name="아파트 맞춤 탐색">
                       <TossApartmentExploreClient
@@ -1114,7 +1110,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                         onOpenSellTimingCalculator={handleCatalogOpenSellTiming}
                         onSearchFocus={triggerFetch}
                         preloadApartmentTx={preloadApartmentTx}
-                        isSplitMode={isSplitDetailOpen}
+                        isSplitMode={false}
                         inFeedAdSlot={
                           process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' ? (
                             <div
@@ -1137,16 +1133,16 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
               </main>
             </div>
 
-            {/* Right Detail Pane (Animated Split Inspector on Desktop / Bottom Sheet on Mobile) */}
+            {/* Right Overlay Slide Drawer Host (Desktop Slide-Over Drawer / Mobile Bottom Sheet) */}
             <aside
               data-testid="detail-workspace-pane"
               aria-label="아파트 상세 리포트 인스펙터"
               aria-hidden={!isSplitDetailOpen}
-              className={`shrink-0 transition-all duration-300 ease-out ${
+              className={
                 isSplitDetailOpen
-                  ? 'w-full md:w-[52vw] lg:w-[780px] xl:w-[880px] md:max-w-[780px] xl:max-w-[880px] md:h-dvh md:max-h-[calc(100dvh-80px)] md:sticky md:top-[80px] md:overflow-hidden opacity-100 z-[60] md:z-40'
-                  : 'w-0 max-w-0 h-0 md:h-dvh md:max-h-[calc(100dvh-80px)] md:sticky md:top-[80px] opacity-0 md:translate-x-8 overflow-hidden pointer-events-none border-0'
-              }`}
+                  ? 'fixed inset-0 z-[10010]'
+                  : 'w-0 max-w-0 h-0 overflow-hidden pointer-events-none border-0'
+              }
             >
               {isSplitDetailOpen && selectedReport && (
                 <ErrorBoundary name="아파트 상세 정보">

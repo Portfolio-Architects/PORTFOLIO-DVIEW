@@ -872,13 +872,14 @@ describe('Option 1: Inline Apartment Detail Page Architecture Verification', () 
     });
   });
 
-  describe('7. Animated Master-Detail Split Workspace (Desktop Split Inspector md:max-w-[780px] xl:max-w-[880px] md:h-dvh + Mobile Bottom Sheet h-[94dvh])', () => {
-    it('renders ApartmentModalSkeleton (inline=false) as an in-place desktop Master-Detail inspector and mobile 94dvh bottom sheet', () => {
+  describe('7. Overlay Slide Drawer Architecture (Desktop Slide-Over Drawer md:h-dvh + Mobile Bottom Sheet h-[94dvh])', () => {
+    it('renders ApartmentModalSkeleton (inline=false) as a full-height desktop overlay slide drawer and mobile 94dvh bottom sheet', () => {
       render(<ApartmentModalSkeleton inline={false} />);
       const modalSkeleton = screen.getByTestId('apartment-modal-skeleton');
       expect(modalSkeleton).toBeInTheDocument();
       expect(modalSkeleton.className).toContain('h-[94dvh]');
       expect(modalSkeleton.className).toContain('md:h-dvh');
+      expect(modalSkeleton.className).toContain('md:max-h-dvh');
       expect(modalSkeleton.className).toContain('lg:w-[780px]');
       expect(modalSkeleton.className).toContain('xl:w-[880px]');
       expect(modalSkeleton.className).toContain('shrink-0');
@@ -887,14 +888,15 @@ describe('Option 1: Inline Apartment Detail Page Architecture Verification', () 
       expect(modalSkeleton.className).toContain('rounded-t-3xl');
       expect(modalSkeleton.className).toContain('md:rounded-l-3xl');
 
-      const splitBackdrop = modalSkeleton.parentElement;
-      expect(splitBackdrop?.className).toContain('items-end');
-      expect(splitBackdrop?.className).toContain('md:justify-end');
-      expect(splitBackdrop?.className).toContain('md:static');
-      expect(splitBackdrop?.className).toContain('md:bg-transparent');
+      const overlayBackdrop = modalSkeleton.parentElement;
+      expect(overlayBackdrop?.className).toContain('fixed');
+      expect(overlayBackdrop?.className).toContain('inset-0');
+      expect(overlayBackdrop?.className).toContain('items-end');
+      expect(overlayBackdrop?.className).toContain('md:justify-end');
+      expect(overlayBackdrop?.className).toContain('overscroll-none');
     });
 
-    it('stacks transaction chart and table at full width in inspector mode (inline=false) while keeping 35%/65% split in inline page mode (inline=true)', () => {
+    it('stacks transaction chart and table at full width without inner scroll trap in drawer mode (inline=false) while keeping 35%/65% split in inline page mode (inline=true)', () => {
       const baseTableProps = {
         isAnimationFinished: true,
         isTxLoading: false,
@@ -920,6 +922,7 @@ describe('Option 1: Inline Apartment Detail Page Architecture Verification', () 
       const inspectorTableWrapper = screen.getByTestId('tx-table-node').parentElement;
       expect(inspectorTableWrapper?.className).toContain('w-full');
       expect(inspectorTableWrapper?.className).not.toContain('md:w-[35%]');
+      expect(inspectorTableWrapper?.className).not.toContain('md:h-[380px]');
       unmount();
 
       render(<ApartmentModalTransactionsTable {...baseTableProps} inline={true} />);
@@ -927,7 +930,7 @@ describe('Option 1: Inline Apartment Detail Page Architecture Verification', () 
       expect(inlineTableWrapper?.className).toContain('md:w-[35%]');
     });
 
-    it('animates the page layout into a Master-Detail Split Workspace on apartment selection, allows simultaneous Master interaction to switch apartments, and restores full width on close', () => {
+    it('opens apartment detail in a fixed overlay drawer without shrinking the Master pane or losing explore scroll position, supports in-place apartment switching, and restores closed state cleanly', () => {
       window.history.replaceState({}, '', '/');
 
       render(<DashboardClient initialDashboardData={{}} />);
@@ -937,37 +940,30 @@ describe('Option 1: Inline Apartment Detail Page Architecture Verification', () 
       const detailPane = screen.getByTestId('detail-workspace-pane');
       const dashboardHome = screen.getByTestId('mock-macro-dashboard-client');
 
-      // Initial state: unsplit full-width Master pane, collapsed Detail pane (preserving md:h-dvh to prevent diagonal height animation)
+      // Initial state: full-width Master pane, collapsed Overlay Detail host
       expect(workspace).toHaveAttribute('data-split-open', 'false');
       expect(masterPane.className).toContain('w-full');
-      expect(masterPane.className).toContain('transition-opacity');
       expect(masterPane.className).not.toContain('lg:w-[calc(100%-780px)]');
       expect(detailPane).toHaveAttribute('aria-hidden', 'true');
       expect(detailPane.className).toContain('w-0');
-      expect(detailPane.className).toContain('md:h-dvh');
-      expect(detailPane.className).toContain('md:sticky');
-      expect(detailPane.className).toContain('opacity-0');
       expect(dashboardHome).toHaveAttribute('data-split-mode', 'false');
       expect(screen.queryByTestId('mock-popup-field-report-modal')).toBeNull();
 
       // Click [상세 리포트 보기] on Master dashboard
       fireEvent.click(screen.getByTestId('mock-dashboard-select-apt'));
 
-      // 1. Workspace splits with animated width classes on both Master and Detail panes and clips overflow during transition
+      // 1. Overlay drawer opens via fixed inset-0 host while Master pane keeps 100% width (zero reflow / scroll jump)
       expect(workspace).toHaveAttribute('data-split-open', 'true');
-      expect(masterPane.className).toContain('md:w-[calc(100%-52vw)]');
-      expect(masterPane.className).toContain('lg:w-[calc(100%-780px)]');
-      expect(masterPane.className).toContain('xl:w-[calc(100%-880px)]');
+      expect(masterPane.className).toContain('w-full');
+      expect(masterPane.className).not.toContain('lg:w-[calc(100%-780px)]');
+      expect(masterPane.className).not.toContain('xl:w-[calc(100%-880px)]');
       expect(detailPane).toHaveAttribute('aria-hidden', 'false');
-      expect(detailPane.className).toContain('lg:w-[780px]');
-      expect(detailPane.className).toContain('xl:w-[880px]');
-      expect(detailPane.className).toContain('md:h-dvh');
-      expect(detailPane.className).toContain('md:sticky');
-      expect(detailPane.className).toContain('md:overflow-hidden');
-      expect(detailPane.className).toContain('opacity-100');
-      expect(dashboardHome).toHaveAttribute('data-split-mode', 'true');
+      expect(detailPane.className).toContain('fixed');
+      expect(detailPane.className).toContain('inset-0');
+      expect(detailPane.className).toContain('z-[10010]');
+      expect(dashboardHome).toHaveAttribute('data-split-mode', 'false');
 
-      // 2. Detail inspector renders inside the right Detail pane
+      // 2. Detail inspector renders inside the overlay drawer host
       const popupInspector = screen.getByTestId('mock-popup-field-report-modal');
       expect(detailPane).toContainElement(popupInspector);
       expect(popupInspector).toHaveAttribute('data-apt-name', '동탄역 롯데캐슬');
@@ -976,7 +972,7 @@ describe('Option 1: Inline Apartment Detail Page Architecture Verification', () 
       expect(mockPush).not.toHaveBeenCalled();
       expect(decodeURIComponent(window.location.pathname)).toContain('/apartment/');
 
-      // 4. Simultaneous Master-Detail interaction: clicking another apartment in the Left Master pane updates the Right Detail pane in-place
+      // 4. Selecting another apartment updates the drawer content in-place without navigation
       fireEvent.click(screen.getByTestId('mock-dashboard-select-second-apt'));
       expect(workspace).toHaveAttribute('data-split-open', 'true');
       expect(screen.getByTestId('mock-popup-field-report-modal')).toHaveAttribute(
@@ -984,17 +980,17 @@ describe('Option 1: Inline Apartment Detail Page Architecture Verification', () 
         '동탄역시범우남퍼스트빌'
       );
 
-      // 5. Closing the Detail pane smoothly restores the Master pane to 100% full width
+      // 5. Closing the overlay drawer cleanly hides the host while Master pane remains untouched
       fireEvent.click(screen.getByTestId('popup-close-btn'));
       expect(workspace).toHaveAttribute('data-split-open', 'false');
-      expect(masterPane.className).not.toContain('lg:w-[calc(100%-780px)]');
+      expect(masterPane.className).toContain('w-full');
       expect(detailPane).toHaveAttribute('aria-hidden', 'true');
       expect(detailPane.className).toContain('w-0');
       expect(dashboardHome).toHaveAttribute('data-split-mode', 'false');
       expect(screen.queryByTestId('mock-popup-field-report-modal')).toBeNull();
     });
 
-    it('ZoneDetailClient opens apartments in-place inside Master-Detail split workspace without passing hardcoded empty transactions or navigating away on peer apartment selection', () => {
+    it('ZoneDetailClient opens apartments in-place inside overlay drawer without passing hardcoded empty transactions or navigating away on peer apartment selection', () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const ZoneDetailClient = require('@/app/zone/[id]/ZoneDetailClient').default;
       window.history.replaceState({}, '', '/zone/gbcx');
@@ -1014,7 +1010,7 @@ describe('Option 1: Inline Apartment Detail Page Architecture Verification', () 
       // Must NOT pass hardcoded transactions={[]} which suppresses useApartmentDetails transaction loader
       expect(popupInspector).toHaveAttribute('data-has-transactions-prop', 'false');
 
-      // Selecting an unindexed peer apartment inside the inspector updates the split pane in-place without router.push
+      // Selecting an unindexed peer apartment inside the inspector updates the overlay drawer in-place without router.push
       fireEvent.click(screen.getByTestId('trigger-select-peer-apt'));
       expect(mockPush).not.toHaveBeenCalled();
       expect(workspace).toHaveAttribute('data-split-open', 'true');
@@ -1024,7 +1020,7 @@ describe('Option 1: Inline Apartment Detail Page Architecture Verification', () 
       );
     });
 
-    it('keeps top GNB header (LoungeHeader / Zone header) at 100% full width outside master-workspace-pane and offsets detail-workspace-pane below sticky header on desktop', () => {
+    it('keeps top GNB header (LoungeHeader / Zone header) at 100% full width outside master-workspace-pane and hosts detail-workspace-pane as fixed overlay drawer', () => {
       window.history.replaceState({}, '', '/');
 
       const { unmount } = render(<DashboardClient initialDashboardData={{}} />);
@@ -1033,19 +1029,19 @@ describe('Option 1: Inline Apartment Detail Page Architecture Verification', () 
       const masterPane = screen.getByTestId('master-workspace-pane');
       const detailPane = screen.getByTestId('detail-workspace-pane');
 
-      // LoungeHeader must NOT be inside master-workspace-pane or master-detail-workspace so it never shrinks when split opens
+      // LoungeHeader must NOT be inside master-workspace-pane or master-detail-workspace
       expect(masterPane).not.toContainElement(header);
       expect(workspace).not.toContainElement(header);
 
-      // Open split inspector and verify header remains outside narrowed master pane while detail pane offsets below 80px header
+      // Open overlay drawer and verify Master stays full width while detail pane renders as fixed overlay
       fireEvent.click(screen.getByTestId('mock-dashboard-select-apt'));
       expect(workspace).toHaveAttribute('data-split-open', 'true');
       expect(masterPane).not.toContainElement(header);
-      expect(detailPane.className).toContain('md:top-[80px]');
-      expect(detailPane.className).toContain('md:max-h-[calc(100dvh-80px)]');
+      expect(detailPane.className).toContain('fixed');
+      expect(detailPane.className).toContain('inset-0');
       unmount();
 
-      // Also verify ZoneDetailClient top header is outside master-workspace-pane
+      // Also verify ZoneDetailClient top header is outside master-workspace-pane and overlay host opens fixed inset-0
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const ZoneDetailClient = require('@/app/zone/[id]/ZoneDetailClient').default;
       window.history.replaceState({}, '', '/zone/gbcx');
@@ -1054,8 +1050,9 @@ describe('Option 1: Inline Apartment Detail Page Architecture Verification', () 
       const zoneDetailPane = screen.getByTestId('detail-workspace-pane');
       const backToZonesBtn = screen.getByRole('button', { name: /전체 권역/ });
       expect(zoneMasterPane).not.toContainElement(backToZonesBtn);
-      expect(zoneDetailPane.className).toContain('md:top-16');
-      expect(zoneDetailPane.className).toContain('md:max-h-[calc(100dvh-64px)]');
+      fireEvent.click(screen.getByRole('button', { name: /리포트: 동탄역 롯데캐슬/ }));
+      expect(zoneDetailPane.className).toContain('fixed');
+      expect(zoneDetailPane.className).toContain('inset-0');
     });
   });
 });

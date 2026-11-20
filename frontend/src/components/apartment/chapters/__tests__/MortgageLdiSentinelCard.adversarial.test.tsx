@@ -114,7 +114,7 @@ describe('Adversarial Challenge: MortgageLdiSentinelCard Stress & Fuzzing Suite'
         const btn = screen.getByTestId(`jeonse-shock-${s}-btn`);
         fireEvent.click(btn);
         const alert = screen.getByTestId('jeonse-shortfall-alert');
-        expect(alert).toHaveTextContent(`만기 시 보증금 반환 결손액 발생 위험 (${s}% 하락 시)`);
+        expect(alert).toHaveTextContent(`전세 ${s}% 하락 시 보증금 반환 부족액 예상`);
       }
     });
   });

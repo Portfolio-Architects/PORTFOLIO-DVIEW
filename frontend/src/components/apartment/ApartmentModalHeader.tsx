@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ArrowLeft, MapPin, Share, Check, MessageSquare, Camera, Bell,
   Calculator, ChevronDown, Radar, Shield, GraduationCap, ShieldAlert, Star
@@ -8,7 +8,6 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { isApartmentInFavorites } from '@/lib/utils/apartmentMapping';
 import { trackEvent } from '@/lib/utils/analytics';
-import { persistPendingCalculatorContext } from '@/lib/utils/pendingCalculatorContext';
 
 export interface ApartmentModalHeaderProps {
   report: FieldReportData;
@@ -59,6 +58,9 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
 }: ApartmentModalHeaderProps) {
   const { userFavorites, handleToggleFavorite } = useFavorites();
   const pwa = usePWA();
+  const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
+  const shareMenuRef = useRef<HTMLDivElement | null>(null);
+
   const resolvedDisplayAptName = displayAptName || report.apartmentName || '';
   const targetAptName = report.apartmentName || resolvedDisplayAptName;
   const hasAnyToolAction = Boolean(
@@ -75,17 +77,49 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
       ? Math.round(verifiedSalePriceManwon) * 10_000
       : undefined;
 
-  const handleQuickTaxOpen = (trigger: string) => {
-    if (!onOpenTaxCalculator) return;
-    if (verifiedSalePriceWon) {
-      persistPendingCalculatorContext({
-        aptName: report.apartmentName,
-        priceManwon: Math.round(verifiedSalePriceWon / 10_000),
-        alreadyTrackedOpen: false,
-      });
+  useEffect(() => {
+    if (isToolDropdownOpen && isShareMenuOpen) {
+      setIsShareMenuOpen(false);
     }
-    onOpenTaxCalculator(report.apartmentName, trigger);
-  };
+  }, [isToolDropdownOpen, isShareMenuOpen]);
+
+  useEffect(() => {
+    if (!isShareMenuOpen || typeof document === 'undefined' || typeof window === 'undefined') return;
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+        setIsShareMenuOpen(false);
+      }
+    };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        setIsShareMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    window.addEventListener('keydown', handleEscape, true);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      window.removeEventListener('keydown', handleEscape, true);
+    };
+  }, [isShareMenuOpen]);
+
+  useEffect(() => {
+    if (!isToolDropdownOpen || typeof window === 'undefined') return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        setIsToolDropdownOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEscape, true);
+    return () => {
+      window.removeEventListener('keydown', handleEscape, true);
+    };
+  }, [isToolDropdownOpen, setIsToolDropdownOpen]);
+
   const effectiveIsFavorite =
     propIsFavorite !== undefined
       ? propIsFavorite
@@ -94,69 +128,119 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
   const effectiveToggleFavorite = propToggleFavorite || handleToggleFavorite;
   const HeadingTag = inline ? 'h2' : 'h1';
 
+  const handleToggleFavoriteClick = () => {
+    const nextIsFav = !effectiveIsFavorite;
+    trackEvent('watchlist_toggle_favorite', {
+      apt_name: targetAptName,
+      is_favorite: nextIsFav,
+      surface: 'apartment_detail',
+    });
+    effectiveToggleFavorite(targetAptName);
+    if (nextIsFav) {
+      pwa?.showToast?.(
+        `${resolvedDisplayAptName} 관심단지에 저장됨 · 평일 07시 실거래 알림도 켜보세요`
+      );
+    }
+  };
+
+  const handleOpenPushClick = (triggerPrefix: string) => {
+    trackEvent('push_modal_open', {
+      surface: 'apartment_detail',
+      trigger: effectiveIsFavorite ? `${triggerPrefix}_post_fav_7am` : `${triggerPrefix}_7am_cta`,
+      apt_name: targetAptName,
+      apartment_name: targetAptName,
+      ...(report.dong ? { dong: report.dong } : {}),
+    });
+    setIsPushModalOpen(true);
+  };
+
   const toolDropdownMenu = isToolDropdownOpen && (
-    <div className="absolute right-0 mt-2 w-[230px] bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md border border-border/50 dark:border-white/10 rounded-[18px] shadow-[0_12px_40px_rgba(0,0,0,0.08)] py-1.5 z-[100] animate-in fade-in slide-in-from-top-3 duration-200">
-      <div className="px-4 py-1.5 text-[11px] font-black text-tertiary border-b border-border/40 select-none uppercase tracking-wider">
-        AI 진단 & 금융 계산기
+    <div
+      data-testid="apt-header-tool-menu"
+      data-scroll-interactive="true"
+      className="absolute right-0 mt-2 w-[216px] bg-surface dark:bg-slate-900 border border-[#f2f4f6] dark:border-[#202027] rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.1)] py-1.5 z-[100] animate-in fade-in slide-in-from-top-2 duration-150"
+    >
+      <div className="px-3.5 py-1.5 text-[11px] font-bold text-tertiary border-b border-[#f2f4f6] dark:border-[#202027] select-none">
+        금융 계산 · 비교
       </div>
-
-      {onOpenCompare && (
-        <button
-          onClick={() => { onOpenCompare(report.apartmentName); setIsToolDropdownOpen(false); }}
-          onMouseEnter={preloadCalculators}
-          onFocus={preloadCalculators}
-          className="w-full text-left px-4 py-2.5 text-[13px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
-        >
-          <Radar size={15} className="text-blue-600 dark:text-blue-400" />
-          <span>단지 1:1 비교</span>
-        </button>
-      )}
-
-      {onOpenJeonseSafety && (
-        <button
-          onClick={() => { onOpenJeonseSafety(report.apartmentName); setIsToolDropdownOpen(false); }}
-          onMouseEnter={preloadCalculators}
-          onFocus={preloadCalculators}
-          className="w-full text-left px-4 py-2.5 text-[13px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
-        >
-          <Shield size={15} className="text-blue-600 dark:text-blue-400" />
-          <span>전세 안전진단</span>
-        </button>
-      )}
 
       {onOpenMortgage && (
         <button
-          onClick={() => { onOpenMortgage(report.apartmentName); setIsToolDropdownOpen(false); }}
+          type="button"
+          onClick={() => {
+            onOpenMortgage(report.apartmentName, verifiedSalePriceWon);
+            setIsToolDropdownOpen(false);
+          }}
           onMouseEnter={preloadCalculators}
           onFocus={preloadCalculators}
-          className="w-full text-left px-4 py-2.5 text-[13px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
+          className="w-full text-left px-3.5 py-2.5 text-[13px] font-semibold text-primary hover:bg-[#f9fafb] dark:hover:bg-[#17171c] transition-colors flex items-center gap-2.5 border-none bg-transparent cursor-pointer"
         >
-          <Calculator size={15} className="text-blue-600 dark:text-blue-400" />
+          <Calculator size={15} className="text-secondary shrink-0" />
           <span>대출 계산기</span>
         </button>
       )}
 
       {onOpenTaxCalculator && (
         <button
-          onClick={() => { onOpenTaxCalculator(report.apartmentName); setIsToolDropdownOpen(false); }}
+          type="button"
+          onClick={() => {
+            onOpenTaxCalculator(report.apartmentName);
+            setIsToolDropdownOpen(false);
+          }}
           onMouseEnter={preloadCalculators}
           onFocus={preloadCalculators}
-          className="w-full text-left px-4 py-2.5 text-[13px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
+          className="w-full text-left px-3.5 py-2.5 text-[13px] font-semibold text-primary hover:bg-[#f9fafb] dark:hover:bg-[#17171c] transition-colors flex items-center gap-2.5 border-none bg-transparent cursor-pointer"
         >
-          <GraduationCap size={15} className="text-blue-600 dark:text-blue-400" />
+          <GraduationCap size={15} className="text-secondary shrink-0" />
           <span>취득세 계산기</span>
+        </button>
+      )}
+
+      {onOpenJeonseSafety && (
+        <button
+          type="button"
+          onClick={() => {
+            onOpenJeonseSafety(report.apartmentName);
+            setIsToolDropdownOpen(false);
+          }}
+          onMouseEnter={preloadCalculators}
+          onFocus={preloadCalculators}
+          className="w-full text-left px-3.5 py-2.5 text-[13px] font-semibold text-primary hover:bg-[#f9fafb] dark:hover:bg-[#17171c] transition-colors flex items-center gap-2.5 border-none bg-transparent cursor-pointer"
+        >
+          <Shield size={15} className="text-secondary shrink-0" />
+          <span>전세 안전진단</span>
+        </button>
+      )}
+
+      {onOpenCompare && (
+        <button
+          type="button"
+          onClick={() => {
+            onOpenCompare(report.apartmentName);
+            setIsToolDropdownOpen(false);
+          }}
+          onMouseEnter={preloadCalculators}
+          onFocus={preloadCalculators}
+          className="w-full text-left px-3.5 py-2.5 text-[13px] font-semibold text-primary hover:bg-[#f9fafb] dark:hover:bg-[#17171c] transition-colors flex items-center gap-2.5 border-none bg-transparent cursor-pointer"
+        >
+          <Radar size={15} className="text-secondary shrink-0" />
+          <span>단지 1:1 비교</span>
         </button>
       )}
 
       {onOpenSellTimingCalculator && (
         <button
-          onClick={() => { onOpenSellTimingCalculator(report.apartmentName); setIsToolDropdownOpen(false); }}
+          type="button"
+          onClick={() => {
+            onOpenSellTimingCalculator(report.apartmentName);
+            setIsToolDropdownOpen(false);
+          }}
           onMouseEnter={preloadCalculators}
           onFocus={preloadCalculators}
-          className="w-full text-left px-4 py-2.5 text-[13px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
+          className="w-full text-left px-3.5 py-2.5 text-[13px] font-semibold text-primary hover:bg-[#f9fafb] dark:hover:bg-[#17171c] transition-colors flex items-center gap-2.5 border-none bg-transparent cursor-pointer"
         >
-          <ShieldAlert size={15} className="text-red-600 dark:text-red-400" />
-          <span>AI 매도 진단기</span>
+          <ShieldAlert size={15} className="text-secondary shrink-0" />
+          <span>매도 타이밍 진단</span>
         </button>
       )}
     </div>
@@ -166,58 +250,43 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
     return (
       <div
         data-testid="apt-modal-slim-header"
-        className="w-full bg-surface/85 dark:bg-surface/70 backdrop-blur-md pt-2 md:pt-3.5 pb-2 px-3 md:px-5 rounded-t-none md:rounded-tl-3xl border-b border-border relative z-[65]"
+        data-scroll-interactive="true"
+        className="w-full bg-surface pt-3.5 md:pt-4 pb-2.5 px-4 md:px-6 rounded-t-none md:rounded-tl-3xl relative z-[65]"
       >
-        <div className="w-full flex flex-col gap-1.5 md:gap-2">
-          {/* Line 1: Dong badge + Complex name (pr-11 + min-h reserves space for modal close button) */}
-          <div className="flex items-center gap-2 min-w-0 pr-11 min-h-[32px] md:min-h-[38px]">
-            <span className="bg-body border border-border/60 text-secondary text-[11px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap shrink-0 tabular-nums">
-              {report.dong || '동탄'}
-            </span>
+        <div className="w-full flex flex-col gap-2.5">
+          {/* Line 1: Complex name + subtle dong label (pr-11 reserves space for close button) */}
+          <div className="flex items-baseline gap-2 min-w-0 pr-11 min-h-[30px] md:min-h-[34px]">
             <HeadingTag
               title={resolvedDisplayAptName}
-              className="text-[17px] sm:text-[19px] md:text-[22px] font-extrabold leading-[1.25] tracking-tight text-primary min-w-0 flex-1"
+              className="text-[18px] sm:text-[20px] md:text-[22px] font-extrabold leading-[1.25] tracking-tight text-primary min-w-0 truncate"
             >
-              <span className="truncate block w-full">{resolvedDisplayAptName}</span>
+              {resolvedDisplayAptName}
             </HeadingTag>
+            <span className="text-[12px] font-semibold text-tertiary whitespace-nowrap shrink-0 tabular-nums">
+              {report.dong || '동탄'}
+            </span>
           </div>
 
-          {/* Line 2: Compact action strip + non-clipped right tool menu */}
-          <div className="flex items-center justify-between gap-1.5 w-full select-none">
-            <div
-              className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar min-w-0 flex-1 py-0.5"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
+          {/* Line 2: Single-row quiet monochrome utility actions + SINGLE primary accent CTA */}
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 w-full select-none flex-nowrap">
+            <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-nowrap">
               <button
                 type="button"
                 data-testid="apt-detail-favorite-btn"
                 aria-pressed={effectiveIsFavorite}
                 aria-label={`${resolvedDisplayAptName} ${effectiveIsFavorite ? '관심단지 해제' : '관심단지 저장'}`}
-                onClick={() => {
-                  const nextIsFav = !effectiveIsFavorite;
-                  trackEvent('watchlist_toggle_favorite', {
-                    apt_name: targetAptName,
-                    is_favorite: nextIsFav,
-                    surface: 'apartment_detail',
-                  });
-                  effectiveToggleFavorite(targetAptName);
-                  if (nextIsFav) {
-                    pwa?.showToast?.(
-                      `${resolvedDisplayAptName} 로그인 없이 관심단지에 저장됨 · 평일 07시 실거래 알림도 켜보세요`
-                    );
-                  }
-                }}
-                className={`h-7 px-2 sm:px-2.5 rounded-lg flex items-center gap-1 font-bold text-[11px] sm:text-[11.5px] border cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap shrink-0 ${
+                onClick={handleToggleFavoriteClick}
+                className={`h-8 px-2 sm:px-2.5 rounded-[10px] inline-flex items-center gap-1 sm:gap-1.5 font-semibold text-[12px] border-none cursor-pointer transition-colors active:scale-[0.97] whitespace-nowrap shrink-0 ${
                   effectiveIsFavorite
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white border-transparent shadow-sm'
-                    : 'bg-[#f2f4f6] hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-950/40 text-secondary hover:text-blue-600 dark:hover:text-blue-400 border-border/50'
+                    ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
+                    : 'bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary'
                 }`}
-                title={effectiveIsFavorite ? '내 관심단지에서 해제 (비로그인)' : '로그인 없이 내 관심단지에 1초 저장'}
+                title={effectiveIsFavorite ? '관심단지에서 해제' : '로그인 없이 관심단지 저장'}
               >
                 <Star
-                  size={11}
-                  strokeWidth={2.3}
-                  className={effectiveIsFavorite ? 'fill-current text-white shrink-0' : 'text-current shrink-0'}
+                  size={13}
+                  strokeWidth={2.2}
+                  className={effectiveIsFavorite ? 'fill-current shrink-0' : 'shrink-0'}
                 />
                 <span>
                   <span className="hidden sm:inline">관심단지 </span>
@@ -229,142 +298,118 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
                 type="button"
                 data-testid="apt-header-morning-7am-btn"
                 aria-label="평일 07시 실거래 알림 받기"
-                onClick={() => {
-                  trackEvent('push_modal_open', {
-                    surface: 'apartment_detail',
-                    trigger: effectiveIsFavorite ? 'header_post_fav_7am' : 'header_7am_cta',
-                    apt_name: targetAptName,
-                    apartment_name: targetAptName,
-                    ...(report.dong ? { dong: report.dong } : {}),
-                  });
-                  setIsPushModalOpen(true);
-                }}
-                className="h-7 px-2 sm:px-2.5 bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-800 dark:hover:bg-emerald-900 text-white rounded-lg flex items-center gap-1 font-bold text-[11px] sm:text-[11.5px] border-none cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap shrink-0 tabular-nums"
-                title="평일 오전 7시 실거래 변동 알림 받기 (비로그인)"
+                onClick={() => handleOpenPushClick('header')}
+                className="h-8 px-2 sm:px-2.5 bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary rounded-[10px] inline-flex items-center gap-1 sm:gap-1.5 font-semibold text-[12px] border-none cursor-pointer transition-colors active:scale-[0.97] whitespace-nowrap shrink-0 tabular-nums"
+                title="평일 오전 7시 실거래 변동 알림 받기"
               >
-                <Bell size={11} strokeWidth={2.4} className="shrink-0" />
-                <span className="text-white">
-                  <span className="hidden sm:inline">평일 </span>07시 알림
-                </span>
+                <Bell size={13} strokeWidth={2.2} className="shrink-0" />
+                <span>07시 알림</span>
               </button>
 
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(resolvedDisplayAptName + (resolvedDisplayAptName.includes('아파트') ? '' : ' 아파트'))}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-7 px-2 sm:px-2.5 rounded-lg text-[11px] sm:text-[11.5px] font-bold text-blue-600 bg-[#e8f3ff] hover:bg-[#dbeafe] dark:bg-blue-950/50 dark:text-blue-300 dark:hover:bg-blue-900/60 border border-blue-600/20 inline-flex items-center gap-1 whitespace-nowrap shrink-0 transition-colors"
+                aria-label="구글 지도에서 위치 보기"
+                className="h-8 w-8 sm:w-auto px-0 sm:px-2.5 justify-center rounded-[10px] text-[12px] font-semibold text-secondary hover:text-primary hover:bg-[#f2f4f6] dark:hover:bg-[#202027] inline-flex items-center gap-1 whitespace-nowrap shrink-0 transition-colors"
                 title="구글 지도에서 아파트 위치 보기"
               >
-                <MapPin className="w-3 h-3 shrink-0" />
-                <span>지도보기</span>
+                <MapPin className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">지도보기</span>
               </a>
 
-              <button
-                type="button"
-                onClick={handleNativeShare}
-                className={`h-7 px-2.5 rounded-lg hidden lg:inline-flex items-center gap-1 font-bold text-[11.5px] border cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap shrink-0 ${
-                  copiedStatus === 'all-link'
-                    ? 'bg-emerald-500 text-white border-transparent'
-                    : 'bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary border-border/50'
-                }`}
-                title="아파트 분석 리포트 공유하기"
-              >
-                {copiedStatus === 'all-link' ? (
-                  <Check size={12} strokeWidth={2.5} className="text-white" />
-                ) : (
-                  <Share size={12} strokeWidth={2.4} className="text-secondary/80" />
-                )}
-                <span>{copiedStatus === 'all-link' ? '복사 완료' : '공유'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleCopySummary}
-                className={`h-7 px-2.5 rounded-lg hidden lg:inline-flex items-center gap-1 font-bold text-[11.5px] border cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap shrink-0 ${
-                  copiedStatus === 'summary'
-                    ? 'bg-emerald-500 text-white border-transparent'
-                    : 'bg-emerald-50/60 hover:bg-emerald-100/70 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-500/20'
-                }`}
-                title="단톡방용 텍스트 요약 복사"
-              >
-                {copiedStatus === 'summary' ? (
-                  <Check size={12} strokeWidth={2.5} className="text-white" />
-                ) : (
-                  <MessageSquare size={12} strokeWidth={2.4} className="text-emerald-600 dark:text-emerald-400" />
-                )}
-                <span>{copiedStatus === 'summary' ? '복사 완료' : '요약 복사'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleDownloadShareCard}
-                className="h-7 px-2.5 bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary border border-border/50 rounded-lg hidden lg:inline-flex items-center gap-1 font-bold text-[11.5px] cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap shrink-0"
-                title="인포그래픽 요약 카드 이미지 다운로드"
-              >
-                <Camera size={12} strokeWidth={2.4} className="text-secondary/80" />
-                <span>이미지</span>
-              </button>
-            </div>
-
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-              {onOpenMortgage && (
+              <div className="relative shrink-0" ref={shareMenuRef}>
                 <button
                   type="button"
-                  data-testid="apt-header-quick-mortgage-btn"
-                  aria-label={`${resolvedDisplayAptName} 주담대 및 DSR 한도 빠른 계산`}
-                  onClick={() =>
-                    onOpenMortgage(
-                      report.apartmentName,
-                      verifiedSalePriceWon,
-                      'modal_header_quick_pill'
-                    )
-                  }
-                  onMouseEnter={preloadCalculators}
-                  onFocus={preloadCalculators}
-                  className="h-7 px-1.5 sm:px-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-1 font-bold text-[11px] sm:text-[11.5px] border-none cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap"
-                  title="주담대 및 스트레스 DSR 40% 한도 즉시 계산"
+                  data-testid="apt-header-share-menu-btn"
+                  aria-label="공유 및 저장 옵션"
+                  aria-expanded={isShareMenuOpen}
+                  onClick={() => {
+                    setIsToolDropdownOpen(false);
+                    setIsShareMenuOpen((prev) => !prev);
+                  }}
+                  className="h-8 w-8 sm:w-auto px-0 sm:px-2.5 justify-center rounded-[10px] text-[12px] font-semibold text-secondary hover:text-primary hover:bg-[#f2f4f6] dark:hover:bg-[#202027] inline-flex items-center gap-1 border-none bg-transparent cursor-pointer transition-colors whitespace-nowrap shrink-0"
+                  title="공유 · 요약 복사 · 이미지 저장"
                 >
-                  <Calculator size={11} className="shrink-0" />
-                  <span>
-                    <span className="hidden min-[380px]:inline">주담대·</span>DSR
-                  </span>
+                  {copiedStatus ? (
+                    <Check size={13} strokeWidth={2.4} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  ) : (
+                    <Share size={13} strokeWidth={2.2} className="shrink-0" />
+                  )}
+                  <span className="hidden sm:inline">{copiedStatus ? '복사됨' : '공유'}</span>
                 </button>
-              )}
 
-              {onOpenTaxCalculator && (
-                <button
-                  type="button"
-                  data-testid="apt-header-quick-tax-btn"
-                  aria-label={`${resolvedDisplayAptName} 취득세 빠른 계산`}
-                  onClick={() => handleQuickTaxOpen('modal_header_quick_pill_tax')}
-                  onMouseEnter={preloadCalculators}
-                  onFocus={preloadCalculators}
-                  className="h-7 px-2 hidden sm:inline-flex items-center gap-1 bg-[#f2f4f6] hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-primary rounded-lg font-bold text-[11px] sm:text-[11.5px] border border-border/50 cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap"
-                  title="주택 취득세 및 생애최초 감면액 즉시 계산"
-                >
-                  <span>취득세 계산</span>
-                </button>
-              )}
-
-              {hasAnyToolAction && (
-                <div className="relative shrink-0" ref={toolDropdownRef}>
-                  <button
-                    type="button"
-                    aria-label="분석 및 금융 도구"
-                    aria-expanded={isToolDropdownOpen}
-                    onClick={() => setIsToolDropdownOpen(prev => !prev)}
-                    className="h-7 px-1.5 sm:px-2.5 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white rounded-lg shadow-sm flex items-center gap-1 font-bold text-[11px] sm:text-[11.5px] border-none cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap"
-                    title="AI 분석 리포트 및 부동산 금융 계산기 열기"
+                {isShareMenuOpen && (
+                  <div
+                    data-testid="apt-header-share-menu"
+                    data-scroll-interactive="true"
+                    className="absolute right-0 mt-1.5 w-[184px] bg-surface dark:bg-slate-900 border border-[#f2f4f6] dark:border-[#202027] rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.1)] py-1.5 z-[100] animate-in fade-in slide-in-from-top-2 duration-150"
                   >
-                    <Calculator size={12} className="shrink-0" />
-                    <span>금융 도구</span>
-                    <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${isToolDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {toolDropdownMenu}
-                </div>
-              )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleNativeShare();
+                        setIsShareMenuOpen(false);
+                      }}
+                      title="아파트 분석 리포트 공유하기"
+                      className="w-full text-left px-3.5 py-2.5 text-[12.5px] font-semibold text-primary hover:bg-[#f9fafb] dark:hover:bg-[#17171c] transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
+                    >
+                      <Share size={14} className="text-secondary shrink-0" />
+                      <span>{copiedStatus === 'all-link' ? '링크 복사 완료' : '링크 공유'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleCopySummary();
+                        setIsShareMenuOpen(false);
+                      }}
+                      title="단톡방용 텍스트 요약 복사"
+                      className="w-full text-left px-3.5 py-2.5 text-[12.5px] font-semibold text-primary hover:bg-[#f9fafb] dark:hover:bg-[#17171c] transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
+                    >
+                      <MessageSquare size={14} className="text-secondary shrink-0" />
+                      <span>{copiedStatus === 'summary' ? '요약 복사 완료' : '텍스트 요약 복사'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleDownloadShareCard();
+                        setIsShareMenuOpen(false);
+                      }}
+                      title="인포그래픽 요약 카드 이미지 다운로드"
+                      className="w-full text-left px-3.5 py-2.5 text-[12.5px] font-semibold text-primary hover:bg-[#f9fafb] dark:hover:bg-[#17171c] transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
+                    >
+                      <Camera size={14} className="text-secondary shrink-0" />
+                      <span>요약 이미지 저장</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
+
+            {hasAnyToolAction && (
+              <div className="relative shrink-0" ref={toolDropdownRef}>
+                <button
+                  type="button"
+                  data-testid="apt-header-tool-menu-btn"
+                  aria-label="분석 및 금융 도구"
+                  aria-expanded={isToolDropdownOpen}
+                  onMouseEnter={preloadCalculators}
+                  onFocus={preloadCalculators}
+                  onClick={() => setIsToolDropdownOpen((prev) => !prev)}
+                  className="h-8 px-2.5 sm:px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-[10px] inline-flex items-center gap-1 sm:gap-1.5 font-bold text-[12px] border-none cursor-pointer transition-colors active:scale-[0.97] whitespace-nowrap"
+                  title="대출·취득세·전세·비교 계산기 열기"
+                >
+                  <Calculator size={13} className="shrink-0" />
+                  <span>금융 도구</span>
+                  <ChevronDown
+                    size={13}
+                    className={`shrink-0 transition-transform duration-200 ${isToolDropdownOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                {toolDropdownMenu}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -373,198 +418,153 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
 
   return (
     <div
-      className="w-full bg-surface pt-8 md:pt-10 pb-6 px-4 md:px-10 rounded-t-none md:rounded-t-3xl border-b border-border relative z-20"
+      className="w-full bg-surface pt-8 md:pt-10 pb-5 px-4 md:px-10 rounded-t-none md:rounded-t-3xl border-b border-[#f2f4f6] dark:border-[#202027] relative z-20"
     >
       <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex flex-col gap-1.5 flex-1 min-w-0 lg:min-w-[450px]">
+        <div className="flex flex-col gap-1.5 flex-1 min-w-0 lg:min-w-[420px]">
           <div className="flex items-center gap-2 flex-wrap">
             {onBack && (
               <button
                 type="button"
                 data-testid="apt-inline-back-btn"
                 onClick={onBack}
-                className="inline-flex items-center gap-1 text-xs font-bold text-secondary hover:text-primary bg-body hover:bg-border/40 px-2.5 py-1 rounded-full transition-all shrink-0 cursor-pointer border border-border/60"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-secondary hover:text-primary bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] px-2.5 py-1 rounded-lg transition-colors shrink-0 cursor-pointer border-none"
                 title="이전 화면으로 돌아가기"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>뒤로가기</span>
               </button>
             )}
-            <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap shrink-0">{report.dong || '동탄'}</span>
-            <a 
+            <span className="text-[13px] font-semibold text-tertiary whitespace-nowrap shrink-0">
+              {report.dong || '동탄'}
+            </span>
+            <a
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(resolvedDisplayAptName + (resolvedDisplayAptName.includes('아파트') ? '' : ' 아파트'))}`}
-              target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 bg-[#e8f3ff] hover:bg-[#dbeafe] px-2.5 py-1 rounded-full transition-all shrink-0 group border border-blue-600/20"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-secondary hover:text-primary hover:bg-[#f2f4f6] dark:hover:bg-[#202027] px-2 py-1 rounded-lg transition-colors shrink-0"
               title="구글 지도에서 아파트 위치 보기"
             >
-              <MapPin className="w-3 h-3 group-hover:scale-105 transition-transform" />
+              <MapPin className="w-3.5 h-3.5" />
               <span>지도보기</span>
             </a>
           </div>
           <div className="flex items-center justify-between gap-3 w-full">
             <HeadingTag
-              className="text-xl sm:text-2xl lg:text-[28px] xl:text-[32px] min-[1400px]:text-[36px] font-extrabold leading-[1.25] tracking-tight text-primary min-w-0 flex-1"
+              className="text-xl sm:text-2xl lg:text-[28px] xl:text-[32px] font-extrabold leading-[1.25] tracking-tight text-primary min-w-0 flex-1"
             >
               <span className="break-keep break-words block w-full">{resolvedDisplayAptName}</span>
             </HeadingTag>
           </div>
         </div>
 
-        <div 
-          className="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 py-1.5 w-[calc(100%+2rem)] shrink-0 lg:w-auto lg:overflow-x-visible lg:px-0 lg:mx-0 select-none"
+        <div
+          className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4 py-1 w-[calc(100%+2rem)] shrink-0 lg:w-auto lg:overflow-x-visible lg:px-0 lg:mx-0 select-none"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {/* Favorite Watchlist Toggle Button (Visible on Mobile & Desktop) */}
+          {/* Favorite Watchlist Toggle (Quiet monochrome; soft blue tint when saved) */}
           <button
             type="button"
             data-testid="apt-detail-favorite-btn"
             aria-pressed={effectiveIsFavorite}
             aria-label={`${resolvedDisplayAptName} ${effectiveIsFavorite ? '관심단지 해제' : '관심단지 저장'}`}
-            onClick={() => {
-              const nextIsFav = !effectiveIsFavorite;
-              trackEvent('watchlist_toggle_favorite', {
-                apt_name: targetAptName,
-                is_favorite: nextIsFav,
-                surface: 'apartment_detail',
-              });
-              effectiveToggleFavorite(targetAptName);
-              if (nextIsFav) {
-                pwa?.showToast?.(
-                  `${resolvedDisplayAptName} 로그인 없이 관심단지에 저장됨 · 평일 07시 실거래 알림도 켜보세요`
-                );
-              }
-            }}
-            className={`h-10 px-4 rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 ${
+            onClick={handleToggleFavoriteClick}
+            className={`h-9 px-3.5 rounded-xl flex items-center gap-1.5 font-semibold text-[13px] border-none cursor-pointer transition-colors active:scale-[0.97] shrink-0 ${
               effectiveIsFavorite
-                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
-                : 'bg-[#f2f4f6] hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-950/40 text-secondary hover:text-blue-600 dark:hover:text-blue-400'
+                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
+                : 'bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary'
             }`}
-            title={effectiveIsFavorite ? '내 관심단지에서 해제 (비로그인)' : '로그인 없이 내 관심단지에 1초 저장'}
+            title={effectiveIsFavorite ? '관심단지에서 해제' : '로그인 없이 관심단지 저장'}
           >
             <Star
               size={14}
-              strokeWidth={2.3}
-              className={effectiveIsFavorite ? 'fill-current text-white' : 'text-current'}
+              strokeWidth={2.2}
+              className={effectiveIsFavorite ? 'fill-current shrink-0' : 'shrink-0'}
             />
             <span>{effectiveIsFavorite ? '관심단지 저장됨' : '관심단지 저장'}</span>
           </button>
 
-          {/* Share Link Button */}
+          {/* Push Notifications Button (Quiet monochrome) */}
           <button
+            type="button"
+            data-testid="apt-header-morning-7am-btn"
+            onClick={() => handleOpenPushClick('inline_header')}
+            className="h-9 px-3.5 bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary rounded-xl flex items-center gap-1.5 font-semibold text-[13px] border-none cursor-pointer transition-colors active:scale-[0.97] shrink-0 tabular-nums"
+            title="평일 오전 7시 실거래 변동 알림 받기"
+          >
+            <Bell size={14} strokeWidth={2.2} />
+            <span>평일 07시 알림</span>
+          </button>
+
+          {/* Share Link Button (Quiet monochrome) */}
+          <button
+            type="button"
             onClick={handleNativeShare}
-            className={`h-10 px-4 rounded-[12px] shadow-sm hidden lg:flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 ${
+            className={`h-9 px-3 rounded-xl hidden lg:flex items-center gap-1.5 font-semibold text-[13px] border-none cursor-pointer transition-colors active:scale-[0.97] shrink-0 ${
               copiedStatus === 'all-link'
-                ? 'bg-emerald-500 text-white shadow-md'
-                : 'bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'
+                : 'hover:bg-[#f2f4f6] dark:hover:bg-[#202027] text-secondary hover:text-primary bg-transparent'
             }`}
             title="아파트 분석 리포트 공유하기"
           >
             {copiedStatus === 'all-link' ? (
-              <Check size={14} strokeWidth={2.5} className="text-white" />
+              <Check size={14} strokeWidth={2.4} />
             ) : (
-              <Share size={14} strokeWidth={2.5} className="text-secondary/80" />
+              <Share size={14} strokeWidth={2.2} />
             )}
-            <span>{copiedStatus === 'all-link' ? '링크 복사 완료!' : '공유하기'}</span>
+            <span>{copiedStatus === 'all-link' ? '복사됨' : '공유'}</span>
           </button>
 
-          {/* Group Chat Summary Copy Button */}
+          {/* Group Chat Summary Copy Button (Quiet monochrome) */}
           <button
+            type="button"
             onClick={handleCopySummary}
-            className={`h-10 px-4 rounded-[12px] shadow-sm hidden lg:flex items-center gap-1.5 font-extrabold text-[13px] border cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 ${
+            className={`h-9 px-3 rounded-xl hidden lg:flex items-center gap-1.5 font-semibold text-[13px] border-none cursor-pointer transition-colors active:scale-[0.97] shrink-0 ${
               copiedStatus === 'summary'
-                ? 'bg-emerald-500 text-white border-transparent shadow-md'
-                : 'bg-emerald-50/50 hover:bg-emerald-100/60 dark:bg-emerald-950/10 dark:hover:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/10'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'
+                : 'hover:bg-[#f2f4f6] dark:hover:bg-[#202027] text-secondary hover:text-primary bg-transparent'
             }`}
             title="단톡방용 텍스트 요약 복사"
           >
             {copiedStatus === 'summary' ? (
-              <Check size={14} strokeWidth={2.5} className="text-white" />
+              <Check size={14} strokeWidth={2.4} />
             ) : (
-              <MessageSquare size={14} strokeWidth={2.5} className="text-emerald-600 dark:text-emerald-400" />
+              <MessageSquare size={14} strokeWidth={2.2} />
             )}
-            <span>{copiedStatus === 'summary' ? '요약 복사 완료!' : '단톡방 요약 복사'}</span>
+            <span>{copiedStatus === 'summary' ? '복사됨' : '요약 복사'}</span>
           </button>
 
-          {/* Infographic Summary Image Download Button */}
-          <button
-            onClick={handleDownloadShareCard}
-            className="h-10 px-4 bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary border-none rounded-[12px] shadow-sm hidden lg:flex items-center gap-1.5 font-extrabold text-[13px] cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0"
-            title="인포그래픽 요약 카드 이미지 다운로드"
-          >
-            <Camera size={14} strokeWidth={2.5} className="text-secondary/80" />
-            <span>이미지 저장</span>
-          </button>
-
-          {/* Push Notifications Button */}
+          {/* Infographic Summary Image Download Button (Quiet monochrome) */}
           <button
             type="button"
-            data-testid="apt-header-morning-7am-btn"
-            onClick={() => {
-              trackEvent('push_modal_open', {
-                surface: 'apartment_detail',
-                trigger: effectiveIsFavorite ? 'inline_header_post_fav_7am' : 'inline_header_7am_cta',
-                apt_name: targetAptName,
-                apartment_name: targetAptName,
-                ...(report.dong ? { dong: report.dong } : {}),
-              });
-              setIsPushModalOpen(true);
-            }}
-            className="h-10 px-4 bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-800 dark:hover:bg-emerald-900 text-white rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 tabular-nums"
-            title="평일 오전 7시 실거래 변동 Web Push 알림 받기 (비로그인)"
+            onClick={handleDownloadShareCard}
+            className="h-9 px-3 hover:bg-[#f2f4f6] dark:hover:bg-[#202027] text-secondary hover:text-primary border-none bg-transparent rounded-xl hidden lg:flex items-center gap-1.5 font-semibold text-[13px] cursor-pointer transition-colors active:scale-[0.97] shrink-0"
+            title="인포그래픽 요약 카드 이미지 다운로드"
           >
-            <Bell size={14} strokeWidth={2.5} />
-            <span className="text-white">평일 07시 실거래 알림</span>
+            <Camera size={14} strokeWidth={2.2} />
+            <span>이미지</span>
           </button>
 
-          {onOpenMortgage && (
-            <button
-              type="button"
-              data-testid="apt-header-quick-mortgage-btn"
-              aria-label={`${resolvedDisplayAptName} 주담대 및 DSR 한도 빠른 계산`}
-              onClick={() =>
-                onOpenMortgage(
-                  report.apartmentName,
-                  verifiedSalePriceWon,
-                  'inline_header_quick_pill'
-                )
-              }
-              onMouseEnter={preloadCalculators}
-              onFocus={preloadCalculators}
-              className="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0"
-              title="주담대 및 스트레스 DSR 40% 한도 즉시 계산"
-            >
-              <Calculator size={14} />
-              <span>주담대·DSR 한도</span>
-            </button>
-          )}
-
-          {onOpenTaxCalculator && (
-            <button
-              type="button"
-              data-testid="apt-header-quick-tax-btn"
-              aria-label={`${resolvedDisplayAptName} 취득세 빠른 계산`}
-              onClick={() => handleQuickTaxOpen('inline_header_quick_pill_tax')}
-              onMouseEnter={preloadCalculators}
-              onFocus={preloadCalculators}
-              className="h-10 px-4 bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-slate-800 dark:hover:bg-slate-700 text-primary rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0"
-              title="주택 취득세 및 생애최초 감면액 즉시 계산"
-            >
-              <GraduationCap size={14} className="text-blue-600 dark:text-blue-400" />
-              <span>취득세 계산</span>
-            </button>
-          )}
-
-          {/* Financial & Analysis Toolkit Dropdown */}
+          {/* Single Primary Accent CTA: Financial & Analysis Toolkit Dropdown */}
           {hasAnyToolAction && (
             <div className="relative shrink-0" ref={toolDropdownRef}>
               <button
-                onClick={() => setIsToolDropdownOpen(prev => !prev)}
-                className="h-10 px-4 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white rounded-[12px] shadow-md flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
-                title="AI 분석 리포트 및 부동산 금융 계산기 열기"
+                type="button"
+                data-testid="apt-header-tool-menu-btn"
+                aria-label="분석 및 금융 도구"
+                aria-expanded={isToolDropdownOpen}
+                onMouseEnter={preloadCalculators}
+                onFocus={preloadCalculators}
+                onClick={() => setIsToolDropdownOpen((prev) => !prev)}
+                className="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center gap-1.5 font-bold text-[13px] border-none cursor-pointer transition-colors active:scale-[0.97] whitespace-nowrap"
+                title="대출·취득세·전세·비교 계산기 열기"
               >
                 <Calculator size={14} />
-                <span>분석 및 금융 도구</span>
-                <ChevronDown size={14} className={`transition-transform duration-200 ${isToolDropdownOpen ? 'rotate-180' : ''}`} />
+                <span>금융 도구</span>
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform duration-200 ${isToolDropdownOpen ? 'rotate-180' : ''}`}
+                />
               </button>
 
               {toolDropdownMenu}

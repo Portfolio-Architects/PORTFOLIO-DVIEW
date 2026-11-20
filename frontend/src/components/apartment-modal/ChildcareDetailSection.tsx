@@ -391,69 +391,69 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
   };
 
   return (
-    <div className="flex flex-col w-full gap-8 mt-4">
+    <div className="flex flex-col w-full gap-6 mt-2">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       {/* ─── 안심 보육 & 돌봄 인프라 그리드 ─── */}
       <div>
-        <div className="flex items-center gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
-          <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">안심 보육 & 돌봄 시설</span>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[14px] font-bold text-secondary tracking-tight">안심 보육 & 돌봄 시설</span>
           {!childcareData && (
-            <span className="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 ml-1">
+            <span className="text-[11px] font-semibold text-tertiary">
               준비 중
             </span>
           )}
         </div>
 
         {!childcareData ? (
-          <div className="bg-body border border-border/40 rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-3 shadow-sm">
-            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center">
-              <Clock size={22} className="animate-pulse" />
+          <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5 flex items-center gap-3.5">
+            <div className="w-9 h-9 rounded-xl bg-surface dark:bg-[#202027] text-tertiary flex items-center justify-center shrink-0">
+              <Clock size={18} />
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-[13.5px] font-extrabold text-primary">{dong} 보육 인프라 데이터 준비 중</span>
-              <p className="text-[11.5px] font-bold text-slate-400 dark:text-slate-500 max-w-[450px] leading-relaxed">
-                현재 {dong} 지역의 실거래 기반 어린이집 및 유치원 세부 통학 인프라 데이터를 정합성 검증 중입니다. 검증 완료 후 즉시 실데이터가 노출될 예정입니다.
+            <div className="flex flex-col gap-0.5 min-w-0">
+              <span className="text-[13.5px] font-bold text-primary">{dong} 보육 인프라 데이터 준비 중</span>
+              <p className="text-[12px] font-medium text-tertiary leading-relaxed break-keep">
+                {dong} 지역 어린이집·유치원 도보 거리 데이터를 검증하고 있습니다.
               </p>
             </div>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {/* 어린이집 카드 */}
-              <div className="bg-body rounded-2xl p-5 border border-border flex flex-col gap-4 shadow-sm hover:shadow-[0_4px_16px_rgba(0,0,0,0.02)] transition-all">
-                <h3 className="text-[13.5px] font-extrabold text-secondary flex items-center gap-1.5 border-b border-border/40 pb-2">
-                  <Heart size={14} className="text-emerald-700" /> 단지 인근 어린이집 (영유아)
+              <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
+                <h3 className="text-[13px] font-bold text-secondary flex items-center gap-1.5">
+                  <Heart size={14} className="text-emerald-700 dark:text-emerald-400" /> 단지 인근 어린이집 (영유아)
                 </h3>
                 
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col divide-y divide-[#f2f4f6] dark:divide-[#202027]">
                   {childcareData.daycares.map((item) => {
                     const s = gradeStyles[item.grade];
                     return (
-                      <div key={item.name} className="flex justify-between items-center bg-surface border border-border/40 rounded-xl p-3">
+                      <div key={item.name} className="flex justify-between items-center py-2.5 first:pt-0 last:pb-0 gap-2">
                         <div className="flex flex-col min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[13px] font-extrabold text-primary truncate leading-tight">{item.name}</span>
-                            <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-brand-blue-light dark:bg-brand-blue-light/10 text-brand-blue dark:text-brand-blue-light border border-brand-blue/10">
+                            <span className="text-[13px] font-bold text-primary truncate leading-tight">{item.name}</span>
+                            <span className="text-[10.5px] font-semibold text-tertiary shrink-0">
                               {item.type}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1 break-keep">{item.safetyGuide}</span>
+                          <span className="text-[11px] font-medium text-tertiary mt-0.5 break-keep">{item.safetyGuide}</span>
                         </div>
 
-                        <div className="flex flex-col items-end shrink-0 pl-2">
-                          <div className="flex items-center gap-2">
-                            <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded border ${s.bg} ${s.text}`}>
+                        <div className="flex flex-col items-end shrink-0 pl-2 tabular-nums">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-[10.5px] font-bold ${s.text}`}>
                               {s.label}
                             </span>
                             <div className="flex items-baseline gap-0.5">
-                              <span className="text-[14px] font-black text-primary tabular-nums">{isNaN(item.distance) || item.distance <= 0 ? 0 : item.distance}</span>
-                              <span className="text-[9px] font-bold text-secondary">m</span>
+                              <span className="text-[14px] font-extrabold text-primary">{isNaN(item.distance) || item.distance <= 0 ? 0 : item.distance}</span>
+                              <span className="text-[10px] font-semibold text-tertiary">m</span>
                             </div>
                           </div>
-                          <span className="text-[9.5px] font-bold text-secondary mt-1">
+                          <span className="text-[10.5px] font-semibold text-tertiary mt-0.5">
                             도보 {isNaN(item.distance) || item.distance <= 0 ? 0 : Math.ceil(item.distance / 80)}분
                           </span>
                         </div>
@@ -464,37 +464,37 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
               </div>
 
               {/* 유치원 카드 */}
-              <div className="bg-body rounded-2xl p-5 border border-border flex flex-col gap-4 shadow-sm hover:shadow-[0_4px_16px_rgba(0,0,0,0.02)] transition-all">
-                <h3 className="text-[13.5px] font-extrabold text-secondary flex items-center gap-1.5 border-b border-border/40 pb-2">
-                  <Smile size={14} className="text-emerald-700" /> 단지 인근 유치원 (5-7세)
+              <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
+                <h3 className="text-[13px] font-bold text-secondary flex items-center gap-1.5">
+                  <Smile size={14} className="text-emerald-700 dark:text-emerald-400" /> 단지 인근 유치원 (5-7세)
                 </h3>
 
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col divide-y divide-[#f2f4f6] dark:divide-[#202027]">
                   {childcareData.kindergartens.map((item) => {
                     const s = gradeStyles[item.grade];
                     return (
-                      <div key={item.name} className="flex justify-between items-center bg-surface border border-border/40 rounded-xl p-3">
+                      <div key={item.name} className="flex justify-between items-center py-2.5 first:pt-0 last:pb-0 gap-2">
                         <div className="flex flex-col min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[13px] font-extrabold text-primary truncate leading-tight">{item.name}</span>
-                            <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/10">
+                            <span className="text-[13px] font-bold text-primary truncate leading-tight">{item.name}</span>
+                            <span className="text-[10.5px] font-semibold text-tertiary shrink-0">
                               {item.type}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1 break-keep">{item.safetyGuide}</span>
+                          <span className="text-[11px] font-medium text-tertiary mt-0.5 break-keep">{item.safetyGuide}</span>
                         </div>
 
-                        <div className="flex flex-col items-end shrink-0 pl-2">
-                          <div className="flex items-center gap-2">
-                            <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded border ${s.bg} ${s.text}`}>
+                        <div className="flex flex-col items-end shrink-0 pl-2 tabular-nums">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-[10.5px] font-bold ${s.text}`}>
                               {s.label}
                             </span>
                             <div className="flex items-baseline gap-0.5">
-                              <span className="text-[14px] font-black text-primary tabular-nums">{isNaN(item.distance) || item.distance <= 0 ? 0 : item.distance}</span>
-                              <span className="text-[9px] font-bold text-secondary">m</span>
+                              <span className="text-[14px] font-extrabold text-primary">{isNaN(item.distance) || item.distance <= 0 ? 0 : item.distance}</span>
+                              <span className="text-[10px] font-semibold text-tertiary">m</span>
                             </div>
                           </div>
-                          <span className="text-[9.5px] font-bold text-secondary mt-1">
+                          <span className="text-[10.5px] font-semibold text-tertiary mt-0.5">
                             도보 {isNaN(item.distance) || item.distance <= 0 ? 0 : Math.ceil(item.distance / 80)}분
                           </span>
                         </div>
@@ -505,10 +505,10 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
               </div>
             </div>
             {!childcareData.isOverridden && (
-              <div className="bg-surface border border-border/30 rounded-xl p-3 mt-3 flex items-start gap-2">
-                <Lightbulb size={14} className="text-blue-500 shrink-0 mt-0.5" />
-                <p className="text-[10.5px] font-bold text-slate-500 dark:text-slate-400 leading-relaxed break-keep">
-                  개별 단지 내 어린이집(예: 단지 내 국공립 어린이집 등)의 상세 인프라 및 단지별 실측 도보 거리는 정밀 매핑 준비 중입니다. 현재는 해당 행정동({dong}) 내 대표 보육 시설 정보가 표시됩니다.
+              <div className="mt-2.5 flex items-start gap-2 px-1">
+                <Lightbulb size={13} className="text-tertiary shrink-0 mt-0.5" />
+                <p className="text-[11px] font-medium text-tertiary leading-relaxed break-keep">
+                  단지별 정밀 도보 거리는 업데이트 중이며, 현재는 행정동({dong}) 내 대표 보육 시설 정보가 표시됩니다.
                 </p>
               </div>
             )}
@@ -516,50 +516,24 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
         )}
       </div>
 
-      {/* ─── 초등 등하교 안심 길목 진단 스코어보드 ─── */}
+      {/* ─── 초등 등하교 안심 길목 진단 안내 (Calm flat notice) ─── */}
       <div>
-        <div className="flex items-center gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
-          <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">초등 통학로 안심 길목 진단</span>
-          <span className="text-[9.5px] font-black px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 ml-1">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[14px] font-bold text-secondary tracking-tight">초등 통학로 안심 길목 진단</span>
+          <span className="text-[11px] font-semibold text-tertiary">
             준비 중
           </span>
         </div>
 
-        <div className="bg-body border border-border/45 rounded-2xl p-6 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-sm overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-emerald-500/20 via-emerald-100 dark:via-emerald-950/40 to-emerald-500/20 animate-pulse" />
-          
-          <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-3 max-w-[450px]">
-            <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center">
-              <Clock size={22} className="animate-spin" style={{ animationDuration: '6s' }} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[14px] font-extrabold text-primary">더 정확하고 유용한 통학 안전 진단 서비스 준비 중</span>
-              <p className="text-[11.5px] font-bold text-slate-400 dark:text-slate-500 leading-relaxed break-keep">
-                실제 공공 데이터 및 지자체 안전 시설물(CCTV, 안전 펜스 등) GIS 연계 데이터를 정합 분석하여 보다 실체적이고 유용한 안심 통학로 진단 정보를 제공할 예정입니다.
-              </p>
-            </div>
+        <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex items-start gap-3.5">
+          <div className="w-9 h-9 rounded-xl bg-surface dark:bg-[#202027] text-tertiary flex items-center justify-center shrink-0">
+            <Shield size={17} />
           </div>
-
-          {/* 예고 빌더 위젯 */}
-          <div className="flex flex-col gap-2 w-full lg:w-auto shrink-0 bg-surface border border-border/40 p-4 rounded-xl text-left">
-            <div className="text-[11px] font-black text-secondary border-b border-border/30 pb-1.5 mb-1 flex items-center gap-1.5">
-              <Shield size={12} className="text-emerald-500" />
-              <span>분석 예정 안심 지표</span>
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-[11px] font-bold text-tertiary">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping" />
-                <span>스쿨존 어린이 보호구역 반경 진단</span>
-              </div>
-              <div className="flex items-center gap-2 text-[11px] font-bold text-tertiary">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
-                <span>통학로 횡단보도 및 교통 신호 가시성</span>
-              </div>
-              <div className="flex items-center gap-2 text-[11px] font-bold text-tertiary">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
-                <span>지자체 GIS 연계 안전 방범 CCTV 분포</span>
-              </div>
-            </div>
+          <div className="flex flex-col gap-1 min-w-0">
+            <span className="text-[13.5px] font-bold text-primary">더 정확하고 유용한 통학 안전 진단 서비스 준비 중</span>
+            <p className="text-[12px] font-medium text-tertiary leading-relaxed break-keep">
+              스쿨존 보호구역, 횡단보도, 방범 CCTV 공공 데이터를 검증해 순차 제공할 예정입니다.
+            </p>
           </div>
         </div>
       </div>

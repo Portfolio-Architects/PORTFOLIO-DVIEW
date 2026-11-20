@@ -488,14 +488,19 @@ describe('D-VIEW Admin Device GA4 & Telemetry Exclusion System', () => {
     }
   });
 
-  it('auto-disables GA4 on non-production hostnames (localhost, 127.0.0.1, ::1, *.vercel.app) without mutating admin cookie/localStorage', () => {
+  it('auto-disables GA4 on non-production hostnames (localhost, 127.0.0.1, ::1, LAN IPs, *.local, *.vercel.app) without mutating admin cookie/localStorage', () => {
     // 1. Hostname classifier unit verification
     const blockedHosts = [
       'localhost',
       'LOCALHOST.',
       'app.localhost',
+      'devbox.local',
       '127.0.0.1',
       '127.0.0.2',
+      '10.0.0.5',
+      '192.168.0.10',
+      '172.16.0.2',
+      '172.31.255.254',
       '0.0.0.0',
       '::1',
       '[::1]',
@@ -512,17 +517,19 @@ describe('D-VIEW Admin Device GA4 & Telemetry Exclusion System', () => {
       'www.dongtanview.com',
       'evil-vercel.app',
       'my-localhost.com',
+      '172.15.0.1',
+      '172.32.0.1',
       '',
     ];
     for (const host of allowedHosts) {
       expect(isNonProductionTrackingHost(host)).toBe(false);
     }
 
-    // 2. Static public/js/dview-ga-admin-guard.js blocks GA4 on localhost, 127.0.0.1, and *.vercel.app synchronously
+    // 2. Static public/js/dview-ga-admin-guard.js blocks GA4 on localhost, 127.0.0.1, LAN IPs, *.local, and *.vercel.app synchronously
     const staticGuardPath = path.resolve(__dirname, '../../../public/js/dview-ga-admin-guard.js');
     const staticGuardCode = fs.readFileSync(staticGuardPath, 'utf8');
 
-    for (const host of ['localhost', '127.0.0.1', 'dview-preview-42.vercel.app']) {
+    for (const host of ['localhost', '127.0.0.1', '192.168.0.10', '10.0.0.5', '172.16.0.2', 'devbox.local', 'dview-preview-42.vercel.app']) {
       const store = new Map<string, string>();
       const mockWindow: Record<string, unknown> = {
         location: { hostname: host, pathname: '/', search: '', hash: '', protocol: 'http:' },
@@ -608,12 +615,18 @@ describe('D-VIEW Admin Device GA4 & Telemetry Exclusion System', () => {
     });
     expect(prodWindow['ga-disable-G-Y17BHJ77W6']).toBeUndefined();
 
-    // 5. Client dispatchers (trackEvent, trackVirtualPageView, dispatchGa4AdTelemetry) respect ga-disable flag
+    // 5. Client dispatchers (trackEvent, trackVirtualPageView, dispatchGa4AdTelemetry, sendTelemetry, sendAdTelemetryBeacon) respect ga-disable flag
     window['ga-disable-G-Y17BHJ77W6'] = true;
     expect(isGaDisableFlagActive('G-Y17BHJ77W6')).toBe(true);
     const gtagMock = jest.fn();
     window.gtag = gtagMock;
     window.dataLayer = [];
+    const beaconSpy = jest.fn().mockReturnValue(true);
+    Object.defineProperty(navigator, 'sendBeacon', {
+      value: beaconSpy,
+      configurable: true,
+      writable: true,
+    });
 
     trackEvent('tab_view', { tab_name: 'stats' });
     const vpv = trackVirtualPageView('/apartment/동탄역롯데캐슬');
@@ -621,10 +634,22 @@ describe('D-VIEW Admin Device GA4 & Telemetry Exclusion System', () => {
       eventType: 'IMPRESSION',
       slotId: '6782594447',
     });
+    const telemetrySent = sendTelemetry({
+      eventType: 'CLICK',
+      slotId: '6782594447',
+    });
+    const beaconSent = sendAdTelemetryBeacon({
+      eventType: 'FALLBACK_CLICK',
+      slotId: '6782594447',
+      timestamp: new Date().toISOString(),
+    });
 
     expect(vpv.gaEventDispatched).toBe(false);
     expect(adDispatched).toBe(false);
+    expect(telemetrySent).toBe(false);
+    expect(beaconSent).toBe(false);
     expect(gtagMock).not.toHaveBeenCalled();
+    expect(beaconSpy).not.toHaveBeenCalled();
     expect(window.dataLayer).toHaveLength(0);
   });
 });

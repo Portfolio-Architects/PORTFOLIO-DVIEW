@@ -17,7 +17,7 @@ export function ApartmentModalSkeleton({ onClose, inline = false }: ApartmentMod
       className={
         inline
           ? 'bg-surface text-primary w-full flex flex-col overflow-hidden relative min-h-[1200px]'
-          : 'bg-surface text-primary w-full md:w-[52vw] lg:w-[780px] xl:w-[880px] md:min-w-[380px] lg:min-w-[780px] xl:min-w-[880px] shrink-0 h-[94dvh] max-h-[94dvh] md:h-dvh md:max-h-[calc(100dvh-80px)] md:max-w-[780px] xl:max-w-[880px] rounded-t-3xl md:rounded-none md:rounded-l-3xl shadow-2xl border-t md:border-t-0 md:border-l border-border/80 flex flex-col overflow-hidden relative animate-in slide-in-from-bottom md:slide-in-from-right duration-300'
+          : 'bg-surface text-primary w-full md:w-[min(92vw,780px)] lg:w-[780px] xl:w-[880px] md:min-w-[380px] lg:min-w-[780px] xl:min-w-[880px] shrink-0 h-[94dvh] max-h-[94dvh] md:h-dvh md:max-h-dvh md:max-w-[780px] xl:max-w-[880px] rounded-t-3xl md:rounded-none md:rounded-l-3xl shadow-2xl border-t md:border-t-0 md:border-l border-border/80 flex flex-col overflow-hidden relative animate-in slide-in-from-bottom md:slide-in-from-right duration-300'
       }
     >
       {!inline && (
@@ -120,7 +120,7 @@ export function ApartmentModalSkeleton({ onClose, inline = false }: ApartmentMod
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] md:static md:inset-auto md:z-auto md:w-full md:h-dvh md:max-h-[calc(100dvh-80px)] flex items-end md:items-stretch justify-center md:justify-end bg-black/60 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none p-0 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[10010] flex items-end md:items-stretch justify-center md:justify-end bg-black/50 md:bg-black/35 backdrop-blur-[2px] overscroll-none p-0 animate-in fade-in duration-200">
       {skeletonCard}
     </div>
   );

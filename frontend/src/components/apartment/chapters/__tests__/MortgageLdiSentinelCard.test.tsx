@@ -19,18 +19,18 @@ describe('MortgageLdiSentinelCard (Chapter 05 Interactive Sentinel)', () => {
     jest.clearAllMocks();
   });
 
-  describe('1. 기본 렌더링 및 Arctic Lumina 글래스모피즘 규격 검증', () => {
-    it('1.1 최외곽 컨테이너 및 헤더, Arctic Lumina 클래스 토큰이 정상 투영된다', () => {
+  describe('1. 기본 렌더링 및 Ad Money v5.1 소프트 서피스 규격 검증', () => {
+    it('1.1 최외곽 컨테이너 및 헤더가 중첩 글래스 테두리 없는 평탄한 소프트 서피스 규격으로 투영된다', () => {
       render(<MortgageLdiSentinelCard {...defaultProps} />);
 
       const card = screen.getByTestId('mortgage-ldi-sentinel-card');
       expect(card).toBeInTheDocument();
-      expect(card).toHaveClass('backdrop-blur-xl');
-      expect(card).toHaveClass('rounded-[20px]');
-      expect(card).toHaveClass('border');
+      expect(card).toHaveClass('bg-surface');
+      expect(card).not.toHaveClass('backdrop-blur-xl');
+      expect(card).not.toHaveClass('border');
 
-      expect(screen.getByText('주담대 LDI 및 스트레스 DSR 센티넬')).toBeInTheDocument();
-      expect(screen.getByText('실시간 수리 엔진')).toBeInTheDocument();
+      expect(screen.getByText('대출 상환 · DSR 한도 계산')).toBeInTheDocument();
+      expect(screen.queryByText('실시간 수리 엔진')).toBeNull();
     });
 
     it('1.2 결측 Props(가격 미제공) 진입 시에도 안전한 정책 표준 기본값으로 렌더링된다', () => {
@@ -108,8 +108,8 @@ describe('MortgageLdiSentinelCard (Chapter 05 Interactive Sentinel)', () => {
       expect(screen.getByTestId('dsr-status-badge')).toBeInTheDocument();
       expect(screen.getByTestId('dsr-progress-bar')).toBeInTheDocument();
       expect(screen.getByText('규제 상한 40.0%')).toBeInTheDocument();
-      expect(screen.getByText(/스트레스 DSR 40% 규제 한도 게이지/)).toBeInTheDocument();
-      expect(screen.getByText(/차주 소득 기반 최대 대출 한도/)).toBeInTheDocument();
+      expect(screen.getByText(/스트레스 DSR 40% 한도/)).toBeInTheDocument();
+      expect(screen.getByText(/연소득 기준 최대 대출 한도/)).toBeInTheDocument();
     });
 
     it('3.2 극단적 대출 원금 설정 시 DSR 초과 상태로 판정된다', () => {
@@ -154,7 +154,7 @@ describe('MortgageLdiSentinelCard (Chapter 05 Interactive Sentinel)', () => {
 
       const alertCard = screen.getByTestId('jeonse-shortfall-alert');
       expect(alertCard).toBeInTheDocument();
-      expect(alertCard).toHaveTextContent('만기 시 보증금 반환 결손액 발생 위험');
+      expect(alertCard).toHaveTextContent('전세 20% 하락 시 보증금 반환 부족액 예상');
     });
   });
 
@@ -173,11 +173,11 @@ describe('MortgageLdiSentinelCard (Chapter 05 Interactive Sentinel)', () => {
       expect(container.textContent).not.toContain('Infinity');
     });
 
-    it('6.2 정밀 계산기 모달 콜백 버튼이 정상 동작한다', () => {
+    it('6.2 상세 계산기 열기 콜백 버튼이 정상 동작한다', () => {
       const mockCallback = jest.fn();
       render(<MortgageLdiSentinelCard {...defaultProps} onOpenMortgageCalculator={mockCallback} />);
 
-      const modalBtn = screen.getByRole('button', { name: /정밀 계산기 모달/ });
+      const modalBtn = screen.getByRole('button', { name: /상세 계산기 열기/ });
       expect(modalBtn).toBeInTheDocument();
 
       fireEvent.click(modalBtn);

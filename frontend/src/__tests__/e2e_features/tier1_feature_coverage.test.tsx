@@ -113,7 +113,7 @@ describe('Tier 1: Feature Coverage (Category-Partition) Suite [F1 ~ F7]', () => 
       );
 
       const chapter3Button = screen.getByRole('button', {
-        name: /전세가율 갭투자 매트릭스/i,
+        name: /전세·갭/i,
       });
       fireEvent.click(chapter3Button);
 

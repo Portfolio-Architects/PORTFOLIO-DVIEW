@@ -171,8 +171,8 @@ describe('Tier 4: Real-World Application Scenarios Suite [F1 ~ F7]', () => {
     // 1. Initial State: Chapter 01
     expect(screen.getByText(/현재 챕터: chapter-01-overview/i)).toBeInTheDocument();
 
-    // 2. Select Chapter 05 (Mortgage LDI)
-    const ch5Btns = screen.getAllByRole('button', { name: /주담대 LDI 및 역전세 센티넬/i });
+    // 2. Select Chapter 05 (대출·전세안전)
+    const ch5Btns = screen.getAllByRole('button', { name: /대출·전세안전/i });
     fireEvent.click(ch5Btns[0]);
 
     expect(screen.getByText(/현재 챕터: chapter-05-mortgage/i)).toBeInTheDocument();

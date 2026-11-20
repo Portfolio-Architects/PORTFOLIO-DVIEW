@@ -1,1 +1,1 @@
-export const HEAD_GUARD_VERSION = 'e9662f8a9c15';
+export const HEAD_GUARD_VERSION = 'b65cecc7791b';

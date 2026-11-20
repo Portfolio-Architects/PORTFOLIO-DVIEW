@@ -372,8 +372,8 @@ describe('Consumer Components Boundary Metrics & Mathematical Resilience Harness
 
       render(<AdvancedValuationMetrics report={mockReport} transactions={mockTxs} />);
 
-      expect(screen.getByText('밸류에이션 분석')).toBeInTheDocument();
-      expect(screen.getByText('D-VIEW 종합 가치평가 대시보드')).toBeInTheDocument();
+      expect(screen.getByText('적정가 · 금리 분석')).toBeInTheDocument();
+      expect(screen.getByText('적정가 · 상품성 요약')).toBeInTheDocument();
       expect(screen.getByText('1. 실거래 배수 분석 (PER)')).toBeInTheDocument();
       expect(screen.getByText('3개월 평균 매매가')).toBeInTheDocument();
       expect(screen.getByText('3개월 평균 전세가')).toBeInTheDocument();
@@ -386,10 +386,10 @@ describe('Consumer Components Boundary Metrics & Mathematical Resilience Harness
 
       render(<AdvancedValuationMetrics report={bareReport} transactions={[]} />);
 
-      expect(screen.getByText('밸류에이션 분석')).toBeInTheDocument();
+      expect(screen.getByText('적정가 · 금리 분석')).toBeInTheDocument();
       expect(screen.getByText('가치평가 데이터 부족')).toBeInTheDocument();
       expect(
-        screen.getByText('최근 실거래 데이터 및 단지 평가 정보가 모두 부족하여 종합 밸류에이션 분석을 제공하기 어렵습니다.')
+        screen.getByText('최근 실거래와 단지 평가 정보가 부족해 적정가를 계산하기 어렵습니다.')
       ).toBeInTheDocument();
     });
 

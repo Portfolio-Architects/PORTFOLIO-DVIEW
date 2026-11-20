@@ -309,19 +309,15 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
       <div
         data-testid="master-detail-workspace"
         data-split-open={String(isSplitDetailOpen)}
-        className="flex-1 flex flex-col md:flex-row items-start w-full max-w-[2000px] mx-auto min-w-0 relative transition-all duration-300 ease-out"
+        className="flex-1 flex flex-col w-full max-w-[2000px] mx-auto min-w-0 relative"
       >
-        {/* Left Master Pane (Zone Catalog) */}
+        {/* Left Master Pane (Zone Catalog — Preserves 100% width & scroll position when drawer opens) */}
         <div
           data-testid="master-workspace-pane"
-          className={`flex-1 min-w-0 max-w-full flex flex-col transition-all duration-300 ease-out ${
-            isSplitDetailOpen
-              ? 'w-full md:w-[calc(100%-52vw)] lg:w-[calc(100%-780px)] xl:w-[calc(100%-880px)]'
-              : 'w-full'
-          }`}
+          className="flex-1 min-w-0 w-full max-w-full flex flex-col"
         >
           {/* Zone Hero Banner */}
-          <div className={`w-full max-w-[1400px] mx-auto ${isSplitDetailOpen ? 'px-4 sm:px-5 md:px-6 xl:px-8' : 'px-3 sm:px-6 md:px-12'} pt-6 sm:pt-8 pb-4 transition-all duration-300 ease-out`}>
+          <div className="w-full max-w-[1400px] mx-auto px-3 sm:px-6 md:px-12 pt-6 sm:pt-8 pb-4">
             <div className="bg-surface rounded-3xl border border-border p-6 md:p-8 shadow-sm">
               <div className="flex flex-col md:flex-row md:items-center gap-4">
                 <div className="flex-1">
@@ -337,9 +333,9 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
           </div>
 
           {/* Apartment Grid */}
-          <div className={`w-full max-w-[1400px] mx-auto ${isSplitDetailOpen ? 'px-4 sm:px-5 md:px-6 xl:px-8' : 'px-3 sm:px-6 md:px-12'} py-6 transition-all duration-300 ease-out`}>
+          <div className="w-full max-w-[1400px] mx-auto px-3 sm:px-6 md:px-12 py-6">
             {zoneReports.length > 0 ? (
-              <div className={`grid grid-cols-1 ${isSplitDetailOpen ? 'xl:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-6 transition-all duration-300 ease-out`}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {zoneReports.map((report) => {
                   const coverImage = (report.images && report.images.length > 0) ? report.images[0].url : 
                                       report.thumbnail || 
@@ -401,16 +397,16 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
           </div>
         </div>
 
-        {/* Right Detail Pane (Animated Split Inspector on Desktop / Bottom Sheet on Mobile) */}
+        {/* Right Overlay Slide Drawer Host (Desktop Slide-Over Drawer / Mobile Bottom Sheet) */}
         <aside
           data-testid="detail-workspace-pane"
           aria-label="아파트 상세 리포트 인스펙터"
           aria-hidden={!isSplitDetailOpen}
-          className={`shrink-0 transition-all duration-300 ease-out ${
+          className={
             isSplitDetailOpen
-              ? 'w-full md:w-[52vw] lg:w-[780px] xl:w-[880px] md:max-w-[780px] xl:max-w-[880px] md:h-dvh md:max-h-[calc(100dvh-64px)] md:sticky md:top-16 md:overflow-hidden opacity-100 z-[60] md:z-40'
-              : 'w-0 max-w-0 h-0 md:h-dvh md:max-h-[calc(100dvh-64px)] md:sticky md:top-16 opacity-0 md:translate-x-8 overflow-hidden pointer-events-none border-0'
-          }`}
+              ? 'fixed inset-0 z-[10010]'
+              : 'w-0 max-w-0 h-0 overflow-hidden pointer-events-none border-0'
+          }
         >
           {selectedReport && (
             <FieldReportModal 

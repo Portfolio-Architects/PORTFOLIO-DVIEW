@@ -282,7 +282,7 @@ describe('M4 Empirical Challenger Stress Suite: Modal Lazy-Mount & DESIGN.md Inv
       expect(ch08).toBeInTheDocument();
 
       // ViralPaywallGate content is present immediately
-      expect(ch08.textContent).toContain('단지 정밀 가치분석 인사이트');
+      expect(ch08.textContent).toContain('이 단지 핵심 요약 공유');
 
       // TerminalRecirculationHub is present immediately
       const recircHub = screen.getByTestId('terminal-recirculation-hub');

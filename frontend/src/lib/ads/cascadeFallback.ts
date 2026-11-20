@@ -580,7 +580,7 @@ export function sendAdTelemetryBeacon(
   beaconInput: z.input<typeof AdTelemetryBeaconSchema>,
   endpoint: string = '/api/ads/click'
 ): boolean {
-  if (isAdminTrackingExcluded()) {
+  if (isAdminTrackingExcluded() || isGaDisableFlagActive()) {
     return false;
   }
   const parsed = AdTelemetryBeaconSchema.safeParse(beaconInput);
@@ -836,7 +836,7 @@ export function sendTelemetry(
     timestamp: eventInput.timestamp ?? new Date().toISOString(),
   };
 
-  if (isAdminTrackingExcluded()) {
+  if (isAdminTrackingExcluded() || isGaDisableFlagActive()) {
     return false;
   }
   const parsed = AdTelemetryClosedLoopEventSchema.safeParse(candidate);

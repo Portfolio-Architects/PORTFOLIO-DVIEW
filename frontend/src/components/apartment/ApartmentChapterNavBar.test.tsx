@@ -26,14 +26,14 @@ describe('ApartmentChapterNavBar & APARTMENT_CHAPTERS Invariant Suite', () => {
 
     it('각 챕터의 ID 및 번호가 명세와 1:1로 일치해야 한다', () => {
       const expectedSpecs = [
-        { id: 'chapter-01-overview', number: '01', title: '개요 및 실거래 궤적', subtitle: 'Overview & Price' },
-        { id: 'chapter-02-volume', number: '02', title: '거래량 회전율 분석', subtitle: 'Turnover & Volume' },
-        { id: 'chapter-03-gap', number: '03', title: '전세가율 갭투자 매트릭스', subtitle: 'Jeonse Gap' },
-        { id: 'chapter-04-infra', number: '04', title: '학군 및 하이퍼로컬 인프라', subtitle: 'Schools & Infra' },
-        { id: 'chapter-05-mortgage', number: '05', title: '주담대 LDI 및 역전세 센티넬', subtitle: 'Mortgage LDI' },
-        { id: 'chapter-06-ledger', number: '06', title: '세대수 및 평형별 거래 대장', subtitle: 'Pyeong Ledger' },
-        { id: 'chapter-07-macro', number: '07', title: '거시 체제 및 지역 상관도', subtitle: 'Macro Correlation' },
-        { id: 'chapter-08-report', number: '08', title: '단지 종합 평가 리포트', subtitle: 'Executive Monograph' },
+        { id: 'chapter-01-overview', number: '01', title: '시세·실거래', subtitle: '실거래 추이' },
+        { id: 'chapter-02-volume', number: '02', title: '거래량', subtitle: '기간별 평균' },
+        { id: 'chapter-03-gap', number: '03', title: '전세·갭', subtitle: '매매·전세 차이' },
+        { id: 'chapter-04-infra', number: '04', title: '학군·입지', subtitle: '학교·교통·상권' },
+        { id: 'chapter-05-mortgage', number: '05', title: '대출·전세안전', subtitle: 'DSR·역전세' },
+        { id: 'chapter-06-ledger', number: '06', title: '단지정보', subtitle: '세대·주차·연식' },
+        { id: 'chapter-07-macro', number: '07', title: '적정가·금리', subtitle: '금리별 시세' },
+        { id: 'chapter-08-report', number: '08', title: '임장·후기', subtitle: '사진·현장 메모' },
       ];
 
       expectedSpecs.forEach((spec, idx) => {
@@ -360,8 +360,8 @@ describe('ApartmentChapterNavBar & APARTMENT_CHAPTERS Invariant Suite', () => {
     });
   });
 
-  describe('4. compact 모드 (모바일 1단 바텀시트 1줄 슬림 내비)', () => {
-    it('compact={true} 일 때 영문 서브타이틀을 제거하고 1줄 콤팩트 패딩으로 렌더링되어야 한다', () => {
+  describe('4. compact 모드 (모바일 1단 바텀시트 1줄 슬림 언더라인 탭)', () => {
+    it('compact={true} 일 때 부제와 번호 배지를 제거하고 1줄 슬림 언더라인 탭으로 렌더링되어야 한다', () => {
       const onSelectChapter = jest.fn();
       const { container } = render(
         <ApartmentChapterNavBar
@@ -376,17 +376,23 @@ describe('ApartmentChapterNavBar & APARTMENT_CHAPTERS Invariant Suite', () => {
       expect(nav?.className).toContain('sticky');
       expect(nav?.className).toContain('top-0');
       expect(nav?.className).toContain('z-[60]');
-      expect(nav?.className).toContain('py-1');
+      expect(nav?.className).toContain('border-b');
       expect(nav?.className).not.toContain('py-2 ');
+      expect(nav?.className).not.toContain('py-1');
 
       APARTMENT_CHAPTERS.forEach((chapter) => {
         expect(screen.getByText(chapter.title)).toBeInTheDocument();
         expect(screen.queryByText(chapter.subtitle)).toBeNull();
+        expect(screen.queryByText(chapter.number)).toBeNull();
       });
 
       const firstBtn = container.querySelector('button[data-chapter-id="chapter-01-overview"]');
-      expect(firstBtn?.className).toContain('py-1');
-      expect(firstBtn?.className).toContain('rounded-lg');
+      expect(firstBtn?.className).toContain('py-2.5');
+      expect(firstBtn?.className).not.toContain('rounded-lg');
+
+      const activeIndicator = screen.getByTestId('active-chapter-pill');
+      expect(activeIndicator.className).toContain('h-[2px]');
+      expect(firstBtn).toContainElement(activeIndicator);
 
       const secondBtn = container.querySelector('button[data-chapter-id="chapter-02-volume"]');
       fireEvent.click(secondBtn!);

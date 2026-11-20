@@ -82,54 +82,54 @@ const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardP
   const TRACK_MAX_DISTANCE = 2000;
 
   return (
-    <div className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border">
+    <div className="pt-6 border-t border-[#f2f4f6] dark:border-[#202027]">
       {/* Header */}
-      <div className="flex items-center justify-between mb-2 pb-3 border-b border-border">
-        <h2 className="text-[17px] md:text-[19px] font-extrabold text-primary flex items-center gap-2 tracking-wide">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight">
           주요 편의시설 접근성
         </h2>
       </div>
 
-      {/* Anchor List - 카드 그리드 레이아웃 적용 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+      {/* Anchor List - Ad Money v5.1 Soft Surface Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         {anchors.map((anchor) => {
           if (anchor.distance == null) return null;
           const walkingTime = Math.ceil(anchor.distance / 80);
           const percent = Math.min((anchor.distance / 1000) * 100, 100);
           
           return (
-            <div key={anchor.id} className="bg-body rounded-2xl p-4 flex flex-col justify-between hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10 min-h-[190px] relative overflow-hidden will-change-transform">
+            <div key={anchor.id} className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 flex flex-col justify-between transition-colors min-h-[168px] relative overflow-hidden">
               
-              {/* Top Info: Category Badge & Distance */}
+              {/* Top Info: Category & Distance */}
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: anchor.color }}></div>
-                  <span className="text-[13px] md:text-[14px] font-bold text-secondary">{anchor.name}</span>
+                  <span className="text-[12.5px] font-bold text-secondary">{anchor.name}</span>
                 </div>
-                <div className="flex items-baseline gap-0.5 text-right">
-                  <span className="text-[16px] md:text-[18px] font-extrabold text-primary tabular-nums tracking-tight leading-none">
+                <div className="flex items-baseline gap-0.5 text-right tabular-nums">
+                  <span className="text-[16px] font-extrabold text-primary tracking-tight leading-none">
                     {Math.round(anchor.distance).toLocaleString()}
                   </span>
-                  <span className="text-[11px] md:text-[12px] font-bold text-secondary ml-0.5">
+                  <span className="text-[11px] font-semibold text-tertiary ml-0.5">
                     m
                   </span>
                 </div>
               </div>
               
               {/* Store Details: Name & Address */}
-              <div className="flex flex-col min-w-0 my-2 flex-1 justify-center">
-                <span className="text-primary font-black text-[15.5px] md:text-[17px] leading-tight truncate tracking-tight" title={anchor.metaName}>
+              <div className="flex flex-col min-w-0 my-1.5 flex-1 justify-center">
+                <span className="text-primary font-bold text-[14.5px] leading-tight truncate tracking-tight" title={anchor.metaName}>
                   {anchor.metaName || "-"}
                 </span>
                 {anchor.metaAddress && (
-                  <span className="text-tertiary font-semibold text-[12px] md:text-[13px] truncate mt-1.5 leading-normal" title={anchor.metaAddress}>
+                  <span className="text-tertiary font-medium text-[11.5px] truncate mt-1 leading-normal" title={anchor.metaAddress}>
                     {anchor.metaAddress}
                   </span>
                 )}
               </div>
 
               {/* Toss-style Distance Gauge Bar */}
-              <div className="mt-1 w-full bg-slate-100 dark:bg-slate-800/60 h-2 rounded-full overflow-hidden relative shadow-inner mb-3">
+              <div className="mt-1 w-full bg-slate-200/70 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden relative mb-3">
                 <div 
                   className="h-full rounded-full transition-all duration-500 ease-out"
                   style={{ 
@@ -139,9 +139,9 @@ const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardP
                 />
               </div>
               
-              {/* Bottom Actions: Walking Time & Map button */}
-              <div className="flex items-center justify-between mt-2 pt-3 border-t border-border/40">
-                <span className="text-[12px] font-extrabold text-blue-600 dark:text-blue-400 bg-blue-600/10 dark:bg-blue-500/20 px-2.5 py-1.5 rounded-md shrink-0 whitespace-nowrap">
+              {/* Bottom Actions: Walking Time & Map link */}
+              <div className="flex items-center justify-between pt-2.5 border-t border-[#f2f4f6] dark:border-[#202027]">
+                <span className="text-[12px] font-bold text-blue-600 dark:text-blue-400 shrink-0 whitespace-nowrap tabular-nums">
                   도보 {walkingTime}분
                 </span>
                 
@@ -150,11 +150,11 @@ const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardP
                     href={`https://www.google.com/maps/search/?api=1&query=${anchor.metaCoordinates}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-secondary bg-surface border border-border shadow-sm hover:bg-body hover:border-slate-300 hover:text-primary p-1.5 rounded-lg transition-all flex items-center justify-center gap-1 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1"
+                    className="text-secondary hover:text-primary bg-surface hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] px-2 py-1 rounded-[10px] transition-colors flex items-center justify-center gap-1 shrink-0"
                     title={`${anchor.metaName} 지도에서 보기`}
                   >
-                    <MapPin size={12} strokeWidth={2.5} className="shrink-0" />
-                    <span className="text-[12px] font-bold">지도</span>
+                    <MapPin size={12} strokeWidth={2.2} className="shrink-0" />
+                    <span className="text-[11.5px] font-semibold">지도</span>
                   </a>
                 )}
               </div>

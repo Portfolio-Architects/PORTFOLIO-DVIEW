@@ -10,6 +10,15 @@ export default function ScrollToTop() {
     if (typeof window === 'undefined') return;
     const toggleVisibility = (e: Event) => {
       const target = e.target;
+      // Ignore internal scroll events from the apartment overlay drawer (which renders its own scroll-to-top button)
+      if (
+        target instanceof HTMLElement &&
+        target.closest('[data-testid="apartment-inspector-panel"]')
+      ) {
+        setIsVisible(false);
+        return;
+      }
+
       let scrollTop = 0;
       
       if (target === document) {

@@ -613,6 +613,12 @@ body.is-scrolling * {
   pointer-events: none !important;
 }
 
+/* Keep overlay drawer fixed chrome, dismiss controls, and backdrop immediately interactive during scroll */
+body.is-scrolling [data-scroll-interactive="true"],
+body.is-scrolling [data-scroll-interactive="true"] * {
+  pointer-events: auto !important;
+}
+
 body.is-scrolling,
 body.is-scrolling *,
 body.is-scrolling .surface-glass-dense,
