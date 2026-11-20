@@ -80,8 +80,15 @@ export const GUIDE_CARD_SUMMARY_MAP: Readonly<Record<string, string>> = {
   'dongtan-bundang-sinbundang-semiconductor-line-5th-rail-plan': '분당선·신분당선 4차 예타 현황과 12월 5차 철도망 반도체선·JTX 점검',
 };
 
+const POTENTIAL_VERBOSE_TAIL_END_REGEX = /(?:니다|세요)\s?[.!]?$/u;
 const VERBOSE_PREDICATE_TAIL_REGEX =
   /(?:(?:^|\s)(?:[가-힣]+(?:할|실|될|받을|볼|줄|낼|갈|올)\s?수\s?(?:있습니다|없습니다)|[가-힣]*(?:해|시켜|하여|해서)\s?(?:드립니다|줍니다|봅니다|보세요|있습니다|(?:드리고|주고|보고|하고)\s?(?:있습니다|계십니다))|[가-힣]+(?:하고|되고|보고|주고|드리고)\s?(?:있습니다|계십니다)|[가-힣]+\s+중입니다|중입니다)|(?<![가-힣])[가-힣]*(?:습니다|합니다|드립니다|됩니다|했습니다|있습니다|없습니다|냅니다|봅니다|줍니다|집니다|갑니다|옵니다|바랍니다|하세요|보세요)|입니다)\s?[.!]?$/u;
+
+// O(1)-bounded tail matchers used when an adversarial trailing Hangul word exceeds 160 chars.
+const LONG_TOKEN_MULTIWORD_TAIL_REGEX =
+  /(?:(?:할|실|될|받을|볼|줄|낼|갈|올)\s?수\s?(?:있습니다|없습니다)|(?:해|시켜|하여|해서)\s?(?:드립니다|줍니다|봅니다|보세요|있습니다|(?:드리고|주고|보고|하고)\s?(?:있습니다|계십니다))|(?:하고|되고|보고|주고|드리고)\s?(?:있습니다|계십니다)|\s+중입니다)$/u;
+const LONG_TOKEN_SINGLE_PREDICATE_SUFFIX_REGEX =
+  /(?:습니다|합니다|드립니다|됩니다|했습니다|있습니다|없습니다|냅니다|봅니다|줍니다|집니다|갑니다|옵니다|바랍니다|하세요|보세요)$/u;
 
 const DANGLING_CONNECTIVE_TAIL_REGEX =
   /에\s?(?:대해서?|대하여|대한|관해서?|관하여|관해|따라)$/u;
@@ -104,6 +111,151 @@ const EDGE_PUNCTUATION_CHARS = new Set([
   '~',
 ]);
 const DEFAULT_SUMMARY_FALLBACK = '실거래·입지 핵심 요약';
+const PREDICATE_WINDOW_MAX_CHARS = 160;
+
+function isHangulSyllableCode(code: number): boolean {
+  return code >= 0xac00 && code <= 0xd7a3;
+}
+
+function isWhitespaceChar(ch: string): boolean {
+  return ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r' || ch === '\f' || ch === '\v';
+}
+
+function hasPotentialVerboseEnding(text: string): boolean {
+  if (text.length < 2) return false;
+  const tail = text.length > 8 ? text.slice(-8) : text;
+  return POTENTIAL_VERBOSE_TAIL_END_REGEX.test(tail);
+}
+
+/**
+ * Finds the start index covering at most the last 3 whitespace-separated tokens
+ * (including the leading whitespace character when not at index 0 so `(?:^|\s)`
+ * and `(?<![가-힣])` boundaries remain identical to full-string matching).
+ */
+function findTrailingPredicateWindowStart(text: string): number {
+  const minIdx = Math.max(0, text.length - PREDICATE_WINDOW_MAX_CHARS);
+  let idx = text.length - 1;
+  while (idx >= minIdx && isWhitespaceChar(text[idx])) {
+    idx -= 1;
+  }
+  let spacesFound = 0;
+  while (idx >= minIdx) {
+    if (isWhitespaceChar(text[idx])) {
+      spacesFound += 1;
+      if (spacesFound === 3) {
+        return idx;
+      }
+      while (idx > minIdx && isWhitespaceChar(text[idx - 1])) {
+        idx -= 1;
+      }
+    }
+    idx -= 1;
+  }
+  return minIdx === 0 ? 0 : -1;
+}
+
+function stripLongTrailingPredicateLinear(text: string): string {
+  // Trim optional trailing `\s?[.!]?$`
+  let coreEnd = text.length;
+  if (coreEnd > 0 && (text[coreEnd - 1] === '.' || text[coreEnd - 1] === '!')) {
+    coreEnd -= 1;
+  }
+  if (coreEnd > 0 && isWhitespaceChar(text[coreEnd - 1])) {
+    coreEnd -= 1;
+  }
+  if (coreEnd < 2) return text;
+
+  const coreTailStart = Math.max(0, coreEnd - 40);
+  const coreTail = text.slice(coreTailStart, coreEnd);
+
+  // 1. Multi-word predicate (`[가-힣]+할 수 있습니다`, `[가-힣]*해 드리고 있습니다`, `[가-힣]+ 중입니다`, `중입니다`)
+  const multiMatch = LONG_TOKEN_MULTIWORD_TAIL_REGEX.exec(coreTail);
+  if (multiMatch) {
+    const stemEnd = coreTailStart + multiMatch.index;
+    let stemStart = stemEnd;
+    while (stemStart > 0 && isHangulSyllableCode(text.charCodeAt(stemStart - 1))) {
+      stemStart -= 1;
+    }
+    const requiresStem = !/^(?:해|시켜|하여|해서)/u.test(multiMatch[0]);
+    const hasValidStem = !requiresStem || stemStart < stemEnd;
+    if (hasValidStem) {
+      if (stemStart === 0) {
+        return '';
+      }
+      if (isWhitespaceChar(text[stemStart - 1])) {
+        return text.slice(0, stemStart - 1);
+      }
+    }
+  }
+  if (
+    coreTail.endsWith('중입니다') &&
+    (coreEnd === 4 || isWhitespaceChar(text[coreEnd - 5]))
+  ) {
+    return coreEnd === 4 ? '' : text.slice(0, coreEnd - 5);
+  }
+
+  // 2. Single-word Hangul predicate (`(?<![가-힣])[가-힣]*(?:습니다|합니다|...)`)
+  const singleMatch = LONG_TOKEN_SINGLE_PREDICATE_SUFFIX_REGEX.exec(coreTail);
+  if (singleMatch) {
+    const suffixStart = coreTailStart + singleMatch.index;
+    let wordStart = suffixStart;
+    while (wordStart > 0 && isHangulSyllableCode(text.charCodeAt(wordStart - 1))) {
+      wordStart -= 1;
+    }
+    return text.slice(0, wordStart);
+  }
+
+  // 3. Literal `입니다`
+  if (coreTail.endsWith('입니다')) {
+    return text.slice(0, coreEnd - 3);
+  }
+
+  return text;
+}
+
+function stripVerbosePredicateOnce(text: string): string {
+  if (!hasPotentialVerboseEnding(text)) {
+    return text;
+  }
+
+  // Step 1: VERBOSE_PROSE_ENDING_REGEX (max match length <= 13 chars on normalized text)
+  const proseStart = Math.max(0, text.length - 32);
+  const proseTail = text.slice(proseStart);
+  const proseReplaced = proseTail.replace(VERBOSE_PROSE_ENDING_REGEX, '');
+  const afterProse =
+    proseReplaced !== proseTail ? text.slice(0, proseStart) + proseReplaced : text;
+
+  if (!hasPotentialVerboseEnding(afterProse)) {
+    return afterProse;
+  }
+
+  // Step 2: VERBOSE_PREDICATE_TAIL_REGEX on bounded trailing window (<= 160 chars)
+  // or linear single-pass fallback for adversarial multi-thousand-char tokens.
+  const windowStart = findTrailingPredicateWindowStart(afterProse);
+  if (windowStart >= 0) {
+    const windowTail = afterProse.slice(windowStart);
+    const replaced = windowTail.replace(VERBOSE_PREDICATE_TAIL_REGEX, '');
+    return replaced !== windowTail ? afterProse.slice(0, windowStart) + replaced : afterProse;
+  }
+
+  return stripLongTrailingPredicateLinear(afterProse);
+}
+
+function hasVerbosePredicateTail(text: string): boolean {
+  if (!hasPotentialVerboseEnding(text)) {
+    return false;
+  }
+  return stripVerbosePredicateOnce(text) !== text;
+}
+
+function stripDanglingConnectiveOnce(text: string): string {
+  const tailStart = Math.max(0, text.length - 24);
+  const tail = text.slice(tailStart);
+  const replaced = tail
+    .replace(DANGLING_CONNECTIVE_TAIL_REGEX, '')
+    .replace(TONG_WIHAE_CONNECTIVE_REGEX, '');
+  return replaced !== tail ? text.slice(0, tailStart) + replaced : text;
+}
 
 function trimSummaryEdges(text: string): string {
   let start = 0;
@@ -148,21 +300,20 @@ export function getGuideCardSummary(
   }
 
   const normalizedSubtitle = trimSummaryEdges(normalizeMicroCopy(subtitle));
-  const normalizedDescription = trimSummaryEdges(normalizeMicroCopy(description));
-  const raw = hasMeaningfulSummaryText(normalizedSubtitle)
-    ? normalizedSubtitle
-    : hasMeaningfulSummaryText(normalizedDescription)
-      ? normalizedDescription
-      : '';
+  let raw = '';
+  if (hasMeaningfulSummaryText(normalizedSubtitle)) {
+    raw = normalizedSubtitle;
+  } else {
+    const normalizedDescription = trimSummaryEdges(normalizeMicroCopy(description));
+    if (hasMeaningfulSummaryText(normalizedDescription)) {
+      raw = normalizedDescription;
+    }
+  }
   let current = raw;
   let strippedPredicate = false;
 
   for (let pass = 0; pass < 3 && current.length > 0; pass += 1) {
-    const next = trimSummaryEdges(
-      current
-        .replace(VERBOSE_PROSE_ENDING_REGEX, '')
-        .replace(VERBOSE_PREDICATE_TAIL_REGEX, '')
-    );
+    const next = trimSummaryEdges(stripVerbosePredicateOnce(current));
     if (next === current) {
       break;
     }
@@ -173,26 +324,23 @@ export function getGuideCardSummary(
   if (strippedPredicate) {
     current = trimSummaryEdges(current);
     for (let pass = 0; pass < 3 && current.length > 0; pass += 1) {
-      const next = trimSummaryEdges(
-        current
-          .replace(DANGLING_CONNECTIVE_TAIL_REGEX, '')
-          .replace(TONG_WIHAE_CONNECTIVE_REGEX, '')
-      );
+      const next = trimSummaryEdges(stripDanglingConnectiveOnce(current));
       if (next === current) {
         break;
       }
       current = next;
     }
-    if (/[가-힣0-9A-Za-z%㎡)\]]를$/u.test(current)) {
+    const tailCheck = current.length > 16 ? current.slice(-16) : current;
+    if (/[가-힣0-9A-Za-z%㎡)\]]를$/u.test(tailCheck)) {
       current = current.slice(0, -1).trim();
     } else if (
-      /[가-힣0-9A-Za-z%㎡)\]]을$/u.test(current) &&
-      !NOUN_ENDING_IN_EUL_REGEX.test(current)
+      /[가-힣0-9A-Za-z%㎡)\]]을$/u.test(tailCheck) &&
+      !NOUN_ENDING_IN_EUL_REGEX.test(tailCheck)
     ) {
       current = current.slice(0, -1).trim();
     } else if (
-      /[가-힣0-9A-Za-z%㎡)\]](?:은|는)$/u.test(current) &&
-      !NOUN_ENDING_IN_EUN_NEUN_REGEX.test(current)
+      /[가-힣0-9A-Za-z%㎡)\]](?:은|는)$/u.test(tailCheck) &&
+      !NOUN_ENDING_IN_EUN_NEUN_REGEX.test(tailCheck)
     ) {
       current = current.slice(0, -1).trim();
     }
@@ -200,16 +348,19 @@ export function getGuideCardSummary(
   }
 
   const normalizedFallback = trimSummaryEdges(normalizeMicroCopy(fallbackLabel));
+  const fallbackTail =
+    normalizedFallback.length > 64 ? normalizedFallback.slice(-64) : normalizedFallback;
   const resolvedFallback =
     hasMeaningfulSummaryText(normalizedFallback) &&
-    !hasVerboseProseEnding(normalizedFallback) &&
-    !VERBOSE_PREDICATE_TAIL_REGEX.test(normalizedFallback)
+    !hasVerboseProseEnding(fallbackTail) &&
+    !hasVerbosePredicateTail(normalizedFallback)
       ? normalizedFallback
       : DEFAULT_SUMMARY_FALLBACK;
+  const currentTail = current.length > 64 ? current.slice(-64) : current;
   const safeText =
     hasMeaningfulSummaryText(current) &&
-    !hasVerboseProseEnding(current) &&
-    !VERBOSE_PREDICATE_TAIL_REGEX.test(current)
+    !hasVerboseProseEnding(currentTail) &&
+    !hasVerbosePredicateTail(current)
       ? current
       : resolvedFallback;
 

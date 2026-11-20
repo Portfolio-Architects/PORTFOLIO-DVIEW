@@ -189,7 +189,7 @@ describe('M3: /guide 2-Column Report Cards UX Refactor (R4 / F8)', () => {
     unmount();
   });
 
-  it('maps all 23 slugs in GUIDE_CARD_TITLE_MAP (<= 34 graphemes) and GUIDE_CARD_SUMMARY_MAP', () => {
+  it('maps all 25 slugs in GUIDE_CARD_TITLE_MAP (<= 34 graphemes) and GUIDE_CARD_SUMMARY_MAP', () => {
     for (const article of GUIDE_ARTICLES) {
       expect(GUIDE_CARD_TITLE_MAP[article.slug]).toBeDefined();
       expect(GUIDE_CARD_SUMMARY_MAP[article.slug]).toBeDefined();
@@ -401,5 +401,28 @@ describe('M3: /guide 2-Column Report Cards UX Refactor (R4 / F8)', () => {
     const commaPredElapsedMs = performance.now() - commaPredStart;
     expect(commaPredOut).toBe('a');
     expect(commaPredElapsedMs).toBeLessThan(50);
+
+    // Additional adversarial inputs that trigger the `니다` tail check on 50k single-token Hangul runs
+    const hangulNidaInput = `${'가'.repeat(50000)}가니다.`;
+    const hangulNidaStart = performance.now();
+    const hangulNidaOut = getGuideCardSummary('__unmapped_slug__', hangulNidaInput, '');
+    const hangulNidaElapsedMs = performance.now() - hangulNidaStart;
+    expect(hangulNidaOut).toHaveLength(50);
+    expect(hangulNidaOut.endsWith('…')).toBe(true);
+    expect(hangulNidaElapsedMs).toBeLessThan(50);
+
+    const hangulVerbInput = `a${'가'.repeat(50000)}합니다.`;
+    const hangulVerbStart = performance.now();
+    const hangulVerbOut = getGuideCardSummary('__unmapped_slug__', hangulVerbInput, '');
+    const hangulVerbElapsedMs = performance.now() - hangulVerbStart;
+    expect(hangulVerbOut).toBe('a');
+    expect(hangulVerbElapsedMs).toBeLessThan(50);
+
+    const hangulMultiWordInput = `${'가'.repeat(50000)}해 드리고 있습니다.`;
+    const hangulMultiWordStart = performance.now();
+    const hangulMultiWordOut = getGuideCardSummary('__unmapped_slug__', hangulMultiWordInput, '');
+    const hangulMultiWordElapsedMs = performance.now() - hangulMultiWordStart;
+    expect(hangulMultiWordOut).toBe('실거래·입지 핵심 요약');
+    expect(hangulMultiWordElapsedMs).toBeLessThan(50);
   });
 });

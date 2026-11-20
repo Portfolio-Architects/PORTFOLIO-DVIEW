@@ -174,6 +174,59 @@ export function splitGraphemes(text: string): string[] {
   return Array.from(text);
 }
 
+/**
+ * Extracts at most `maxCount` Unicode grapheme clusters without allocating or
+ * segmenting megabytes of trailing text on long/adversarial inputs.
+ */
+function takeGraphemes(
+  text: string,
+  maxCount: number
+): { items: string[]; truncated: boolean } {
+  if (!text || maxCount <= 0) {
+    return { items: [], truncated: text.length > 0 };
+  }
+
+  if (koGraphemeSegmenter) {
+    // Fast bounded-prefix path: copy only a small prefix into ICU when the input is
+    // far longer than `maxCount`. If the prefix already yields >= maxCount + 2
+    // grapheme clusters, the first `maxCount` clusters are strictly internal and
+    // unaffected by any characters past the prefix boundary.
+    const prefixLimit = maxCount * 8 + 64;
+    if (text.length > prefixLimit) {
+      let safeCut = prefixLimit;
+      const prevCode = text.charCodeAt(safeCut - 1);
+      if (prevCode >= 0xd800 && prevCode <= 0xdbff) {
+        safeCut -= 1;
+      }
+      const prefixItems: string[] = [];
+      for (const seg of koGraphemeSegmenter.segment(text.slice(0, safeCut))) {
+        prefixItems.push(seg.segment);
+        if (prefixItems.length >= maxCount + 2) {
+          return { items: prefixItems.slice(0, maxCount), truncated: true };
+        }
+      }
+    }
+
+    const out: string[] = [];
+    for (const seg of koGraphemeSegmenter.segment(text)) {
+      if (out.length >= maxCount) {
+        return { items: out, truncated: true };
+      }
+      out.push(seg.segment);
+    }
+    return { items: out, truncated: false };
+  }
+
+  const out: string[] = [];
+  for (const ch of text) {
+    if (out.length >= maxCount) {
+      return { items: out, truncated: true };
+    }
+    out.push(ch);
+  }
+  return { items: out, truncated: false };
+}
+
 export function measureCopyLength(text: string): number {
   const normalized = normalizeMicroCopy(text);
   if (!normalized) return 0;
@@ -183,7 +236,10 @@ export function measureCopyLength(text: string): number {
 export function hasVerboseProseEnding(text: string): boolean {
   const normalized = normalizeMicroCopy(text);
   if (!normalized) return false;
-  return VERBOSE_PROSE_ENDING_REGEX.test(normalized);
+  // Every VERBOSE_PROSE_ENDING_REGEX match on normalized text is <= 13 chars;
+  // testing only a 32-char tail prevents scanning huge inputs.
+  const tail = normalized.length > 32 ? normalized.slice(-32) : normalized;
+  return VERBOSE_PROSE_ENDING_REGEX.test(tail);
 }
 
 function assertValidCopySlot(slot: CopySlotType): CopySlotBudgetSpec {
@@ -282,8 +338,8 @@ export function truncateToCopyBudget(
     return '';
   }
 
-  const graphemes = splitGraphemes(normalized);
-  if (graphemes.length <= spec.maxChars) {
+  const { items: graphemes, truncated } = takeGraphemes(normalized, spec.maxChars);
+  if (!truncated) {
     return normalized;
   }
 
