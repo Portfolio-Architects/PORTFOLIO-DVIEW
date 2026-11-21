@@ -7,7 +7,7 @@ import NotificationBanner from './NotificationBanner';
 
 const Footer = React.memo(function Footer() {
   return (
-    <footer className="w-full bg-surface border-t border-border/40 relative z-30 pt-2 sm:pt-3 mt-0 pb-[calc(env(safe-area-inset-bottom)+80px)] sm:pb-6">
+    <footer className="w-full bg-surface border-t border-border/40 relative z-30 pt-2 sm:pt-3 mt-0 pb-[calc(env(safe-area-inset-bottom,0px)+88px+var(--dview-mobile-anchor-offset,0px))] md:pb-6">
       <div className="max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 flex flex-col gap-4 sm:gap-6">
         
         {/* 알림 받기 배너 (푸터와 병합) */}
@@ -31,20 +31,20 @@ const Footer = React.memo(function Footer() {
               <span className="text-[15px] font-extrabold text-tertiary tracking-tight">D-VIEW</span>
             </div>
             
-            <nav role="navigation" aria-label="하단 서비스 메뉴" className="flex flex-wrap items-center gap-4 sm:gap-5">
-              <Link href="/guide" prefetch={false} className="text-[13px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline transition-colors">
+            <nav role="navigation" aria-label="하단 서비스 메뉴" className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:gap-5">
+              <Link href="/guide" prefetch={false} className="text-[13px] font-extrabold text-primary hover:underline transition-colors py-1">
                 분석 리포트
               </Link>
-              <Link href="/about" prefetch={false} className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
+              <Link href="/about" prefetch={false} className="text-[13px] font-bold text-secondary hover:text-primary transition-colors py-1">
                 D-VIEW 소개
               </Link>
-              <Link href="/contact" prefetch={false} className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
+              <Link href="/contact" prefetch={false} className="text-[13px] font-bold text-secondary hover:text-primary transition-colors py-1">
                 문의하기
               </Link>
-              <Link href="/terms" prefetch={false} className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
+              <Link href="/terms" prefetch={false} className="text-[13px] font-bold text-secondary hover:text-primary transition-colors py-1">
                 서비스 이용약관
               </Link>
-              <Link href="/privacy" prefetch={false} className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
+              <Link href="/privacy" prefetch={false} className="text-[13px] font-bold text-secondary hover:text-primary transition-colors py-1">
                 개인정보처리방침
               </Link>
             </nav>

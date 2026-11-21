@@ -201,8 +201,7 @@ describe('Phase 2 Structural Scale-Up & Boost Verification (P2-1 ~ P2-5, Guardra
       const ssrSummary = container.querySelector('#stats-ssr-regression-summary');
       expect(ssrSummary).not.toBeNull();
       expect(ssrSummary?.className).not.toContain('sr-only');
-      expect(ssrSummary?.className).toContain('bg-[#f9fafb]');
-      expect(ssrSummary?.className).toContain('dark:bg-[#17171c]');
+      expect(ssrSummary?.className).toMatch(/bg-elevated|bg-\[#f9fafb\]/);
       expect(ssrSummary?.textContent).toContain('동탄역 거리별 아파트 실거래가 OLS 선형회귀 요약');
       expect(ssrSummary?.textContent).toContain(`${Math.round(payload.regression.interceptWon).toLocaleString('ko-KR')}만원`);
       expect(ssrSummary?.textContent).toContain(`${Math.round(payload.regression.slopeWonPerKm).toLocaleString('ko-KR')}만원`);

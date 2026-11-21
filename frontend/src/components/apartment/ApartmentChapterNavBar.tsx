@@ -303,8 +303,8 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
       data-scroll-interactive="true"
       className={`sticky top-0 z-[60] w-full ${
         compact
-          ? 'bg-surface border-b border-[#f2f4f6] dark:border-[#202027] px-4 md:px-6'
-          : 'bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-[#f2f4f6] dark:border-[#202027] py-1.5 px-3 sm:px-4'
+          ? 'bg-surface border-b border-border px-4 md:px-6'
+          : 'bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-border py-1.5 px-3 sm:px-4'
       } ${className}`}
     >
       <div className="flex items-center justify-between gap-2 min-w-0">
@@ -346,7 +346,7 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
                   className={
                     compact
                       ? 'absolute bottom-0 inset-x-1.5 h-[2px] rounded-full bg-primary'
-                      : 'absolute inset-0 bg-[#f2f4f6] dark:bg-[#202027] -z-10 rounded-xl'
+                      : 'absolute inset-0 bg-[#eff1f5] dark:bg-[#1e2532] -z-10 rounded-xl'
                   }
                   transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                 />
@@ -360,7 +360,7 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
                 <>
                   <span
                     className={`tabular-nums text-[11px] font-bold transition-colors ${
-                      isActive ? 'text-blue-600 dark:text-blue-400' : 'text-tertiary/80'
+                      isActive ? 'text-primary' : 'text-tertiary/80'
                     }`}
                   >
                     {chapter.number}
@@ -383,7 +383,7 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
       {showStickyRetention && apartmentName && (
         <div
           data-testid="chapter-nav-sticky-retention"
-          className="shrink-0 pl-1.5 sm:pl-2 border-l border-[#f2f4f6] dark:border-[#202027]"
+          className="shrink-0 pl-1.5 sm:pl-2 border-l border-border"
         >
           <QuickNonLoginRetentionAction
             aptName={apartmentName}

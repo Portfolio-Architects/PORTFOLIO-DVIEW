@@ -585,6 +585,8 @@ export const DongtanMacroTrendPointSchema = z.object({
   name: z.string(),
   '동탄 아파트 전체': z.number(),
   '동탄 아파트 전세 평균': z.number(),
+  saleCount: z.number().int().nonnegative().optional(),
+  rentCount: z.number().int().nonnegative().optional(),
 });
 
 export const InitialPageDataSchema = z.object({

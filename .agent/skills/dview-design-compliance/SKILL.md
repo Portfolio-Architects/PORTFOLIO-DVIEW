@@ -52,8 +52,11 @@ UI 컴포넌트를 작성하거나 수정할 때는 임의의 유틸리티 클�
 - 모든 텍스트·단위는 **Pretendard Variable (`var(--font-pretendard)`)** 단일 서체를 사용하며, 가격·면적·변동률·순위·거래량·날짜 등 모든 숫자에는 **`tabular-nums`**를 지정해 1px 흔들림 없이 정렬합니다.
 - **유니코드 이모티콘 전면 금지**: UI 내 모든 아이콘은 `lucide-react` SVG 컴포넌트로만 렌더링합니다.
 
-### 6) 고단가 금융 시맨틱 컬러 팔레트 & 금지 색상 차단
-- **허용 시맨틱 토큰**: Toss Ink(`#191f28` / `#4e5968` / `#8b95a1`), Slate 무채색(`slate-50`~`slate-950`), Toss Action Blue(`#3182f6` / `blue-600`), Value Emerald(`#059669` / `emerald-600`), Toss Up Red(`#f04452`).
+### 6) Live Spark v6.0 90/10 시맨틱 컬러 팔레트 & 금지 색상 차단
+- **허용 시맨틱 토큰 (Live Spark 90/10)**:
+  - **Stage (90%)**: Live Spark Ink(`#14181f` / `#4e5968` / `#7b8696`, Dark `#f4f6fa` / `#cbd5e1` / `#8b96a8`), Canvas(`#ffffff` / `#f7f8fa` / `#eff1f5`, Dark `#0e1117` / `#151a23` / `#1e2532`), Slate 무채색(`slate-50`~`slate-950`)
+  - **Spark (10%)**: Hot Spark(`--brand-red`: `#ff3b5c`, Dark `#ff4d6d`, Jackpot Gradient `.dview-spark-badge`: `#ff3b5c → #ff6b4a`, `.dview-spark-card`), Cool Spark(`--brand-blue`: `#2f6bff`, Dark `#60a5fa`)
+  - **Restricted Safe**: `--brand-green` (`#059669` / `emerald-600`)은 전세·DSR 안전 진단 계산기·모달 내부로 제한(메인 피드·도넛 보합·일자 점·KPI 배제)
 - **사용 금지 클래스 및 HEX**: `pink-*`, `purple-*`, `fuchsia-*`, `violet-*`, `indigo-*`, `yellow-*`, `orange-*`, `amber-*`, `rose-*`, `teal-*`, `cyan-*`, `sky-*`, `green-*`, `zinc-*`, `neutral-*`, `stone-*`, `gray-*` (`bg`/`text`/`border`/`ring`/`fill`/`stroke`/`from`/`to`/`via` 전 유틸리티 포함) 및 `#ff8f00`, `#7c3aed`, `#f9ce3f`, `#e1306c`, `#833ab4`.
 
 ### 7) Copy Diet & Semantic SEO Dual-Layer (3초 스캔 + 반클로킹 수칙)

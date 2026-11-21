@@ -146,17 +146,13 @@ export default async function TechnoValleyPage(
         >
           <div
             id="technovalley-selected-jisan-ssr"
-            className="rounded-3xl border border-emerald-500/30 bg-surface p-6 sm:p-8 shadow-sm space-y-5"
+            className="rounded-3xl border border-border bg-surface p-6 sm:p-8 shadow-sm space-y-5"
           >
             <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-5">
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11.5px] font-extrabold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                    <Building2 size={13} className="shrink-0" />
-                    <span>선택 센터 정밀 스펙 · {selectedJisan.buildingStatus || selectedJisan.status || '승인'}</span>
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
-                    취득세·재산세 35% 감면 대상
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-extrabold bg-[#eff1f5] dark:bg-[#1e2532] text-primary">
+                    {selectedJisan.buildingStatus || selectedJisan.status || '승인'}
                   </span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
@@ -170,7 +166,7 @@ export default async function TechnoValleyPage(
                 <Link
                   href={`/technovalley/${encodeURIComponent(selectedSlug)}`}
                   prefetch={false}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[12px] font-extrabold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[12px] font-extrabold bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 transition-colors"
                 >
                   <span>정적 고유 주소(고정 링크)</span>
                   <ArrowRight size={13} />
@@ -178,7 +174,7 @@ export default async function TechnoValleyPage(
                 <Link
                   href="/technovalley"
                   prefetch={false}
-                  className="inline-flex items-center px-3.5 py-2 rounded-xl text-[12px] font-bold bg-body text-secondary hover:text-primary border border-border/60 transition-colors"
+                  className="inline-flex items-center px-3.5 py-2 rounded-xl text-[12px] font-bold bg-elevated text-secondary hover:text-primary border border-border/60 transition-colors"
                 >
                   전체 {jisanList.length}개 센터 전수 보기
                 </Link>
@@ -242,7 +238,7 @@ export default async function TechnoValleyPage(
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <div>
                         <span className="text-[11.5px] text-secondary font-semibold mr-2">최근 실거래 매매가</span>
-                        <strong className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-300">
+                        <strong className="text-base sm:text-lg font-black text-primary">
                           {latestMatchedTx.price}
                         </strong>
                       </div>
@@ -267,12 +263,12 @@ export default async function TechnoValleyPage(
                   <span className="text-[12px] font-extrabold text-primary">
                     입주 가능 업종 및 취득세·정책자금 감면 요약
                   </span>
-                  <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                  <span className="text-[11px] font-bold text-brand-blue">
                     {taxBenefitSummary.acquisitionTaxReductionRatePct}% 세액 감면
                   </span>
                 </div>
                 <p className="text-[12.5px] text-secondary font-semibold leading-relaxed">
-                  입주 업종: <strong className="text-primary">{selectedJisan.representativeBusiness?.trim() || '제조·지식·정보통신(IT)'}</strong> · 취득세 35% 감면 ({taxBenefitSummary.referenceLabel} 기준 일반 4.6% 대비 약 <strong className="text-emerald-700 dark:text-emerald-300">{taxBenefitSummary.savedTaxManwon.toLocaleString('ko-KR')}만원</strong> 절감) · 재산세 {taxBenefitSummary.propertyTaxReductionRatePct}% 감면(5년) · 과밀억제권역 이전 법인세 {taxBenefitSummary.corporateTaxReductionLabel} · 정책자금 분양가 {taxBenefitSummary.policyLoanLimitLabel}
+                  입주 업종: <strong className="text-primary">{selectedJisan.representativeBusiness?.trim() || '제조·지식·정보통신(IT)'}</strong> · 취득세 35% 감면 ({taxBenefitSummary.referenceLabel} 기준 일반 4.6% 대비 약 <strong className="text-brand-blue">{taxBenefitSummary.savedTaxManwon.toLocaleString('ko-KR')}만원</strong> 절감) · 재산세 {taxBenefitSummary.propertyTaxReductionRatePct}% 감면(5년) · 과밀억제권역 이전 법인세 {taxBenefitSummary.corporateTaxReductionLabel} · 정책자금 분양가 {taxBenefitSummary.policyLoanLimitLabel}
                 </p>
               </div>
             </div>
@@ -306,10 +302,6 @@ export default async function TechnoValleyPage(
         <div className="bg-surface border border-border/80 rounded-3xl p-6 sm:p-10 shadow-sm space-y-10">
           {/* Header Summary */}
           <div className="border-b border-border/60 pb-6">
-            <span className="inline-flex items-center gap-1.5 bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[12px] font-extrabold px-3 py-1 rounded-full mb-3 border border-blue-500/20">
-              <Building2 size={14} className="shrink-0" />
-              <span>D-VIEW B2B 기업이전·지식산업센터 데이터 랩</span>
-            </span>
             {selectedJisan ? (
               <h2 className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
                 동탄테크노밸리 {jisanList.length}개 지식산업센터 전수 카탈로그 및 세제 혜택 분석
@@ -327,17 +319,17 @@ export default async function TechnoValleyPage(
           {/* SEO Guide Format Top Conversion Slot: Key Takeaways & Top 3 Inflow Hub Links */}
           <div
             data-testid="technovalley-seo-guide-top-slot"
-            className="rounded-2xl border border-emerald-500/25 dark:border-emerald-500/30 bg-emerald-500/[0.04] dark:bg-emerald-950/20 p-5 sm:p-6 space-y-4"
+            className="rounded-2xl border border-border bg-elevated p-5 sm:p-6 space-y-4"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-extrabold text-[14px]">
-                <span>테크노밸리 기업 이전 · 직주근접 핵심 결론 요약 (Key Takeaways)</span>
+              <div className="flex items-center gap-2 text-primary font-extrabold text-[14px]">
+                <span>테크노밸리 기업 이전 · 직주근접 핵심 요약</span>
               </div>
               <Link
                 href="/guide/dongtan-technovalley-corporate-relocation-tax"
                 prefetch={false}
                 data-testid="technovalley-top-guide-cta"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors shadow-2xs shrink-0"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-xs font-extrabold transition-colors shadow-2xs shrink-0"
               >
                 <span>기업 이전 세제·배후 주거 심층 가이드 읽기</span>
                 <ArrowUpRight size={13} />
@@ -356,17 +348,17 @@ export default async function TechnoValleyPage(
               </li>
             </ul>
 
-            <div className="pt-3 border-t border-emerald-500/20 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div className="pt-3 border-t border-border grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               {TOP_ACQUISITION_ENTRY_ROUTES.map((entry) => (
                 <Link
                   key={entry.id}
                   href={entry.href}
                   prefetch={false}
                   data-testid={`technovalley-top-hub-link-${entry.id}`}
-                  className="rounded-xl bg-surface border border-border/70 hover:border-emerald-500/50 p-3 flex flex-col justify-between gap-1 transition-colors"
+                  className="rounded-xl bg-surface border border-border/70 hover:border-slate-300 dark:hover:border-slate-700 p-3 flex flex-col justify-between gap-1 transition-colors"
                 >
                   <div className="flex items-center justify-between gap-1.5">
-                    <span className="text-[10.5px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                    <span className="text-[10.5px] font-extrabold text-secondary bg-[#eff1f5] dark:bg-[#1e2532] px-2 py-0.5 rounded-md border border-border/60">
                       {entry.badge}
                     </span>
                     <ArrowUpRight size={12} className="text-tertiary shrink-0" />
@@ -383,7 +375,7 @@ export default async function TechnoValleyPage(
           {/* Section 1: Corporate Tax Benefits & Policy Finance Table */}
           <div className="space-y-4">
             <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
-              <Landmark size={18} className="text-blue-600 dark:text-blue-400 shrink-0" />
+              <Landmark size={18} className="text-secondary shrink-0" />
               <span>지식산업센터 입주 법인 세제 혜택 및 정책자금 대출 기준표</span>
             </h2>
             <div className="overflow-x-auto rounded-2xl border border-border/60">
@@ -391,7 +383,7 @@ export default async function TechnoValleyPage(
                 <caption className="sr-only">
                   동탄테크노밸리 지식산업센터 입주 기업 취득세, 재산세, 법인세 감면 및 정책자금 시설대출 요약표
                 </caption>
-                <thead className="bg-body text-primary font-bold border-b border-border/60">
+                <thead className="bg-elevated text-primary font-bold border-b border-border/60">
                   <tr>
                     <th scope="col" className="p-3.5 whitespace-nowrap">구분 항목</th>
                     <th scope="col" className="p-3.5 whitespace-nowrap">적용 법령 및 근거</th>
@@ -400,28 +392,28 @@ export default async function TechnoValleyPage(
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/40 font-medium">
-                  <tr className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors">
+                  <tr className="hover:bg-[#eff1f5]/50 dark:hover:bg-[#1e2532]/50 transition-colors">
                     <th scope="row" className="p-3.5 font-bold text-primary whitespace-nowrap">취득세 감면</th>
                     <td className="p-3.5 whitespace-nowrap">지방세특례제한법 제58조의2</td>
-                    <td className="p-3.5 font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">취득세 35% 감면</td>
+                    <td className="p-3.5 font-extrabold text-primary whitespace-nowrap">취득세 35% 감면</td>
                     <td className="p-3.5">최초 분양받아 사업시설용으로 직접 사용하는 중소기업 대상 (유예 기한 내 취득 및 1년 내 직접 사용 조건)</td>
                   </tr>
-                  <tr className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors">
+                  <tr className="hover:bg-[#eff1f5]/50 dark:hover:bg-[#1e2532]/50 transition-colors">
                     <th scope="row" className="p-3.5 font-bold text-primary whitespace-nowrap">재산세 감면</th>
                     <td className="p-3.5 whitespace-nowrap">지방세특례제한법 제58조의2</td>
-                    <td className="p-3.5 font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">재산세 35% 감면 (5년간)</td>
+                    <td className="p-3.5 font-extrabold text-primary whitespace-nowrap">재산세 35% 감면 (5년간)</td>
                     <td className="p-3.5">납세의무 성립일 기준 중소기업이 제조·지식·정보통신산업 사업시설용으로 직접 사용 시 적용</td>
                   </tr>
-                  <tr className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors">
+                  <tr className="hover:bg-[#eff1f5]/50 dark:hover:bg-[#1e2532]/50 transition-colors">
                     <th scope="row" className="p-3.5 font-bold text-primary whitespace-nowrap">법인세 / 소득세 감면</th>
                     <td className="p-3.5 whitespace-nowrap">조세특례제한법 제63조</td>
-                    <td className="p-3.5 font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">최대 100% 면제 (4년+2년 50%)</td>
+                    <td className="p-3.5 font-extrabold text-brand-blue whitespace-nowrap">최대 100% 면제 (4년+2년 50%)</td>
                     <td className="p-3.5">수도권 과밀억제권역(서울·성남·수원 등)에서 성장관리권역인 화성시 동탄으로 본사/공장 전체 이전 시 적용</td>
                   </tr>
-                  <tr className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors">
+                  <tr className="hover:bg-[#eff1f5]/50 dark:hover:bg-[#1e2532]/50 transition-colors">
                     <th scope="row" className="p-3.5 font-bold text-primary whitespace-nowrap">시설자금 및 정책자금 대출</th>
                     <td className="p-3.5 whitespace-nowrap">중소벤처기업진흥공단 / 경기도 육성자금</td>
-                    <td className="p-3.5 font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">분양가 70% ~ 80% 이내</td>
+                    <td className="p-3.5 font-extrabold text-primary whitespace-nowrap">분양가 70% ~ 80% 이내</td>
                     <td className="p-3.5">기업 신용도 및 기술평가 등급에 따라 정책자금 저리 융자 및 지자체 이차보전(금리 지원) 병행 가능</td>
                   </tr>
                 </tbody>
@@ -429,22 +421,22 @@ export default async function TechnoValleyPage(
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-              <div className="bg-body p-4 rounded-2xl border border-border/50 flex items-start gap-2.5">
-                <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+              <div className="bg-elevated p-4 rounded-2xl border border-border/60 flex items-start gap-2.5">
+                <CheckCircle2 size={16} className="text-primary shrink-0 mt-0.5" />
                 <div className="text-[12.5px] text-secondary">
                   <strong className="text-primary block mb-0.5">성장관리권역 중과세 배제</strong>
                   화성시 동탄권역은 수도권 성장관리권역으로 분류되어 법인 설립 및 부동산 취득 시 중과세(3배)가 면제됩니다.
                 </div>
               </div>
-              <div className="bg-body p-4 rounded-2xl border border-border/50 flex items-start gap-2.5">
-                <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+              <div className="bg-elevated p-4 rounded-2xl border border-border/60 flex items-start gap-2.5">
+                <CheckCircle2 size={16} className="text-primary shrink-0 mt-0.5" />
                 <div className="text-[12.5px] text-secondary">
                   <strong className="text-primary block mb-0.5">GTX-A·SRT 동탄역 직결 비즈니스</strong>
                   수서역 20분, 삼성역 연결 예정 광역교통망과 경부고속도로 기흥동탄IC 인접으로 R&amp;D 및 반도체 협력사 입주 최적지입니다.
                 </div>
               </div>
-              <div className="bg-body p-4 rounded-2xl border border-border/50 flex items-start gap-2.5">
-                <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+              <div className="bg-elevated p-4 rounded-2xl border border-border/60 flex items-start gap-2.5">
+                <CheckCircle2 size={16} className="text-primary shrink-0 mt-0.5" />
                 <div className="text-[12.5px] text-secondary">
                   <strong className="text-primary block mb-0.5">5년 의무 보유 및 전매·임대 규정</strong>
                   취득세 감면 수혜 후 5년 이내 매각·증여 또는 타 용도(단순 임대 포함) 전환 시 감면 세액 추징 대상 여부를 사전 점검해야 합니다.
@@ -453,11 +445,11 @@ export default async function TechnoValleyPage(
             </div>
           </div>
 
-          {/* B2B Corporate Relocation Zero-CLS AdSlot (Ad Money v5.1 Soft Surface) */}
+          {/* B2B Corporate Relocation Zero-CLS AdSlot (Ad Money v6.0 Soft Surface) */}
           {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
             <div
               data-testid="technovalley-b2b-adslot-top"
-              className="w-full min-h-[250px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] flex flex-col justify-center overflow-hidden empty:hidden"
+              className="w-full min-h-[250px] rounded-2xl bg-elevated flex flex-col justify-center overflow-hidden empty:hidden"
             >
               <AdSlot
                 refreshSlotId="1000000002_technovalley_b2b"
@@ -474,31 +466,31 @@ export default async function TechnoValleyPage(
             <div
               id="technovalley-commuter-apt-preview-section"
               data-testid="technovalley-commuter-apt-preview-section"
-              className="rounded-2xl border border-emerald-500/25 dark:border-emerald-500/30 bg-slate-50/90 dark:bg-slate-900/75 p-5 sm:p-6 space-y-4"
+              className="rounded-2xl border border-border bg-elevated p-5 sm:p-6 space-y-4"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <h2 className="text-base sm:text-lg font-extrabold text-primary flex items-center gap-2">
-                    <Building2 size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span>동탄테크노밸리 직주근접 배후 단지 &amp; 실수요 체류 1위 대장주 실거래 프리뷰</span>
+                    <Building2 size={18} className="text-secondary shrink-0" />
+                    <span>동탄테크노밸리 직주근접 배후 단지 · 대표 대장주 실거래</span>
                   </h2>
                   <p className="mt-1 text-xs sm:text-[13px] text-secondary font-medium">
-                    기업 임직원 사택·직주근접 선호도가 높은 영천동·청계동 단지와 평균 15분 심층 체류가 검증된 핵심 대장 단지의 국토교통부 실시간 실거래가 카드입니다.
+                    기업 임직원 사택·직주근접 선호도가 높은 영천동·청계동 및 인근 주요 대장 단지의 국토교통부 실거래가입니다.
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                   <Link
                     href="/guide/dongtan-1-vs-2-comparison"
                     prefetch={false}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-xs font-extrabold transition-colors"
                   >
-                    <span>1동탄 vs 2동탄 비교 (구글 1위)</span>
+                    <span>1동탄 vs 2동탄 비교</span>
                     <ArrowUpRight size={12} />
                   </Link>
                   <Link
                     href="/guide/dongtan-indeogwon-line-station-impact-analysis"
                     prefetch={false}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-colors"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#eff1f5] hover:bg-slate-200/80 dark:bg-[#1e2532] dark:hover:bg-slate-700/80 border border-border text-primary text-xs font-extrabold transition-colors"
                   >
                     <span>동인선 수혜 단지 분석</span>
                     <ArrowUpRight size={12} />
@@ -521,7 +513,7 @@ export default async function TechnoValleyPage(
               {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
                 <div
                   data-testid="technovalley-b2b-adslot-mid"
-                  className="w-full min-h-[250px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] flex flex-col justify-center overflow-hidden empty:hidden"
+                  className="w-full min-h-[250px] rounded-2xl bg-elevated flex flex-col justify-center overflow-hidden empty:hidden"
                 >
                   <AdSlot
                     refreshSlotId="1000000002_technovalley_mid_commuter"
@@ -540,7 +532,7 @@ export default async function TechnoValleyPage(
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
-                <FileSpreadsheet size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <FileSpreadsheet size={18} className="text-secondary shrink-0" />
                 <span>화성시·동탄테크노밸리 지식산업센터 {jisanList.length}개소 전수 명부</span>
               </h2>
               <span className="text-[12px] font-semibold text-tertiary">
@@ -553,7 +545,7 @@ export default async function TechnoValleyPage(
                 <caption className="sr-only">
                   화성시 및 동탄테크노밸리 56개 지식산업센터 인허가 상태, 연면적, 호실수, 시행사 및 주소 현황표
                 </caption>
-                <thead className="bg-body text-primary font-bold border-b border-border/60">
+                <thead className="bg-elevated text-primary font-bold border-b border-border/60">
                   <tr>
                     <th scope="col" className="p-3 whitespace-nowrap">순번</th>
                     <th scope="col" className="p-3 whitespace-nowrap">지식산업센터명</th>
@@ -579,8 +571,8 @@ export default async function TechnoValleyPage(
                         aria-current={isSelected ? 'true' : undefined}
                         className={
                           isSelected
-                            ? 'bg-emerald-500/[0.06] dark:bg-emerald-950/30 transition-colors'
-                            : 'hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors'
+                            ? 'bg-[#eff1f5] dark:bg-[#1e2532] transition-colors'
+                            : 'hover:bg-[#eff1f5]/50 dark:hover:bg-[#1e2532]/50 transition-colors'
                         }
                       >
                         <td className="p-3 text-tertiary whitespace-nowrap">{item.seq}</td>
@@ -590,15 +582,15 @@ export default async function TechnoValleyPage(
                             prefetch={false}
                             className={
                               isSelected
-                                ? 'text-emerald-700 dark:text-emerald-300 underline font-extrabold'
-                                : 'hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors'
+                                ? 'text-primary underline font-extrabold'
+                                : 'hover:text-primary hover:underline transition-colors'
                             }
                           >
                             {item.name}
                           </Link>
                         </th>
                         <td className="p-3 whitespace-nowrap">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#eff1f5] dark:bg-[#1e2532] text-secondary border border-border/60">
                             {item.status || item.regType || '승인'}
                           </span>
                         </td>
@@ -623,11 +615,11 @@ export default async function TechnoValleyPage(
             </div>
           </div>
 
-          {/* Bottom B2B Zero-CLS AdSlot (Ad Money v5.1 Soft Surface) */}
+          {/* Bottom B2B Zero-CLS AdSlot (Ad Money v6.0 Soft Surface) */}
           {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
             <div
               data-testid="technovalley-b2b-adslot-bottom"
-              className="w-full min-h-[250px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] flex flex-col justify-center overflow-hidden empty:hidden"
+              className="w-full min-h-[250px] rounded-2xl bg-elevated flex flex-col justify-center overflow-hidden empty:hidden"
             >
               <AdSlot
                 refreshSlotId="1000000001_technovalley_b2b_bottom"

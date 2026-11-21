@@ -988,7 +988,7 @@ export function getSchoolDistrictPremiumData(
   const comparisonGuides: ComparisonGuideBridgeItem[] = [
     {
       slug: 'dongtan-school-zone-top-apartments',
-      badge: 'Issue #2 핵심 연계 가이드',
+      badge: '학군 비교 가이드',
       category: '학군·초품아',
       title: '동탄 학군·초품아 대표 아파트 실거래 비교: 청계 시범·반송 솔빛·산척 레이크에듀 완벽 해부',
       summary:
@@ -1252,7 +1252,7 @@ export function getLakeParkPremiumData(
   const comparisonGuides: ComparisonGuideBridgeItem[] = [
     {
       slug: 'dongtan-lake-vs-station-comparison',
-      badge: 'Issue #3 핵심 연계 가이드',
+      badge: '호수공원 비교 가이드',
       category: '수변·역세권비교',
       title: '동탄호수공원권 vs 동탄역세권 완벽 비교: 수변 조망 라이프와 GTX 초역세권 중 어디가 유리할까?',
       summary:
@@ -1484,7 +1484,7 @@ export function getBuildingAgeDepreciationData(
   const comparisonGuides: ComparisonGuideBridgeItem[] = [
     {
       slug: 'dongtan-reconstruction-remodeling-1st-new-town-outlook',
-      badge: 'Issue #4 핵심 연계 가이드',
+      badge: '연식·방어율 가이드',
       category: '연식·리모델링분석',
       title: '동탄1신도시 준공 16~20년차 진입: 연식별 감가상각 한계선과 리모델링·대지지분 가치 분석',
       summary:

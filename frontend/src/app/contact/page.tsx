@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ShieldCheck, Database, Clock, FileCheck2 } from 'lucide-react';
+import { ShieldCheck, Database, Clock, FileCheck2 } from 'lucide-react';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { Metadata } from 'next';
 import ContactClient from './ContactClient';
@@ -115,18 +115,9 @@ export default async function ContactPage() {
       {/* 상단 네비게이션 헤더 */}
       <div className="bg-surface/90 backdrop-blur-md border-b border-border sticky top-0 z-50 transition-colors duration-200">
         <div className="max-w-[880px] mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link 
-              href="/" prefetch={false} 
-              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-surface/5 text-secondary transition-colors"
-              aria-label="홈으로 이동"
-            >
-              <ArrowLeft size={20} />
-            </Link>
-            <h1 className="font-extrabold text-primary text-[17px] sm:text-lg tracking-tight">문의하기</h1>
-          </div>
-          <Link href="/" prefetch={false} className="text-emerald-600 dark:text-emerald-400 font-bold text-[13px] sm:text-sm hover:underline">
-            대시보드로 돌아가기
+          <h1 className="font-extrabold text-primary text-[17px] sm:text-lg tracking-tight">문의하기</h1>
+          <Link href="/" prefetch={false} className="text-primary font-bold text-[13px] sm:text-sm hover:underline">
+            메인으로 돌아가기
           </Link>
         </div>
       </div>
@@ -138,7 +129,7 @@ export default async function ContactPage() {
         {/* 고객 지원 운영 정책 및 공공 실거래 데이터 정정 안내 (SSR Trust & Editorial Transparency) */}
         <section
           aria-label="고객 지원 운영 기준 및 데이터 정정 처리 절차"
-          className="rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-6 sm:p-8 space-y-6"
+          className="rounded-2xl bg-[#f7f8fa] dark:bg-[#151a23] p-6 sm:p-8 space-y-6"
         >
           <div className="space-y-2">
             <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
@@ -150,8 +141,8 @@ export default async function ContactPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <article className="rounded-2xl bg-surface dark:bg-[#1e1e24] p-5 space-y-2">
-              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-extrabold text-sm">
+            <article className="rounded-2xl bg-surface dark:bg-[#1e2532] p-5 space-y-2">
+              <div className="flex items-center gap-2 text-primary font-extrabold text-sm">
                 <Database size={18} />
                 <h3>1. 공공 실거래가 동기화 및 해제 거래 반영</h3>
               </div>
@@ -160,8 +151,8 @@ export default async function ContactPage() {
               </p>
             </article>
 
-            <article className="rounded-2xl bg-surface dark:bg-[#1e1e24] p-5 space-y-2">
-              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-extrabold text-sm">
+            <article className="rounded-2xl bg-surface dark:bg-[#1e2532] p-5 space-y-2">
+              <div className="flex items-center gap-2 text-primary font-extrabold text-sm">
                 <FileCheck2 size={18} />
                 <h3>2. 단지 스펙 · 배정 학군 · 역세권 도보 거리 검수</h3>
               </div>
@@ -170,8 +161,8 @@ export default async function ContactPage() {
               </p>
             </article>
 
-            <article className="rounded-2xl bg-surface dark:bg-[#1e1e24] p-5 space-y-2">
-              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-extrabold text-sm">
+            <article className="rounded-2xl bg-surface dark:bg-[#1e2532] p-5 space-y-2">
+              <div className="flex items-center gap-2 text-primary font-extrabold text-sm">
                 <Clock size={18} />
                 <h3>3. 문의 유형별 표준 회신 소요 시간</h3>
               </div>
@@ -180,8 +171,8 @@ export default async function ContactPage() {
               </p>
             </article>
 
-            <article className="rounded-2xl bg-surface dark:bg-[#1e1e24] p-5 space-y-2">
-              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-extrabold text-sm">
+            <article className="rounded-2xl bg-surface dark:bg-[#1e2532] p-5 space-y-2">
+              <div className="flex items-center gap-2 text-primary font-extrabold text-sm">
                 <ShieldCheck size={18} />
                 <h3>4. 편집 독립성 및 개인정보 보호 준수</h3>
               </div>
@@ -213,21 +204,6 @@ export default async function ContactPage() {
                 </dd>
               </div>
             </dl>
-
-            <div className="pt-3 flex flex-wrap items-center gap-4 text-xs font-bold text-emerald-700 dark:text-emerald-400">
-              <Link href="/about" prefetch={false} className="hover:underline">
-                서비스 소개 및 데이터 검증 원칙
-              </Link>
-              <Link href="/guide" prefetch={false} className="hover:underline">
-                동탄 아파트 분석 가이드
-              </Link>
-              <Link href="/terms" prefetch={false} className="hover:underline">
-                이용약관
-              </Link>
-              <Link href="/privacy" prefetch={false} className="hover:underline">
-                개인정보처리방침
-              </Link>
-            </div>
           </div>
         </section>
       </main>

@@ -366,17 +366,20 @@ function evaluateRuleset(
   const incoming = ctx.incomingData ?? {};
 
   const isValidCounterField = (field: string): boolean => {
-    if (!(field in incoming)) return true;
+    if (!(field in incoming)) return !(field in existing);
     const nextVal = incoming[field];
     if (typeof nextVal !== 'number' || !Number.isInteger(nextVal) || nextVal < 0) {
       return false;
     }
     if (!(field in existing) || typeof existing[field] !== 'number' || !Number.isInteger(existing[field])) {
-      return true;
+      return nextVal === 1;
     }
     const delta = nextVal - (existing[field] as number);
     return delta >= -1 && delta <= 1;
   };
+
+  const isTimestampValue = (val: unknown): boolean =>
+    val === 'SERVER_TIMESTAMP' || val instanceof Date;
 
   const isValidImageUpload = (): boolean => {
     if (!imageMatcher) return false;
@@ -450,47 +453,140 @@ function evaluateRuleset(
           : isAdminFn();
         matched = ownerOrAdmin || (onlyAllowedKeys && countersValid);
       } else if (expr.includes("hasAll(['companyName', 'contactInfo', 'message'])")) {
-        const keyCapOk = expr.includes('keys().size() <= 20')
-          ? Object.keys(incoming).length <= 20
-          : true;
+        const allowedKeys = new Set(['companyName', 'contactInfo', 'message', 'status', 'createdAt']);
+        const keysOk = expr.includes('keys().hasOnly(')
+          ? Object.keys(incoming).every((k) => allowedKeys.has(k))
+          : expr.includes('keys().size() <= 20')
+            ? Object.keys(incoming).length <= 20
+            : true;
         matched =
-          keyCapOk &&
+          keysOk &&
           typeof incoming.companyName === 'string' &&
+          incoming.companyName.length > 0 &&
           incoming.companyName.length <= 200 &&
           typeof incoming.contactInfo === 'string' &&
+          incoming.contactInfo.length > 0 &&
           incoming.contactInfo.length <= 320 &&
           typeof incoming.message === 'string' &&
-          incoming.message.length <= 5000;
+          incoming.message.length > 0 &&
+          incoming.message.length <= 5000 &&
+          (!('status' in incoming) || incoming.status === 'pending') &&
+          (!('createdAt' in incoming) || isTimestampValue(incoming.createdAt));
       } else if (expr.includes("!('companyName' in request.resource.data)")) {
+        const allowedKeys = new Set(['companyName', 'contactInfo', 'message', 'status', 'createdAt']);
+        const keysOk = expr.includes('keys().hasOnly(')
+          ? Object.keys(incoming).every((k) => allowedKeys.has(k))
+          : Object.keys(incoming).length <= 20;
+        const requiresMessage = expr.includes("hasAll(['message'])");
         matched =
-          Object.keys(incoming).length <= 20 &&
+          keysOk &&
+          (!requiresMessage ||
+            (typeof incoming.message === 'string' &&
+              incoming.message.length > 0 &&
+              incoming.message.length <= 5000)) &&
           (!('companyName' in incoming) ||
             (typeof incoming.companyName === 'string' && incoming.companyName.length <= 200)) &&
           (!('contactInfo' in incoming) ||
             (typeof incoming.contactInfo === 'string' && incoming.contactInfo.length <= 320)) &&
           (!('message' in incoming) ||
-            (typeof incoming.message === 'string' && incoming.message.length <= 5000));
+            (typeof incoming.message === 'string' && incoming.message.length <= 5000)) &&
+          (!('status' in incoming) || incoming.status === 'pending') &&
+          (!('createdAt' in incoming) || isTimestampValue(incoming.createdAt));
       } else if (expr.includes('request.resource.data.url is string')) {
         const urlRegexMatch = expr.match(/request\.resource\.data\.url\.matches\(\s*'([^']+)'\s*\)/);
         const urlValid = urlRegexMatch
           ? typeof incoming.url === 'string' &&
             new RegExp(`^(?:${urlRegexMatch[1].replace(/\\\\/g, '\\')})$`).test(incoming.url)
           : typeof incoming.url === 'string';
-        const keyCapOk = expr.includes('keys().size() <= 20')
-          ? Object.keys(incoming).length <= 20
-          : true;
+        const requiresAuth = expr.includes('isSignedIn()');
+        const allowedKeys = new Set([
+          'apartmentId',
+          'apartmentName',
+          'url',
+          'locationTag',
+          'locationTagId',
+          'caption',
+          'status',
+          'createdAt',
+          'uploaderUid',
+          'uploaderEmail',
+          'uploaderName',
+        ]);
+        const keysOk = expr.includes('keys().hasOnly(')
+          ? Object.keys(incoming).every((k) => allowedKeys.has(k))
+          : expr.includes('keys().size() <= 20')
+            ? Object.keys(incoming).length <= 20
+            : true;
+        const uploaderOk = expr.includes("hasAll(['apartmentName', 'url', 'uploaderUid'])")
+          ? typeof incoming.uploaderUid === 'string' &&
+            (incoming.uploaderUid === ctx.auth?.uid || isAdminFn())
+          : expr.includes("'uploaderUid' in request.resource.data")
+            ? !('uploaderUid' in incoming) || incoming.uploaderUid === ctx.auth?.uid || isAdminFn()
+            : true;
         const captionOk = expr.includes("'caption' in request.resource.data")
           ? !('caption' in incoming) ||
             (typeof incoming.caption === 'string' && incoming.caption.length <= 500)
           : true;
         matched =
-          keyCapOk &&
+          (!requiresAuth || isSignedIn()) &&
+          uploaderOk &&
+          keysOk &&
           urlValid &&
           typeof incoming.url === 'string' &&
           incoming.url.length <= 2048 &&
           typeof incoming.apartmentName === 'string' &&
+          incoming.apartmentName.length > 0 &&
           incoming.apartmentName.length <= 200 &&
-          captionOk;
+          (!('apartmentId' in incoming) ||
+            (typeof incoming.apartmentId === 'string' && incoming.apartmentId.length <= 200)) &&
+          (!('locationTag' in incoming) ||
+            (typeof incoming.locationTag === 'string' && incoming.locationTag.length <= 100)) &&
+          (!('locationTagId' in incoming) ||
+            (typeof incoming.locationTagId === 'string' && incoming.locationTagId.length <= 64)) &&
+          captionOk &&
+          (!('status' in incoming) || incoming.status === 'pending' || isAdminFn()) &&
+          (!('createdAt' in incoming) || isTimestampValue(incoming.createdAt)) &&
+          (!('uploaderEmail' in incoming) ||
+            (typeof incoming.uploaderEmail === 'string' && incoming.uploaderEmail.length <= 320)) &&
+          (!('uploaderName' in incoming) ||
+            (typeof incoming.uploaderName === 'string' && incoming.uploaderName.length <= 100));
+      } else if (expr.includes("'transferPrice', 'acquisitionPrice'")) {
+        const allowedKeys = new Set([
+          'apartmentName',
+          'dong',
+          'transferPrice',
+          'acquisitionPrice',
+          'holdingYears',
+          'resideYears',
+          'isOneHouse',
+          'userId',
+          'timestamp',
+        ]);
+        const keys = Object.keys(incoming);
+        const checksTimestampType = expr.includes('request.resource.data.timestamp is timestamp');
+        matched =
+          keys.every((k) => allowedKeys.has(k)) &&
+          typeof incoming.apartmentName === 'string' &&
+          incoming.apartmentName.length > 0 &&
+          incoming.apartmentName.length <= 200 &&
+          (!('dong' in incoming) || (typeof incoming.dong === 'string' && incoming.dong.length <= 100)) &&
+          typeof incoming.transferPrice === 'number' &&
+          incoming.transferPrice >= 0 &&
+          incoming.transferPrice <= 100000000 &&
+          typeof incoming.acquisitionPrice === 'number' &&
+          incoming.acquisitionPrice >= 0 &&
+          incoming.acquisitionPrice <= 100000000 &&
+          (!('holdingYears' in incoming) ||
+            (typeof incoming.holdingYears === 'number' &&
+              incoming.holdingYears >= 0 &&
+              incoming.holdingYears <= 100)) &&
+          (!('resideYears' in incoming) ||
+            (typeof incoming.resideYears === 'number' &&
+              incoming.resideYears >= 0 &&
+              incoming.resideYears <= 100)) &&
+          (!('isOneHouse' in incoming) || typeof incoming.isOneHouse === 'boolean') &&
+          (!('userId' in incoming) || (typeof incoming.userId === 'string' && incoming.userId.length <= 128)) &&
+          (!checksTimestampType || !('timestamp' in incoming) || isTimestampValue(incoming.timestamp));
       } else if (expr.includes('request.resource.data.keys().size() <= 25')) {
         matched = Object.keys(incoming).length <= 25;
       } else if (expr.includes("hasOnly(['aptName', 'count'])")) {
@@ -501,6 +597,8 @@ function evaluateRuleset(
             keys.includes('aptName') &&
             keys.includes('count') &&
             typeof incoming.aptName === 'string' &&
+            incoming.aptName.length > 0 &&
+            incoming.aptName.length <= 200 &&
             incoming.count === 1);
       } else if (expr.includes('request.auth != null && request.auth.token.admin == true')) {
         matched = isAdminFn();
@@ -566,13 +664,17 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
         evaluateRuleset(buggyBlocks, { auth: null, op: 'get', path: '/users/victim_uid' })
       ).toBe(true);
 
-      // 2) Live firestore.rules MUST DENY unauthenticated & cross-user reads on private/server-only collections
+      // 2) Live firestore.rules MUST DENY unauthenticated & cross-user reads on private/server-only/legacy collections
+      expect(firestoreSource).toContain('&& request.resource.data[field] == 1');
       for (const privatePath of [
         '/users/victim_uid',
         '/adInquiries/inq_1',
         '/ad_inquiries/inq_1',
         '/pending_photos/photo_1',
         '/sell_diagnosis_logs/log_1',
+        '/coLeasePosts/post_1',
+        '/config/dongData',
+        '/posts/post_1',
         '/board_posts/post_1',
         '/board_comments/comment_1',
         '/board_author_profiles/hash_1',
@@ -686,6 +788,48 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
           incomingData: { ...baseReport, title: '변조된 제목', likes: 11 },
         })
       ).toBe(false);
+      // Deleting an existing counter field via deleteField() MUST be denied on field_reports and favoriteCounts
+      expect(firestoreSource).toContain('!(field in request.resource.data) && !(field in resource.data)');
+      const { likes: _deletedLikes, ...reportWithDeletedLikes } = baseReport;
+      expect(
+        evaluateRuleset(fsBlocks, {
+          auth: null,
+          op: 'update',
+          path: '/field_reports/rep_1',
+          existingData: baseReport,
+          incomingData: reportWithDeletedLikes,
+        })
+      ).toBe(false);
+      expect(
+        evaluateRuleset(fsBlocks, {
+          auth: null,
+          op: 'update',
+          path: '/favoriteCounts/apt_1',
+          existingData: { aptName: '동탄역롯데캐슬', count: 120 },
+          incomingData: { aptName: '동탄역롯데캐슬' },
+        })
+      ).toBe(false);
+
+      // Missing counter field MUST only be initialized to 1 (never 9999999)
+      const reportMissingCounter = { authorUid: 'owner_1', title: '카운터 미초기화 임장기' };
+      expect(
+        evaluateRuleset(fsBlocks, {
+          auth: null,
+          op: 'update',
+          path: '/field_reports/rep_missing',
+          existingData: reportMissingCounter,
+          incomingData: { ...reportMissingCounter, likes: 9999999 },
+        })
+      ).toBe(false);
+      expect(
+        evaluateRuleset(fsBlocks, {
+          auth: null,
+          op: 'update',
+          path: '/field_reports/rep_missing',
+          existingData: reportMissingCounter,
+          incomingData: { ...reportMissingCounter, likes: 1 },
+        })
+      ).toBe(true);
 
       // 6) Public market collections allow read, block unauthenticated write
       expect(
@@ -738,23 +882,38 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
         })
       ).toBe(false);
 
+      // Unauthenticated pending_photos create MUST be denied
       expect(
         evaluateRuleset(fsBlocks, {
           auth: null,
+          op: 'create',
+          path: '/pending_photos/unauth_photo_1',
+          incomingData: {
+            apartmentId: 'apt_1',
+            apartmentName: '동탄역롯데캐슬',
+            url: 'https://firebasestorage.googleapis.com/v0/b/portfolio-dtdls.firebasestorage.app/o/user_pending_photos%2Fu1%2F170000-abc.jpg?alt=media',
+            uploaderUid: 'u1',
+          },
+        })
+      ).toBe(false);
+
+      expect(
+        evaluateRuleset(fsBlocks, {
+          auth: { uid: 'u1' },
           op: 'create',
           path: '/pending_photos/legit_photo_1',
           incomingData: {
             apartmentId: 'apt_1',
             apartmentName: '동탄역롯데캐슬',
-            url: 'https://firebasestorage.googleapis.com/v0/b/portfolio-dtdls.appspot.com/o/user_pending_photos%2F170000-abc.jpg?alt=media',
+            url: 'https://firebasestorage.googleapis.com/v0/b/portfolio-dtdls.appspot.com/o/user_pending_photos%2Fu1%2F170000-abc.jpg?alt=media',
             locationTag: '단지 외관 / 정문',
             locationTagId: 'gate',
             caption: '정문 전경 사진입니다.',
             status: 'pending',
             createdAt: 'SERVER_TIMESTAMP',
-            uploaderUid: 'anonymous',
-            uploaderEmail: 'anonymous',
-            uploaderName: '익명',
+            uploaderUid: 'u1',
+            uploaderEmail: 'u1@example.com',
+            uploaderName: '동탄주민',
           },
         })
       ).toBe(true);
@@ -762,29 +921,131 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
         'javascript:alert(document.cookie)',
         'data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+PC9zdmc+',
         'https://evil.example.com/xss.svg',
-        'http://firebasestorage.googleapis.com/v0/b/portfolio-dtdls/o/a.jpg',
+        'https://storage.googleapis.com/evil-attacker-bucket/payload.jpg',
+        'https://firebasestorage.googleapis.com/v0/b/evil-project.appspot.com/o/a.jpg',
+        'http://firebasestorage.googleapis.com/v0/b/portfolio-dtdls.appspot.com/o/a.jpg',
       ]) {
         expect(
           evaluateRuleset(fsBlocks, {
-            auth: null,
+            auth: { uid: 'u1' },
             op: 'create',
             path: '/pending_photos/xss_attempt',
             incomingData: {
               apartmentName: '동탄역롯데캐슬',
               url: maliciousPhotoUrl,
+              uploaderUid: 'u1',
             },
           })
         ).toBe(false);
       }
       expect(
         evaluateRuleset(fsBlocks, {
-          auth: null,
+          auth: { uid: 'u1' },
           op: 'create',
           path: '/pending_photos/oversized_caption',
           incomingData: {
             apartmentName: '동탄역롯데캐슬',
-            url: 'https://storage.googleapis.com/portfolio-dtdls.appspot.com/user_pending_photos/a.jpg',
+            url: 'https://storage.googleapis.com/portfolio-dtdls.appspot.com/user_pending_photos/u1/a.jpg',
             caption: 'C'.repeat(501),
+            uploaderUid: 'u1',
+          },
+        })
+      ).toBe(false);
+
+      // sell_diagnosis_logs enforces strict allowed schema & field types (blocks 1MiB arbitrary payload spam)
+      expect(
+        evaluateRuleset(fsBlocks, {
+          auth: null,
+          op: 'create',
+          path: '/sell_diagnosis_logs/legit_1',
+          incomingData: {
+            apartmentName: '동탄역롯데캐슬',
+            dong: '오산동',
+            transferPrice: 150000,
+            acquisitionPrice: 90000,
+            holdingYears: 5,
+            resideYears: 3,
+            isOneHouse: true,
+            userId: 'anonymous',
+            timestamp: 'SERVER_TIMESTAMP',
+          },
+        })
+      ).toBe(true);
+      expect(
+        evaluateRuleset(fsBlocks, {
+          auth: null,
+          op: 'create',
+          path: '/sell_diagnosis_logs/spam_1',
+          incomingData: {
+            apartmentName: '동탄역롯데캐슬',
+            transferPrice: 150000,
+            acquisitionPrice: 90000,
+            arbitraryBlob: 'X'.repeat(10000),
+          },
+        })
+      ).toBe(false);
+      // Arbitrary string/object payload smuggled in timestamp MUST be denied
+      expect(
+        evaluateRuleset(fsBlocks, {
+          auth: null,
+          op: 'create',
+          path: '/sell_diagnosis_logs/spam_timestamp',
+          incomingData: {
+            apartmentName: '동탄역롯데캐슬',
+            transferPrice: 150000,
+            acquisitionPrice: 90000,
+            timestamp: 'X'.repeat(50000),
+          },
+        })
+      ).toBe(false);
+      // Pending photo forged status, missing uploaderUid, or arbitrary extra field MUST be denied
+      expect(
+        evaluateRuleset(fsBlocks, {
+          auth: { uid: 'u1' },
+          op: 'create',
+          path: '/pending_photos/forged_status',
+          incomingData: {
+            apartmentName: '동탄역롯데캐슬',
+            url: 'https://firebasestorage.googleapis.com/v0/b/portfolio-dtdls.firebasestorage.app/o/user_pending_photos%2Fu1%2Fa.jpg?alt=media',
+            uploaderUid: 'u1',
+            status: 'approved',
+          },
+        })
+      ).toBe(false);
+      expect(
+        evaluateRuleset(fsBlocks, {
+          auth: { uid: 'u1' },
+          op: 'create',
+          path: '/pending_photos/missing_uid',
+          incomingData: {
+            apartmentName: '동탄역롯데캐슬',
+            url: 'https://firebasestorage.googleapis.com/v0/b/portfolio-dtdls.firebasestorage.app/o/user_pending_photos%2Fu1%2Fa.jpg?alt=media',
+          },
+        })
+      ).toBe(false);
+      // adInquiries empty strings or arbitrary extra fields MUST be denied
+      expect(
+        evaluateRuleset(fsBlocks, {
+          auth: null,
+          op: 'create',
+          path: '/adInquiries/spam_extra',
+          incomingData: {
+            companyName: 'Test',
+            contactInfo: 'a@b.com',
+            message: 'hi',
+            extraSpam: 'X'.repeat(50000),
+          },
+        })
+      ).toBe(false);
+      expect(
+        evaluateRuleset(fsBlocks, {
+          auth: null,
+          op: 'create',
+          path: '/adInquiries/empty_fields',
+          incomingData: {
+            companyName: '',
+            contactInfo: '',
+            message: '',
           },
         })
       ).toBe(false);
@@ -858,7 +1119,7 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
         `)
       ).toThrow(/Expected exactly 1/);
 
-      // Regression proof: legacy `image/.*` would have allowed unauthenticated Stored XSS via /user_pending_photos/xss.svg
+      // Regression proof: legacy `image/.*` would have allowed Stored XSS via /user_pending_photos/u1/xss.svg
       const legacyInsecureImageMatcher = parseStorageImageUploadMatcher(
         "function isValidImageUpload() { return request.resource != null && request.resource.size <= 10 * 1024 * 1024 && request.resource.contentType.matches('image/.*'); }"
       );
@@ -866,25 +1127,80 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
         evaluateRuleset(
           stBlocks,
           {
-            auth: null,
+            auth: { uid: 'u1' },
             op: 'create',
-            path: '/user_pending_photos/xss.svg',
+            path: '/user_pending_photos/u1/xss.svg',
             incomingMeta: { size: 512, contentType: 'image/svg+xml' },
           },
           legacyInsecureImageMatcher
         )
       ).toBe(true);
 
-      // Live storage.rules MUST DENY image/svg+xml & non-raster payloads across ALL upload buckets (including unauthenticated /user_pending_photos)
+      // Existing GCS public asset prefixes preserve public read while locking writes to admin only
+      for (const legacyAssetPath of [
+        '/lounge_images/post-1.webp',
+        '/report_images/2026/rep-1.jpg',
+        '/thumbnails/apt-1.png',
+      ]) {
+        expect(evaluateRuleset(stBlocks, { auth: null, op: 'get', path: legacyAssetPath }, stImageMatcher)).toBe(true);
+        expect(
+          evaluateRuleset(
+            stBlocks,
+            { auth: { uid: 'u1' }, op: 'create', path: legacyAssetPath, incomingMeta: { size: 1024, contentType: 'image/jpeg' } },
+            stImageMatcher
+          )
+        ).toBe(false);
+        expect(
+          evaluateRuleset(
+            stBlocks,
+            { auth: { uid: 'admin', token: { admin: true } }, op: 'create', path: legacyAssetPath, incomingMeta: { size: 1024, contentType: 'image/jpeg' } },
+            stImageMatcher
+          )
+        ).toBe(true);
+      }
+
+      // Unauthenticated / cross-user access to /user_pending_photos MUST be denied (no anonymous 10MB public upload/read)
+      expect(
+        evaluateRuleset(
+          stBlocks,
+          { auth: null, op: 'create', path: '/user_pending_photos/anon.jpg', incomingMeta: { size: 1024, contentType: 'image/jpeg' } },
+          stImageMatcher
+        )
+      ).toBe(false);
+      expect(
+        evaluateRuleset(
+          stBlocks,
+          { auth: null, op: 'get', path: '/user_pending_photos/u1/private.jpg' },
+          stImageMatcher
+        )
+      ).toBe(false);
+      expect(
+        evaluateRuleset(
+          stBlocks,
+          { auth: { uid: 'u2' }, op: 'get', path: '/user_pending_photos/u1/private.jpg' },
+          stImageMatcher
+        )
+      ).toBe(false);
+      expect(
+        evaluateRuleset(
+          stBlocks,
+          { auth: { uid: 'u1' }, op: 'get', path: '/user_pending_photos/u1/private.jpg' },
+          stImageMatcher
+        )
+      ).toBe(true);
+
+      // Live storage.rules MUST DENY image/svg+xml & non-raster payloads across ALL upload buckets
       for (const targetUpload of [
         { auth: null, path: '/user_pending_photos/xss.svg' },
-        { auth: { uid: 'u1' }, path: '/user_pending_photos/xss.svg' },
+        { auth: { uid: 'u1' }, path: '/user_pending_photos/u1/xss.svg' },
         { auth: { uid: 'u1' }, path: '/profiles/u1/xss.svg' },
         { auth: { uid: 'u1' }, path: '/reports/u1/xss.svg' },
         { auth: { uid: 'u1' }, path: '/posts/u1/xss.svg' },
         { auth: { uid: 'u1' }, path: '/reviews/u1/xss.svg' },
         { auth: { uid: 'u1' }, path: '/field_reports/xss.svg' },
+        { auth: { uid: 'u1' }, path: '/field_reports/u1/xss.svg' },
         { auth: { uid: 'u1' }, path: '/user_reviews/xss.svg' },
+        { auth: { uid: 'u1' }, path: '/user_reviews/u1/xss.svg' },
       ]) {
         for (const forbiddenMime of [
           'image/svg+xml',
@@ -917,9 +1233,9 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
         evaluateRuleset(
           stBlocks,
           {
-            auth: null,
+            auth: { uid: 'u1' },
             op: 'create',
-            path: '/user_pending_photos/null-mime.jpg',
+            path: '/user_pending_photos/u1/null-mime.jpg',
             incomingMeta: { size: 1024, contentType: null },
           },
           stImageMatcher
@@ -929,9 +1245,9 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
         evaluateRuleset(
           stBlocks,
           {
-            auth: null,
+            auth: { uid: 'u1' },
             op: 'create',
-            path: '/user_pending_photos/no-meta.jpg',
+            path: '/user_pending_photos/u1/no-meta.jpg',
             incomingMeta: null,
           },
           stImageMatcher
@@ -941,9 +1257,9 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
         evaluateRuleset(
           stBlocks,
           {
-            auth: null,
+            auth: { uid: 'u1' },
             op: 'create',
-            path: '/user_pending_photos/empty.jpg',
+            path: '/user_pending_photos/u1/empty.jpg',
             incomingMeta: { size: 0, contentType: 'image/jpeg' },
           },
           stImageMatcher
@@ -953,9 +1269,9 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
         evaluateRuleset(
           stBlocks,
           {
-            auth: null,
+            auth: { uid: 'u1' },
             op: 'create',
-            path: '/user_pending_photos/exact-10mb.heic',
+            path: '/user_pending_photos/u1/exact-10mb.heic',
             incomingMeta: { size: 10 * 1024 * 1024, contentType: 'image/heic' },
           },
           stImageMatcher
@@ -965,9 +1281,9 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
         evaluateRuleset(
           stBlocks,
           {
-            auth: null,
+            auth: { uid: 'u1' },
             op: 'create',
-            path: '/user_pending_photos/over-10mb-by-1b.heic',
+            path: '/user_pending_photos/u1/over-10mb-by-1b.heic',
             incomingMeta: { size: 10 * 1024 * 1024 + 1, contentType: 'image/heic' },
           },
           stImageMatcher
@@ -977,16 +1293,16 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
         evaluateRuleset(
           stBlocks,
           {
-            auth: null,
+            auth: { uid: 'u1' },
             op: 'update',
-            path: '/user_pending_photos/exact-10mb.heic',
+            path: '/user_pending_photos/u1/exact-10mb.heic',
             incomingMeta: { size: 1024, contentType: 'image/jpeg' },
           },
           stImageMatcher
         )
       ).toBe(false);
 
-      // All 8 whitelisted raster MIME types succeed on legitimate upload paths
+      // All 8 whitelisted raster MIME types succeed on legitimate authenticated upload paths
       for (const validMime of [
         'image/jpeg',
         'image/jpg',
@@ -1013,9 +1329,9 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
           evaluateRuleset(
             stBlocks,
             {
-              auth: null,
+              auth: { uid: 'u1' },
               op: 'create',
-              path: '/user_pending_photos/pending.img',
+              path: '/user_pending_photos/u1/pending.img',
               incomingMeta: { size: 512 * 1024, contentType: validMime },
             },
             stImageMatcher
@@ -1023,6 +1339,39 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
         ).toBe(true);
       }
 
+      // UID-scoped /field_reports/{uid}/{fileName} and /user_reviews/{uid}/{fileName} isolation
+      expect(
+        evaluateRuleset(
+          stBlocks,
+          {
+            auth: { uid: 'u1' },
+            op: 'create',
+            path: '/field_reports/u1/170000-photo.jpg',
+            incomingMeta: { size: 2 * 1024 * 1024, contentType: 'image/jpeg' },
+          },
+          stImageMatcher
+        )
+      ).toBe(true);
+      expect(
+        evaluateRuleset(
+          stBlocks,
+          {
+            auth: { uid: 'u2' },
+            op: 'create',
+            path: '/field_reports/u1/170000-photo.jpg',
+            incomingMeta: { size: 2 * 1024 * 1024, contentType: 'image/jpeg' },
+          },
+          stImageMatcher
+        )
+      ).toBe(false);
+      // Legacy flat /field_reports/{fileName} preserves public read but blocks non-admin writes
+      expect(
+        evaluateRuleset(
+          stBlocks,
+          { auth: null, op: 'get', path: '/field_reports/legacy-photo.jpg' },
+          stImageMatcher
+        )
+      ).toBe(true);
       expect(
         evaluateRuleset(
           stBlocks,
@@ -1034,14 +1383,14 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
           },
           stImageMatcher
         )
-      ).toBe(true);
+      ).toBe(false);
       expect(
         evaluateRuleset(
           stBlocks,
           {
             auth: null,
             op: 'create',
-            path: '/field_reports/unauth-photo.jpg',
+            path: '/field_reports/u1/unauth-photo.jpg',
             incomingMeta: { size: 1024, contentType: 'image/jpeg' },
           },
           stImageMatcher
@@ -1053,7 +1402,31 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
           {
             auth: { uid: 'u1' },
             op: 'create',
-            path: '/user_reviews/oversized.png',
+            path: '/user_reviews/u1/170000-photo.jpg',
+            incomingMeta: { size: 2 * 1024 * 1024, contentType: 'image/png' },
+          },
+          stImageMatcher
+        )
+      ).toBe(true);
+      expect(
+        evaluateRuleset(
+          stBlocks,
+          {
+            auth: { uid: 'u2' },
+            op: 'create',
+            path: '/user_reviews/u1/170000-photo.jpg',
+            incomingMeta: { size: 1024, contentType: 'image/png' },
+          },
+          stImageMatcher
+        )
+      ).toBe(false);
+      expect(
+        evaluateRuleset(
+          stBlocks,
+          {
+            auth: { uid: 'u1' },
+            op: 'create',
+            path: '/user_reviews/u1/oversized.png',
             incomingMeta: { size: 15 * 1024 * 1024, contentType: 'image/png' },
           },
           stImageMatcher
@@ -1066,6 +1439,17 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
             auth: { uid: 'u1' },
             op: 'delete',
             path: '/user_reviews/170000-photo.jpg',
+          },
+          stImageMatcher
+        )
+      ).toBe(false);
+      expect(
+        evaluateRuleset(
+          stBlocks,
+          {
+            auth: { uid: 'u2' },
+            op: 'delete',
+            path: '/user_reviews/u1/170000-photo.jpg',
           },
           stImageMatcher
         )
@@ -1198,14 +1582,16 @@ describe('DVIEW Phase 4 — Security Policy (DVIEW_SECURITY.md), Dead Ends (DEAD
         );
         expect(isAuthorizedNotifyNewHighRequest(validBearerPushReq)).toBe(true);
 
-        const validApiKeyPushReq = new NextRequest(
+        // x-building-api-key MUST NOT be accepted as an authorization credential (CRIT-02)
+        const apiKeyPushReq = new NextRequest(
           'https://dongtanview.com/api/push/notify-new-high',
           {
             method: 'POST',
             headers: { 'x-building-api-key': 'prod-building-key' },
           }
         );
-        expect(isAuthorizedNotifyNewHighRequest(validApiKeyPushReq)).toBe(true);
+        expect(isAuthorizedNotifyNewHighRequest(apiKeyPushReq)).toBe(false);
+        expect((await notifyNewHighPost(apiKeyPushReq)).status).toBe(401);
       } finally {
         (process.env as Record<string, string | undefined>).NODE_ENV = origNodeEnv;
         if (origCronSecret === undefined) delete process.env.CRON_SECRET;

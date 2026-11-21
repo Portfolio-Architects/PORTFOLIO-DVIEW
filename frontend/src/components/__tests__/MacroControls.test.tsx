@@ -47,7 +47,7 @@ describe('MacroControls Component Suite - Comprehensive Unit Tests', () => {
       );
 
       const dongtan2Chip = screen.getByRole('button', { name: /동탄2/i });
-      expect(dongtan2Chip).toHaveClass('bg-blue-600');
+      expect(dongtan2Chip).toHaveClass('bg-slate-900');
       expect(dongtan2Chip).toHaveClass('text-white');
 
       const highChip = screen.getByRole('button', { name: /신고가/i });
@@ -66,7 +66,7 @@ describe('MacroControls Component Suite - Comprehensive Unit Tests', () => {
         />
       );
       const billionChip = screen.getByRole('button', { name: /10억 클럽/i });
-      expect(billionChip).toHaveClass('bg-blue-600');
+      expect(billionChip).toHaveClass('bg-slate-900');
     });
   });
 
@@ -148,8 +148,8 @@ describe('MacroControls Component Suite - Comprehensive Unit Tests', () => {
       const cardBtn = screen.getByLabelText('카드 뷰 보기');
       const listBtn = screen.getByLabelText('리스트 뷰 보기');
 
-      expect(cardBtn).toHaveClass('text-blue-600');
-      expect(listBtn).not.toHaveClass('text-blue-600');
+      expect(cardBtn).toHaveClass('dview-toggle-btn-active-neutral');
+      expect(listBtn).not.toHaveClass('dview-toggle-btn-active-neutral');
 
       fireEvent.click(listBtn);
       expect(setViewModeMock).toHaveBeenCalledWith('list');
@@ -161,7 +161,7 @@ describe('MacroControls Component Suite - Comprehensive Unit Tests', () => {
           setViewMode={setViewModeMock}
         />
       );
-      expect(listBtn).toHaveClass('text-blue-600');
+      expect(listBtn).toHaveClass('dview-toggle-btn-active-neutral');
     });
   });
 
@@ -398,8 +398,8 @@ describe('MacroControls Component Suite - Comprehensive Unit Tests', () => {
         />
       );
 
-      expect(screen.getByLabelText('권역 및 법정동 선택').className).toContain('text-blue-600');
-      expect(screen.getByTestId('timeline-pyeong-select').className).toContain('text-blue-600');
+      expect(screen.getByLabelText('권역 및 법정동 선택').className).toContain('dview-control-select-active');
+      expect(screen.getByTestId('timeline-pyeong-select').className).toContain('dview-control-select-active');
       expect(screen.getByTestId('timeline-newhigh-chip')).toHaveAttribute('aria-pressed', 'true');
 
       fireEvent.click(screen.getByTestId('timeline-newhigh-chip'));

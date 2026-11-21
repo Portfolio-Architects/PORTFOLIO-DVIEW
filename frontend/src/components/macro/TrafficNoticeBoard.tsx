@@ -27,9 +27,6 @@ export function TrafficNoticeBoard({
       {/* Header */}
       <div className="flex justify-between items-center border-b border-slate-200/70 dark:border-slate-800/80 pb-3 shrink-0">
         <div className="relative group/title flex items-center gap-1.5 min-w-0">
-          <span className="bg-emerald-600/10 dark:bg-emerald-600/25 text-emerald-700 dark:text-emerald-400 font-extrabold text-[10.5px] px-2 sm:px-2.5 py-0.5 rounded-[8px] shrink-0">
-            철도·교통
-          </span>
           <h4 className="text-[14px] font-extrabold text-primary tracking-tight truncate">
             동탄 철도 교통 게시판
           </h4>
@@ -49,7 +46,7 @@ export function TrafficNoticeBoard({
         {/* 1. 철도전략과 소식 */}
         <div className="flex flex-col gap-1">
           <div className="text-[12.5px] font-black text-secondary/80 flex items-center gap-1.5 px-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
             철도전략과 소식
           </div>
           {railStrategyNotices.length === 0 ? (
@@ -69,11 +66,11 @@ export function TrafficNoticeBoard({
                     window.location.href = `/news?notice=${item.id}`;
                   }
                 }}
-                className="flex items-center justify-between py-1 px-2 hover:bg-surface rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-slate-200/70 dark:hover:border-slate-800/80 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                className="flex items-center justify-between py-1 px-2 hover:bg-surface rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-slate-200/70 dark:hover:border-slate-800/80 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20"
               >
                 {/* Left: Title */}
                 <div className="flex items-center min-w-0 mr-2">
-                  <span className="text-[13.5px] sm:text-[14px] font-bold text-primary group-hover/item:text-emerald-700 dark:group-hover/item:text-emerald-400 transition-colors truncate" title={item.title}>
+                  <span className="text-[13.5px] sm:text-[14px] font-bold text-primary transition-colors truncate" title={item.title}>
                     {item.title}
                   </span>
                 </div>
@@ -94,7 +91,7 @@ export function TrafficNoticeBoard({
         {/* 2. 트램건설추진단 소식 */}
         <div className="flex flex-col gap-1">
           <div className="text-[12.5px] font-black text-secondary/80 flex items-center gap-1.5 px-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
             트램건설추진단 소식
           </div>
           {tramNotices.length === 0 ? (
@@ -110,11 +107,11 @@ export function TrafficNoticeBoard({
                 onClick={() => {
                   window.open(item.url, '_blank', 'noopener,noreferrer');
                 }}
-                className="flex items-center justify-between py-1 px-2 hover:bg-surface rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-slate-200/70 dark:hover:border-slate-800/80 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                className="flex items-center justify-between py-1 px-2 hover:bg-surface rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-slate-200/70 dark:hover:border-slate-800/80 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20"
               >
                 {/* Left: Title */}
                 <div className="flex items-center min-w-0 mr-2">
-                  <span className="text-[13.5px] sm:text-[14px] font-bold text-primary group-hover/item:text-emerald-600 dark:group-hover/item:text-emerald-400 transition-colors truncate" title={item.title}>
+                  <span className="text-[13.5px] sm:text-[14px] font-bold text-primary transition-colors truncate" title={item.title}>
                     {item.title}
                   </span>
                 </div>

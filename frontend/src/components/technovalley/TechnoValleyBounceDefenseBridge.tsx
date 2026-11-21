@@ -206,14 +206,14 @@ export default function TechnoValleyBounceDefenseBridge({
     <div
       data-testid="technovalley-bounce-defense-bridge"
       data-surface={surface}
-      className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-3.5 sm:p-4 space-y-3.5 min-h-[156px]"
+      className="w-full rounded-2xl bg-elevated border border-border/60 p-3.5 sm:p-4 space-y-3.5 min-h-[156px]"
     >
       {/* 1. Nearby / Comparable Knowledge Industry Center Comparison Bridge */}
       {peers.length > 0 && (
         <div data-testid="technovalley-peer-comparison-strip" className="space-y-2.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-extrabold text-primary">
-              <Building2 size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <Building2 size={14} className="text-secondary shrink-0" />
               <span>{peerHeaderCopy}</span>
             </div>
             <span className="text-[11px] font-bold text-tertiary tabular-nums">
@@ -242,7 +242,7 @@ export default function TechnoValleyBounceDefenseBridge({
                     surface,
                   });
                 }}
-                className="group rounded-xl bg-surface dark:bg-[#202027] hover:bg-slate-50 dark:hover:bg-[#2c2c35] px-3 py-2.5 flex flex-col justify-between gap-1.5 transition-colors min-w-0"
+                className="group rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border/70 px-3 py-2.5 flex flex-col justify-between gap-1.5 transition-colors min-w-0"
               >
                 <div className="flex items-start justify-between gap-1.5 min-w-0">
                   <div className="min-w-0">
@@ -251,26 +251,26 @@ export default function TechnoValleyBounceDefenseBridge({
                       <span>·</span>
                       <span>{peer.statusLabel}</span>
                     </div>
-                    <div className="text-xs sm:text-[13px] font-black text-primary group-hover:text-emerald-700 dark:group-hover:text-emerald-300 truncate mt-0.5">
+                    <div className="text-xs sm:text-[13px] font-black text-primary group-hover:text-primary truncate mt-0.5">
                       {peer.displayLabel}
                     </div>
                   </div>
                   <ArrowUpRight
                     size={13}
-                    className="text-tertiary group-hover:text-emerald-600 dark:group-hover:text-emerald-400 shrink-0 mt-0.5"
+                    className="text-tertiary group-hover:text-primary shrink-0 mt-0.5"
                   />
                 </div>
 
-                <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-[#f2f4f6] dark:border-[#2c2c35] text-[11px] tabular-nums">
+                <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-border/60 text-[11px] tabular-nums">
                   <span className="text-secondary font-semibold truncate">
                     {peer.totalFloorAreaLabel} · {peer.unitCountLabel}
                   </span>
                   {peer.hasRealSaleTx && peer.latestSalePrice ? (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-extrabold shrink-0">
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-primary font-extrabold shrink-0">
                       매매 {peer.latestSalePrice}
                     </span>
                   ) : (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-secondary font-bold shrink-0">
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-secondary font-bold shrink-0">
                       스펙 비교
                     </span>
                   )}
@@ -284,12 +284,12 @@ export default function TechnoValleyBounceDefenseBridge({
       {/* 2. One-Line Corporate / Acquisition Tax Benefit Summary & #tax-simulator Jump Bridge */}
       <div
         data-testid="technovalley-tax-inline-bridge"
-        className="rounded-xl bg-surface dark:bg-[#202027] px-3.5 py-3 flex flex-col xl:flex-row xl:items-center justify-between gap-3"
+        className="rounded-xl bg-surface border border-border/70 px-3.5 py-3 flex flex-col xl:flex-row xl:items-center justify-between gap-3"
       >
         <div className="flex flex-col gap-2 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1 text-xs font-extrabold text-primary">
-              <Landmark size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <Landmark size={13} className="text-secondary shrink-0" />
               <span>법인·입주 세제 감면 즉시 계산</span>
             </span>
 
@@ -306,7 +306,7 @@ export default function TechnoValleyBounceDefenseBridge({
                   className={getToggleBtnClass({
                     active: selectedPriceManwon === safeInitialPrice,
                     size: 'sm',
-                    tone: 'emerald',
+                    tone: 'neutral',
                     extraClass: 'tabular-nums',
                   })}
                 >
@@ -321,7 +321,7 @@ export default function TechnoValleyBounceDefenseBridge({
                   className={getToggleBtnClass({
                     active: selectedPriceManwon === preset.value,
                     size: 'sm',
-                    tone: 'emerald',
+                    tone: 'neutral',
                     extraClass: 'tabular-nums',
                   })}
                 >
@@ -342,7 +342,7 @@ export default function TechnoValleyBounceDefenseBridge({
                 className={getToggleBtnClass({
                   active: locationMode === 'overconcentrated',
                   size: 'sm',
-                  tone: 'blue',
+                  tone: 'neutral',
                 })}
               >
                 과밀억제권역 이전
@@ -353,7 +353,7 @@ export default function TechnoValleyBounceDefenseBridge({
                 className={getToggleBtnClass({
                   active: locationMode === 'other',
                   size: 'sm',
-                  tone: 'blue',
+                  tone: 'neutral',
                 })}
               >
                 일반 취득
@@ -364,7 +364,7 @@ export default function TechnoValleyBounceDefenseBridge({
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-secondary font-semibold tabular-nums">
             <span>
               취득세 35% 감면{' '}
-              <strong className="font-black text-emerald-700 dark:text-emerald-300">
+              <strong className="font-black text-brand-blue">
                 약 {taxPreview.savedAcquisitionTaxManwon.toLocaleString('ko-KR')}만원 절감
               </strong>
             </span>
@@ -378,7 +378,7 @@ export default function TechnoValleyBounceDefenseBridge({
             <span className="text-tertiary">·</span>
             <span>
               법인세{' '}
-              <strong className="font-extrabold text-blue-600 dark:text-blue-400">
+              <strong className="font-extrabold text-primary">
                 {locationMode === 'overconcentrated'
                   ? '4년 100% + 2년 50% 감면'
                   : '감면 대상 외(성장관리권역)'}
@@ -391,7 +391,7 @@ export default function TechnoValleyBounceDefenseBridge({
           type="button"
           data-testid="technovalley-open-tax-simulator-cta"
           onClick={handleOpenTaxSimulator}
-          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors cursor-pointer shrink-0 whitespace-nowrap"
+          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-xs font-extrabold transition-colors cursor-pointer shrink-0 whitespace-nowrap"
         >
           <Calculator size={14} className="shrink-0" />
           <span>세제 감면 시뮬레이터 열기</span>

@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from '@/lib/services/logger';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
+import { sanitizeOgBackgroundUrl } from '@/lib/security/urlValidator';
 import { MBTI_PROFILES } from '@/lib/data/mbtiData';
 import { MbtiType } from '@/types/mbti';
 
@@ -113,11 +114,19 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     
+    const rawBgUrl = searchParams.get('bgUrl');
+    const sanitizedBgUrl = sanitizeOgBackgroundUrl(rawBgUrl);
+    if (rawBgUrl && !sanitizedBgUrl) {
+      logger.warn('OGImageAPI.GET', 'Blocked untrusted or unsafe bgUrl parameter', {
+        bgUrlLength: rawBgUrl.length,
+      });
+    }
+
     // Schema with individual .catch() will guarantee safeParse is always successful and defaults populated
     const parsed = ogParamsSchema.safeParse({
       title: searchParams.get('title'),
       subtitle: searchParams.get('subtitle'),
-      bgUrl: searchParams.get('bgUrl'),
+      bgUrl: sanitizedBgUrl,
       price: searchParams.get('price'),
       ratio: searchParams.get('ratio'),
       status: searchParams.get('status'),

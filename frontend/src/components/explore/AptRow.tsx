@@ -40,15 +40,14 @@ export const AptRow = memo(({
   const getRankBadgeStyle = (idx: number) => {
     switch (idx) {
       case 0:
-        return 'bg-blue-600 text-white border border-blue-600 shadow-2xs';
+        return 'dview-spark-badge text-white shadow-2xs';
       case 1:
-        return 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200 dark:border-blue-800/40';
       case 2:
-        return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40';
+        return 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-2xs';
       case 3:
-        return 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700/50';
+        return 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary';
       default:
-        return 'bg-slate-100 dark:bg-slate-900/40 text-slate-500 dark:text-slate-400 border border-border/30';
+        return 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary';
     }
   };
 
@@ -65,7 +64,7 @@ export const AptRow = memo(({
       return (
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[11px] font-bold text-tertiary">최근 평균 매매가</span>
-          <span className="text-sm md:text-base font-black text-blue-600 dark:text-blue-400 mt-0.5">{item.totalPrice > 0 ? item.formattedPrice : '-'}</span>
+          <span className="text-sm md:text-base font-black text-primary tabular-nums mt-0.5">{item.totalPrice > 0 ? item.formattedPrice : '-'}</span>
         </div>
       );
     }
@@ -73,7 +72,7 @@ export const AptRow = memo(({
       return (
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[11px] font-bold text-tertiary">3.3㎡당 평단가</span>
-          <span className="text-sm md:text-base font-black text-blue-600 dark:text-blue-400 tabular-nums mt-0.5">
+          <span className="text-sm md:text-base font-black text-primary tabular-nums mt-0.5">
             {item.pyeongPrice > 0 ? `${item.formattedPyeong}/평` : '-'}
           </span>
           {eq34PriceMan > 0 && (
@@ -88,7 +87,7 @@ export const AptRow = memo(({
       return (
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[11px] font-bold text-tertiary">전세가율</span>
-          <span className="text-sm md:text-base font-black text-brand-blue dark:text-brand-blue mt-0.5">{item.ratio > 0 ? item.formattedRatio : '-'}</span>
+          <span className="text-sm md:text-base font-black text-primary tabular-nums mt-0.5">{item.ratio > 0 ? item.formattedRatio : '-'}</span>
         </div>
       );
     }
@@ -96,7 +95,7 @@ export const AptRow = memo(({
       return (
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[11px] font-bold text-tertiary">최근 3개월 회전율</span>
-          <span className="text-sm md:text-base font-black text-blue-600 dark:text-blue-400 mt-0.5">{item.turnoverRate > 0 ? `${item.turnoverRate.toFixed(1)}%` : '-'}</span>
+          <span className="text-sm md:text-base font-black text-primary tabular-nums mt-0.5">{item.turnoverRate > 0 ? `${item.turnoverRate.toFixed(1)}%` : '-'}</span>
         </div>
       );
     }
@@ -104,14 +103,14 @@ export const AptRow = memo(({
       return (
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[11px] font-bold text-tertiary">조회수</span>
-          <span className="text-sm md:text-base font-black text-blue-600 dark:text-blue-400 mt-0.5">{views > 0 ? `${views.toLocaleString()}회` : '0회'}</span>
+          <span className="text-sm md:text-base font-black text-primary tabular-nums mt-0.5">{views > 0 ? `${views.toLocaleString()}회` : '0회'}</span>
         </div>
       );
     }
     return (
       <div className="flex flex-col items-start md:items-end">
         <span className="text-[11px] font-bold text-tertiary">최근 평균 매매가</span>
-        <span className="text-sm md:text-base font-black text-blue-600 dark:text-blue-400 mt-0.5">{item.totalPrice > 0 ? item.formattedPrice : '-'}</span>
+        <span className="text-sm md:text-base font-black text-primary tabular-nums mt-0.5">{item.totalPrice > 0 ? item.formattedPrice : '-'}</span>
       </div>
     );
   };
@@ -128,7 +127,7 @@ export const AptRow = memo(({
           preloadApartmentModal();
         }}
         onClick={() => handleSelectApt(item.apt.name)}
-        className="group flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 rounded-2xl bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 transition-colors cursor-pointer relative overflow-hidden w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+        className="group flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 rounded-2xl bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] transition-colors cursor-pointer relative overflow-hidden w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20 dark:focus-visible:ring-white/25"
       >
         <div className="flex items-center gap-4 flex-1 min-w-0">
           {/* Rank Badge */}
@@ -141,17 +140,17 @@ export const AptRow = memo(({
               <h3 className="text-base font-black text-primary truncate leading-snug" suppressHydrationWarning>
                 {item.apt.name}
               </h3>
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-secondary shrink-0">
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-secondary shrink-0">
                 {item.apt.dong}
               </span>
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-secondary shrink-0">
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-secondary shrink-0">
                 {item.formattedYearBuilt}
               </span>
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-secondary shrink-0">
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-secondary shrink-0">
                 {item.formattedHousehold}
               </span>
               {photoCount > 0 && (
-                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 shrink-0">
+                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-primary shrink-0 tabular-nums">
                   사진 {photoCount}장
                 </span>
               )}
@@ -160,10 +159,10 @@ export const AptRow = memo(({
             {/* Inline Relative Pyeong Price Gauge Bar (Active in Pyeong Mode) */}
             {isPyeongMode && relativePyeongPct > 0 && (
               <div className="flex items-center gap-2.5 mt-2 max-w-md">
-                <div className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div className="flex-1 h-1.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${
-                      index === 0 ? 'bg-blue-600' : index < 3 ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-500'
+                      index === 0 ? 'bg-slate-900 dark:bg-slate-100' : index < 3 ? 'bg-slate-600 dark:bg-slate-300' : 'bg-slate-400 dark:bg-slate-500'
                     }`}
                     style={{ width: `${relativePyeongPct}%` }}
                   />
@@ -218,20 +217,20 @@ export const AptRow = memo(({
                   });
                   onToggleFavorite(item.apt.name);
                 }}
-                className={`p-1.5 rounded-xl transition-colors cursor-pointer border ${
+                className={`w-9 h-9 md:w-8 md:h-8 inline-flex items-center justify-center rounded-xl transition-colors cursor-pointer touch-manipulation ${
                   isFavorite
-                    ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800/60'
-                    : 'bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 text-tertiary hover:text-blue-600 dark:hover:text-blue-400 border-transparent'
+                    ? 'bg-brand-red-light text-brand-red'
+                    : 'bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#252c3d] text-tertiary hover:text-primary'
                 }`}
                 title={isFavorite ? '내 관심단지 해제' : '내 관심단지 저장'}
               >
                 <Star
-                  size={14}
-                  className={isFavorite ? 'fill-blue-500 text-blue-600 dark:text-blue-400' : ''}
+                  size={15}
+                  className={isFavorite ? 'fill-current text-brand-red' : ''}
                 />
               </button>
             )}
-            <span className="text-[12px] font-extrabold text-secondary bg-surface px-3 py-1.5 rounded-xl group-hover:bg-blue-50 dark:group-hover:bg-blue-950/40 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <span className="min-h-[36px] md:min-h-[32px] inline-flex items-center text-[12px] font-extrabold text-secondary bg-surface px-3.5 py-1.5 rounded-xl group-hover:bg-slate-900 group-hover:text-white dark:group-hover:bg-slate-100 dark:group-hover:text-slate-900 transition-colors">
               상세 분석
             </span>
           </div>

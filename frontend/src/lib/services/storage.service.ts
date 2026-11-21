@@ -42,6 +42,29 @@ const MIME_TO_DEFAULT_EXTENSION: Record<string, string> = {
   'image/heif': 'heif',
 };
 
+const STORAGE_CONTROL_CHAR_PATTERN = /[\u0000-\u001F\u007F]/;
+
+function assertSafeStorageFolderPath(folderPath: string): string {
+  if (typeof folderPath !== 'string') {
+    throw new Error('Invalid storage folder path');
+  }
+  const normalized = folderPath.trim();
+  if (
+    !normalized ||
+    normalized.includes('\\') ||
+    STORAGE_CONTROL_CHAR_PATTERN.test(normalized)
+  ) {
+    throw new Error('Invalid storage folder path');
+  }
+  const segments = normalized.split('/');
+  for (const segment of segments) {
+    if (!segment || segment === '.' || segment === '..') {
+      throw new Error('Invalid storage folder path segment');
+    }
+  }
+  return normalized;
+}
+
 /**
  * Compresses an image file, uploads it to Firebase Storage under a designated folder path,
  * and returns the public download URL.
@@ -52,6 +75,7 @@ const MIME_TO_DEFAULT_EXTENSION: Record<string, string> = {
  */
 export async function uploadImage(file: File, folderPath: string): Promise<string> {
   try {
+    const safeFolderPath = assertSafeStorageFolderPath(folderPath);
     const normalizedMime = (file?.type || '').split(';')[0].trim().toLowerCase();
     if (!ALLOWED_RASTER_IMAGE_MIME_TYPES.has(normalizedMime)) {
       throw new Error(`Unsupported image MIME type (${normalizedMime || 'unknown'}): only raster images are allowed`);
@@ -84,14 +108,14 @@ export async function uploadImage(file: File, folderPath: string): Promise<strin
           ? mappedExt
           : 'jpg';
     const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
-    const filePath = `${folderPath}/${uniqueName}`;
+    const filePath = `${safeFolderPath}/${uniqueName}`;
     const storageContentType = compressedMime === 'image/jpg' ? 'image/jpeg' : compressedMime;
 
     const downloadURL = await StorageRepo.uploadRawBytes(filePath, compressed, {
       contentType: storageContentType,
     });
 
-    logger.info('StorageService.uploadImage', 'Image compressed and uploaded successfully', { folderPath, uniqueName });
+    logger.info('StorageService.uploadImage', 'Image compressed and uploaded successfully', { folderPath: safeFolderPath, uniqueName });
     return downloadURL;
   } catch (error) {
     logger.error('StorageService.uploadImage', 'Failed to upload image to Firebase Storage', { folderPath, fileName: file.name }, error);

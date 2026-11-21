@@ -3,7 +3,10 @@ import { adminDb as db } from '@/lib/firebaseAdmin';
 import webpush from 'web-push';
 import { logger } from '@/lib/services/logger';
 import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { getConfiguredCronSecret, isAuthorizedCronBearerRequest } from '@/lib/api/cronAuth';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
+import { isValidPushSubscriptionStrict } from '@/lib/push/pushSecurity';
+import { configureWebPushVapid } from '@/lib/push/vapidConfig';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -40,32 +43,7 @@ export function isEligibleSaleForNewHigh(tx: Record<string, unknown> | null | un
 }
 
 export function isAuthorizedNotifyNewHighRequest(req: NextRequest): boolean {
-  const authHeader = req.headers.get('authorization');
-  const configuredSecret = process.env.CRON_SECRET?.trim();
-  const configuredBuildingKey = process.env.BUILDING_API_KEY?.trim();
-  const apiKeyHeader = req.headers.get('x-building-api-key')?.trim();
-
-  const rawHost = req.headers.get('host') || req.nextUrl.hostname || '';
-  const hostname = rawHost.split(':')[0].trim().toLowerCase();
-  const isLocal =
-    process.env.NODE_ENV !== 'production' &&
-    (hostname === 'localhost' || hostname === '127.0.0.1');
-  if (isLocal) return true;
-
-  if (configuredSecret && authHeader === `Bearer ${configuredSecret}`) {
-    return true;
-  }
-  if (configuredBuildingKey && apiKeyHeader === configuredBuildingKey) {
-    return true;
-  }
-
-  const ua = (req.headers.get('user-agent') || '').toLowerCase();
-  const xVercelCron = (req.headers.get('x-vercel-cron') || '').toLowerCase();
-  return (
-    !configuredSecret &&
-    !configuredBuildingKey &&
-    (ua.startsWith('vercel-cron/') || xVercelCron === '1' || xVercelCron === 'true')
-  );
+  return isAuthorizedCronBearerRequest(req);
 }
 
 export async function POST(req: NextRequest) {
@@ -79,6 +57,9 @@ export async function POST(req: NextRequest) {
     }
 
     if (!isAuthorizedNotifyNewHighRequest(req)) {
+      if (!getConfiguredCronSecret()) {
+        logger.error('NotifyNewHighAPI.POST', 'CRON_SECRET is not configured — failing closed');
+      }
       logger.warn('NotifyNewHighAPI.POST', 'Unauthorized access attempt blocked');
       return apiError('UNAUTHORIZED', 'Unauthorized', 401);
     }
@@ -89,19 +70,13 @@ export async function POST(req: NextRequest) {
       return apiError('DATABASE_UNAVAILABLE', 'Firebase Admin not initialized', 500);
     }
 
-    const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
-    const privateVapidKey = process.env.VAPID_PRIVATE_KEY || '';
-
-    if (!publicVapidKey || !privateVapidKey) {
-      logger.warn('NotifyNewHighAPI.POST', 'VAPID keys not configured in env.');
+    const vapidConfig = configureWebPushVapid(webpush);
+    if (!vapidConfig.configured) {
+      logger.warn('NotifyNewHighAPI.POST', 'VAPID keys not configured in env.', {
+        reason: vapidConfig.reason,
+      });
       return apiError('SERVICE_UNAVAILABLE', 'VAPID keys not configured', 500);
     }
-
-    webpush.setVapidDetails(
-      'mailto:support@dongtanview.com',
-      publicVapidKey,
-      privateVapidKey
-    );
 
     // 2. Query transactions from the past 3 days
     const now = new Date();
@@ -223,12 +198,16 @@ export async function POST(req: NextRequest) {
     const promises = subsSnap.docs.map(async (doc) => {
       const data = doc.data();
       const sub = data.subscription;
+      if (!isValidPushSubscriptionStrict(sub)) {
+        logger.warn('NotifyNewHighAPI.POST', 'Skipped invalid or untrusted push subscription endpoint', { docId: doc.id });
+        return;
+      }
       try {
         await webpush.sendNotification(sub, notificationPayload);
         sentCount++;
       } catch (err: unknown) {
         const errorObj = err as { statusCode?: number };
-        logger.error('NotifyNewHighAPI.POST', 'Failed to send push notification to endpoint', { endpoint: sub.endpoint, statusCode: errorObj.statusCode }, err as Error);
+        logger.error('NotifyNewHighAPI.POST', 'Failed to send push notification to endpoint', { docId: doc.id, statusCode: errorObj.statusCode }, err as Error);
         if (errorObj.statusCode === 410 || errorObj.statusCode === 404) {
           await doc.ref.delete();
           logger.info('NotifyNewHighAPI.POST', 'Deleted expired subscription', { docId: doc.id });

@@ -202,10 +202,208 @@ function generateMacroTrendSeries(macroTrendData, trendMonths) {
   });
 }
 
+function extractContractDate8(tx) {
+  if (!tx || typeof tx !== 'object') return null;
+  const direct = tx.contractDate != null ? String(tx.contractDate).replace(/\D/g, '') : '';
+  if (direct.length >= 8) {
+    const d8 = direct.slice(0, 8);
+    const y = parseInt(d8.slice(0, 4), 10);
+    const m = parseInt(d8.slice(4, 6), 10);
+    const d = parseInt(d8.slice(6, 8), 10);
+    if (y >= 1990 && y <= 2100 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      return d8;
+    }
+  }
+  const ym = tx.contractYm != null ? String(tx.contractYm).replace(/\D/g, '') : '';
+  const day = tx.contractDay != null ? String(tx.contractDay).replace(/\D/g, '').padStart(2, '0') : '';
+  if (ym.length === 6 && day.length >= 1) {
+    const d8 = `${ym}${day.slice(-2)}`;
+    const y = parseInt(d8.slice(0, 4), 10);
+    const m = parseInt(d8.slice(4, 6), 10);
+    const d = parseInt(d8.slice(6, 8), 10);
+    if (y >= 1990 && y <= 2100 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      return d8;
+    }
+  }
+  return null;
+}
+
+function toEokFromTx(tx, isRent) {
+  if (!tx || typeof tx !== 'object') return 0;
+  if (!isRent && typeof tx.priceVal === 'number' && Number.isFinite(tx.priceVal) && tx.priceVal > 0 && tx.priceVal < 1000) {
+    return tx.priceVal;
+  }
+  const raw = isRent
+    ? Number(tx.deposit || tx.price || 0)
+    : Number(tx.price || 0);
+  if (!Number.isFinite(raw) || raw <= 0) return 0;
+  return raw >= 10000000 ? raw / 100000000 : raw / 10000;
+}
+
+function getWeekMondayKey(date8) {
+  const y = parseInt(date8.slice(0, 4), 10);
+  const m = parseInt(date8.slice(4, 6), 10) - 1;
+  const d = parseInt(date8.slice(6, 8), 10);
+  const dt = new Date(Date.UTC(y, m, d));
+  const day = dt.getUTCDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  dt.setUTCDate(dt.getUTCDate() + diff);
+  const wy = dt.getUTCFullYear();
+  const wm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+  const wd = String(dt.getUTCDate()).padStart(2, '0');
+  return {
+    sortKey: `${wy}${wm}${wd}`,
+    label: `${String(wy).slice(-2)}.${wm}.${wd}`,
+  };
+}
+
+/**
+ * 동탄 전체 아파트 일자별·주차별·월별 실거래가 및 체결 건수 시계열 생성 (100% 실제 검증 거래 전용)
+ * 계약 해제/취소 거래는 원천 배제됩니다.
+ *
+ * @param {Array<Object>} allSaleTxs - 동탄 전체 검증 매매 실거래 목록
+ * @param {Array<Object>} allRentTxs - 동탄 전체 검증 전월세 실거래 목록
+ * @param {Object} [options]
+ * @param {number} [options.dailyWindowYears=5] - 일자별 보관 연수 (기본 5년)
+ * @param {number} [options.minYear=2008] - 월별/주차별 시작 연도 (기본 2008)
+ * @param {Date} [options.now] - 생성 시각 기준
+ * @returns {{ compactSeries: Object, monthlyPoints: Array<Object> }}
+ */
+function generateGranularMacroTrendSeries(allSaleTxs = [], allRentTxs = [], options = {}) {
+  const dailyWindowYears = typeof options.dailyWindowYears === 'number' && options.dailyWindowYears > 0 ? options.dailyWindowYears : 5;
+  const minYear = typeof options.minYear === 'number' ? options.minYear : 2008;
+  const generatedAt = (options.now instanceof Date ? options.now : new Date()).toISOString();
+
+  const dailyMap = new Map();
+  const weeklyMap = new Map();
+  const monthlyMap = new Map();
+  let latestContractDate = '';
+
+  const ensureBucket = (map, sortKey, name) => {
+    let bucket = map.get(sortKey);
+    if (!bucket) {
+      bucket = { name, saleSum: 0, saleCount: 0, rentSum: 0, rentCount: 0 };
+      map.set(sortKey, bucket);
+    }
+    return bucket;
+  };
+
+  for (let i = 0; i < (allSaleTxs || []).length; i++) {
+    const tx = allSaleTxs[i];
+    if (!tx || isCancelledTransaction(tx)) continue;
+    const date8 = extractContractDate8(tx);
+    if (!date8) continue;
+    const priceEok = toEokFromTx(tx, false);
+    if (priceEok <= 0) continue;
+
+    if (date8 > latestContractDate) latestContractDate = date8;
+
+    const yy = date8.slice(2, 4);
+    const mm = date8.slice(4, 6);
+    const dd = date8.slice(6, 8);
+    const ymKey = date8.slice(0, 6);
+    const week = getWeekMondayKey(date8);
+
+    const dBucket = ensureBucket(dailyMap, date8, `${yy}.${mm}.${dd}`);
+    dBucket.saleSum += priceEok;
+    dBucket.saleCount += 1;
+
+    const wBucket = ensureBucket(weeklyMap, week.sortKey, week.label);
+    wBucket.saleSum += priceEok;
+    wBucket.saleCount += 1;
+
+    const mBucket = ensureBucket(monthlyMap, ymKey, `${yy}.${mm}`);
+    mBucket.saleSum += priceEok;
+    mBucket.saleCount += 1;
+  }
+
+  for (let i = 0; i < (allRentTxs || []).length; i++) {
+    const tx = allRentTxs[i];
+    if (!tx || isCancelledTransaction(tx)) continue;
+    // 순수 전세만 전세 평균 및 전세 거래량에 포함 (월세 제외)
+    const dealType = typeof tx.dealType === 'string' ? tx.dealType.trim() : '';
+    if (dealType !== '전세' || (Number(tx.monthlyRent) || 0) > 0) continue;
+
+    const date8 = extractContractDate8(tx);
+    if (!date8) continue;
+    const depEok = toEokFromTx(tx, true);
+    if (depEok <= 0) continue;
+
+    if (date8 > latestContractDate) latestContractDate = date8;
+
+    const yy = date8.slice(2, 4);
+    const mm = date8.slice(4, 6);
+    const dd = date8.slice(6, 8);
+    const ymKey = date8.slice(0, 6);
+    const week = getWeekMondayKey(date8);
+
+    const dBucket = ensureBucket(dailyMap, date8, `${yy}.${mm}.${dd}`);
+    dBucket.rentSum += depEok;
+    dBucket.rentCount += 1;
+
+    const wBucket = ensureBucket(weeklyMap, week.sortKey, week.label);
+    wBucket.rentSum += depEok;
+    wBucket.rentCount += 1;
+
+    const mBucket = ensureBucket(monthlyMap, ymKey, `${yy}.${mm}`);
+    mBucket.rentSum += depEok;
+    mBucket.rentCount += 1;
+  }
+
+  const minYmKey = `${minYear}01`;
+  const minDate8 = `${minYear}0101`;
+  let dailyCutoff8 = minDate8;
+  if (latestContractDate.length === 8) {
+    const maxY = parseInt(latestContractDate.slice(0, 4), 10);
+    const cutoffY = Math.max(minYear, maxY - dailyWindowYears);
+    dailyCutoff8 = `${cutoffY}${latestContractDate.slice(4, 8)}`;
+  }
+
+  const round2 = (v) => Math.round(v * 100) / 100;
+
+  const toTuples = (map, minSortKey) => {
+    const keys = Array.from(map.keys())
+      .filter((k) => k >= minSortKey)
+      .sort();
+    return keys.map((k) => {
+      const b = map.get(k);
+      const saleAvg = b.saleCount > 0 ? round2(b.saleSum / b.saleCount) : null;
+      const rentAvg = b.rentCount > 0 ? round2(b.rentSum / b.rentCount) : null;
+      return [b.name, saleAvg, rentAvg, b.saleCount, b.rentCount];
+    });
+  };
+
+  const dailyTuples = toTuples(dailyMap, dailyCutoff8);
+  const weeklyTuples = toTuples(weeklyMap, minDate8);
+  const monthlyTuples = toTuples(monthlyMap, minYmKey);
+
+  const monthlyPoints = monthlyTuples.map(([name, saleAvg, rentAvg, saleCount, rentCount]) => ({
+    name,
+    '동탄 아파트 전체': saleAvg !== null ? saleAvg : 0,
+    '동탄 아파트 전세 평균': rentAvg !== null ? rentAvg : 0,
+    saleCount,
+    rentCount,
+  }));
+
+  return {
+    compactSeries: {
+      version: 1,
+      generatedAt,
+      latestContractDate,
+      fields: ['name', 'sale', 'rent', 'saleCount', 'rentCount'],
+      daily: dailyTuples,
+      weekly: weeklyTuples,
+      monthly: monthlyTuples,
+    },
+    monthlyPoints,
+  };
+}
+
 module.exports = {
   isCancelledTransaction,
   initMacroTrendData,
   accumulateMacroTrend,
   calculateRecent7DaysVolume,
-  generateMacroTrendSeries
+  generateMacroTrendSeries,
+  generateGranularMacroTrendSeries,
 };

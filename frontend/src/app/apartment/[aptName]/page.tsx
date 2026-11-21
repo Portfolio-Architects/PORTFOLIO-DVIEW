@@ -489,7 +489,7 @@ export default async function ApartmentPage(props: {
           {/* Pyeong-specific Transaction Summary Table (Chapter 02 SSR) */}
           <div id="chapter-02-pyeong-ssr" className="space-y-4 min-w-0">
             <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
-              <span className="w-2 h-5 bg-emerald-500 rounded-full" />
+              <span className="w-2 h-5 bg-slate-900 dark:bg-slate-100 rounded-full" />
               평형별 실거래가 · 전세가율
             </h2>
             {compactPyeongRows.length > 0 ? (
@@ -531,7 +531,7 @@ export default async function ApartmentPage(props: {
           <section id="chapter-05-mortgage-ssr" className="space-y-6 pt-4 border-t border-border/60 min-w-0">
             <div>
               <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
-                <span className="w-2 h-5 bg-emerald-500 rounded-full" />
+                <span className="w-2 h-5 bg-slate-900 dark:bg-slate-100 rounded-full" />
                 {hasVerifiedSalePrice ? '주담대 상환 · DSR 한도 진단' : '전세대출 상환 · DSR 한도 진단'}
               </h2>
               <p className="mt-1.5 text-[12.5px] text-tertiary font-medium tabular-nums">

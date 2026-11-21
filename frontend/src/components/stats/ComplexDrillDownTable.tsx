@@ -67,13 +67,13 @@ export function ComplexDrillDownTable({
   return (
     <section
       aria-label="동탄 단지별 역세권 상세 분석 데이터 테이블"
-      className={`w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-4 sm:p-6 border border-[#f2f4f6] dark:border-[#202027] flex flex-col gap-4 ${className}`}
+      className={`w-full rounded-2xl bg-elevated p-4 sm:p-6 border border-border flex flex-col gap-4 ${className}`}
     >
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <Building2 className="w-4 h-4 text-primary" />
             <h3 className="text-sm sm:text-base font-black text-primary tracking-tight">
               동탄 127개 단지 전수 실거래 & 역세권 상세 대사
             </h3>
@@ -91,13 +91,13 @@ export function ComplexDrillDownTable({
             placeholder="단지명 또는 동 검색..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-[34px] sm:h-[36px] pl-8 pr-3 rounded-[10px] bg-white dark:bg-[#202027] text-[12px] sm:text-[13px] font-bold text-primary placeholder:text-tertiary border border-[#f2f4f6] dark:border-[#2c2c35] outline-none focus:ring-2 focus:ring-blue-600/20"
+            className="w-full h-[34px] sm:h-[36px] pl-8 pr-3 rounded-[10px] bg-surface text-[12px] sm:text-[13px] font-bold text-primary placeholder:text-tertiary border border-border outline-none focus:ring-2 focus:ring-slate-900/15 dark:focus:ring-white/20"
           />
         </div>
       </div>
 
       {/* Multi-Dimensional Filter Controls */}
-      <div className="flex flex-wrap items-center gap-2.5 p-3 rounded-xl bg-white dark:bg-[#202027] border border-[#f2f4f6] dark:border-[#2c2c35]">
+      <div className="flex flex-wrap items-center gap-2.5 p-3 rounded-xl bg-surface border border-border">
         {/* Area Band Toggle */}
         <div className="flex flex-wrap items-center gap-1.5 min-w-0 max-w-full">
           <span className="text-[11px] font-bold text-secondary shrink-0">평형:</span>
@@ -105,28 +105,28 @@ export function ComplexDrillDownTable({
             <button
               type="button"
               onClick={() => onFilterChange({ areaBand: 'all' })}
-              className={getToggleBtnClass(filters.areaBand === 'all', { size: 'sm', tone: 'blue' })}
+              className={getToggleBtnClass(filters.areaBand === 'all', { size: 'sm', tone: 'neutral' })}
             >
               전체
             </button>
             <button
               type="button"
               onClick={() => onFilterChange({ areaBand: 'small' })}
-              className={getToggleBtnClass(filters.areaBand === 'small', { size: 'sm', tone: 'blue' })}
+              className={getToggleBtnClass(filters.areaBand === 'small', { size: 'sm', tone: 'neutral' })}
             >
               소형 (~59㎡)
             </button>
             <button
               type="button"
               onClick={() => onFilterChange({ areaBand: 'medium' })}
-              className={getToggleBtnClass(filters.areaBand === 'medium', { size: 'sm', tone: 'blue' })}
+              className={getToggleBtnClass(filters.areaBand === 'medium', { size: 'sm', tone: 'neutral' })}
             >
               국민평형 (84㎡)
             </button>
             <button
               type="button"
               onClick={() => onFilterChange({ areaBand: 'large' })}
-              className={getToggleBtnClass(filters.areaBand === 'large', { size: 'sm', tone: 'blue' })}
+              className={getToggleBtnClass(filters.areaBand === 'large', { size: 'sm', tone: 'neutral' })}
             >
               대형 (85㎡+)
             </button>
@@ -140,28 +140,28 @@ export function ComplexDrillDownTable({
             <button
               type="button"
               onClick={() => onFilterChange({ buildingAge: 'all' })}
-              className={getToggleBtnClass(filters.buildingAge === 'all', { size: 'sm', tone: 'blue' })}
+              className={getToggleBtnClass(filters.buildingAge === 'all', { size: 'sm', tone: 'neutral' })}
             >
               전체
             </button>
             <button
               type="button"
               onClick={() => onFilterChange({ buildingAge: 'under5' })}
-              className={getToggleBtnClass(filters.buildingAge === 'under5', { size: 'sm', tone: 'blue' })}
+              className={getToggleBtnClass(filters.buildingAge === 'under5', { size: 'sm', tone: 'neutral' })}
             >
               신축 (≤5년)
             </button>
             <button
               type="button"
               onClick={() => onFilterChange({ buildingAge: '5to10' })}
-              className={getToggleBtnClass(filters.buildingAge === '5to10', { size: 'sm', tone: 'blue' })}
+              className={getToggleBtnClass(filters.buildingAge === '5to10', { size: 'sm', tone: 'neutral' })}
             >
               5~10년
             </button>
             <button
               type="button"
               onClick={() => onFilterChange({ buildingAge: 'over10' })}
-              className={getToggleBtnClass(filters.buildingAge === 'over10', { size: 'sm', tone: 'blue' })}
+              className={getToggleBtnClass(filters.buildingAge === 'over10', { size: 'sm', tone: 'neutral' })}
             >
               구축 (10년+)
             </button>
@@ -202,8 +202,8 @@ export function ComplexDrillDownTable({
             onClick={() => onFilterChange({ sortBy: 'distance' })}
             className={`px-2 py-1 rounded-md transition-colors ${
               filters.sortBy === 'distance'
-                ? 'bg-blue-600 text-white font-black'
-                : 'bg-white dark:bg-[#202027] hover:text-primary'
+                ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-black'
+                : 'bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] hover:text-primary'
             }`}
           >
             동탄역 거리순
@@ -213,8 +213,8 @@ export function ComplexDrillDownTable({
             onClick={() => onFilterChange({ sortBy: 'pyeongPriceDesc' })}
             className={`px-2 py-1 rounded-md transition-colors ${
               filters.sortBy === 'pyeongPriceDesc'
-                ? 'bg-blue-600 text-white font-black'
-                : 'bg-white dark:bg-[#202027] hover:text-primary'
+                ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-black'
+                : 'bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] hover:text-primary'
             }`}
           >
             평당가 높은순
@@ -224,8 +224,8 @@ export function ComplexDrillDownTable({
             onClick={() => onFilterChange({ sortBy: 'priceDesc' })}
             className={`px-2 py-1 rounded-md transition-colors ${
               filters.sortBy === 'priceDesc'
-                ? 'bg-blue-600 text-white font-black'
-                : 'bg-white dark:bg-[#202027] hover:text-primary'
+                ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-black'
+                : 'bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] hover:text-primary'
             }`}
           >
             1년 평균가순
@@ -235,8 +235,8 @@ export function ComplexDrillDownTable({
             onClick={() => onFilterChange({ sortBy: 'latestPriceDesc' })}
             className={`px-2 py-1 rounded-md transition-colors ${
               filters.sortBy === 'latestPriceDesc'
-                ? 'bg-blue-600 text-white font-black'
-                : 'bg-white dark:bg-[#202027] hover:text-primary'
+                ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-black'
+                : 'bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] hover:text-primary'
             }`}
           >
             최근 실거래가순
@@ -246,8 +246,8 @@ export function ComplexDrillDownTable({
             onClick={() => onFilterChange({ sortBy: 'volumeDesc' })}
             className={`px-2 py-1 rounded-md transition-colors ${
               filters.sortBy === 'volumeDesc'
-                ? 'bg-blue-600 text-white font-black'
-                : 'bg-white dark:bg-[#202027] hover:text-primary'
+                ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-black'
+                : 'bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] hover:text-primary'
             }`}
           >
             거래량순
@@ -257,8 +257,8 @@ export function ComplexDrillDownTable({
             onClick={() => onFilterChange({ sortBy: 'latestYear' })}
             className={`px-2 py-1 rounded-md transition-colors ${
               filters.sortBy === 'latestYear'
-                ? 'bg-blue-600 text-white font-black'
-                : 'bg-white dark:bg-[#202027] hover:text-primary'
+                ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-black'
+                : 'bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] hover:text-primary'
             }`}
           >
             최신 연식순
@@ -267,10 +267,10 @@ export function ComplexDrillDownTable({
       </div>
 
       {/* Sortable Table with Fixed Row Height (h-[52px]) to eliminate CLS */}
-      <div className="w-full overflow-x-auto rounded-xl border border-[#f2f4f6] dark:border-[#202027] bg-white dark:bg-[#151519]">
+      <div className="w-full overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full text-left border-collapse min-w-[840px]">
           <thead>
-            <tr className="border-b border-[#f2f4f6] dark:border-[#202027] bg-[#f9fafb] dark:bg-[#1c1c22] text-[11px] font-extrabold text-secondary h-[40px]">
+            <tr className="border-b border-border bg-elevated text-[11px] font-extrabold text-secondary h-[40px]">
               <th className="px-3 text-center w-[50px]">순위</th>
               <th className="px-3">단지명</th>
               <th className="px-3 w-[75px]">법정동</th>
@@ -297,7 +297,7 @@ export function ComplexDrillDownTable({
                   <tr
                     key={apt.id}
                     onClick={() => onSelectComplex?.(apt)}
-                    className="h-[52px] border-b border-[#f2f4f6] dark:border-[#202027] hover:bg-[#f9fafb] dark:hover:bg-[#1a1a20] transition-colors cursor-pointer text-[12px] group"
+                    className="h-[52px] border-b border-border hover:bg-[#eff1f5]/60 dark:hover:bg-[#1e2532]/60 transition-colors cursor-pointer text-[12px] group"
                   >
                     <td className="px-3 text-center font-bold text-tertiary tabular-nums">
                       {idx + 1}
@@ -312,12 +312,12 @@ export function ComplexDrillDownTable({
                       <span
                         className={`inline-flex items-center gap-1 font-black tabular-nums text-[11px] px-2 py-0.5 rounded-md ${
                           apt.distanceToStationMeters < 500
-                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                            ? 'bg-brand-blue-light text-brand-blue border border-brand-blue/20'
                             : apt.distanceToStationMeters < 1000
-                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                            ? 'bg-brand-blue-light/70 text-brand-blue'
                             : apt.distanceToStationMeters < 2000
-                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                            : 'bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                            ? 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary'
+                            : 'bg-[#eff1f5]/60 dark:bg-[#1e2532]/60 text-tertiary'
                         }`}
                       >
                         <TrainFront className="w-3 h-3" />
@@ -330,7 +330,7 @@ export function ComplexDrillDownTable({
                     <td className="px-3 text-right font-extrabold text-primary tabular-nums whitespace-nowrap">
                       {priceEok}억
                     </td>
-                    <td className="px-3 text-right font-black text-emerald-600 dark:text-emerald-400 tabular-nums whitespace-nowrap">
+                    <td className="px-3 text-right font-black text-primary tabular-nums whitespace-nowrap">
                       <span>{formatPriceEokCompact(apt.latestPriceWon, '억')}</span>
                       {latestDateShort && (
                         <span className="text-[10px] font-semibold text-tertiary ml-1">
@@ -364,7 +364,7 @@ export function ComplexDrillDownTable({
           <button
             type="button"
             onClick={() => setDisplayCount((prev) => prev + 25)}
-            className="px-4 py-2 rounded-xl bg-white dark:bg-[#202027] hover:bg-[#f2f4f6] dark:hover:bg-[#2c2c35] border border-[#f2f4f6] dark:border-[#2c2c35] text-xs font-bold text-primary transition-colors"
+            className="px-4 py-2 rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border text-xs font-bold text-primary transition-colors"
           >
             {displayedRecords.length - displayCount}개 단지 더보기
           </button>

@@ -146,11 +146,30 @@ export interface Recent7DaysVolume {
   badge: string;
 }
 
+/** Chart aggregation granularity */
+export type ChartGranularity = 'daily' | 'weekly' | 'monthly';
+
 /** Dongtan Macro Trend chart data point */
 export interface DongtanMacroTrendPoint {
   name: string;
   '동탄 아파트 전체': number;
   '동탄 아파트 전세 평균': number;
+  saleCount?: number;
+  rentCount?: number;
+}
+
+/** Compact tuple row: [name, saleAvgEok | null, rentAvgEok | null, saleCount, rentCount] */
+export type CompactMacroTrendTuple = [string, number | null, number | null, number, number];
+
+/** Pre-aggregated daily/weekly/monthly Dongtan macro trend payload */
+export interface MacroTrendSeriesPayload {
+  version: number;
+  generatedAt: string;
+  latestContractDate: string;
+  fields: string[];
+  daily: CompactMacroTrendTuple[];
+  weekly: CompactMacroTrendTuple[];
+  monthly: CompactMacroTrendTuple[];
 }
 
 /** Timeline feed period selection filter */

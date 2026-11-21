@@ -5,7 +5,6 @@ import { Smartphone } from 'lucide-react';
 import { DviewIcon } from '@/components/common/DviewIcon';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { QuickNonLoginRetentionAction } from '@/components/common/QuickNonLoginRetentionAction';
-import { getVisualSignalPillClass } from '@/lib/design-system/copyDiet';
 import { trackEvent } from '@/lib/utils/analytics';
 
 export interface ApartmentQuickRetentionBarProps {
@@ -47,26 +46,16 @@ export const ApartmentQuickRetentionBar = React.memo(function ApartmentQuickRete
     <div
       data-testid="apt-ssr-quick-retention-bar"
       role="region"
-      aria-label={`${apartmentName} 비로그인 관심단지 찜 및 평일 07시 실거래 알림`}
-      className="w-full min-h-[60px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-3.5 sm:p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 transition-colors box-border"
+      aria-label={`${apartmentName} 비로그인 관심단지 찜 및 매일 오전 7시대 실거래 알림`}
+      className="w-full min-h-[60px] rounded-2xl bg-elevated p-3.5 sm:p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 transition-colors box-border"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2.5 min-w-0">
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className={getVisualSignalPillClass('safe')}>
-            <DviewIcon name="star" size={11} />
-            <span>비로그인 찜</span>
-          </span>
-          <span className={getVisualSignalPillClass('down')}>
-            <DviewIcon name="bell-ring" size={11} />
-            <span>평일 07시</span>
-          </span>
-        </div>
-
+      <div className="flex items-center gap-2 min-w-0">
+        <DviewIcon name="bell-ring" size={15} className="text-primary shrink-0" />
         <span
           data-testid="apt-ssr-quick-retention-copy"
           className="text-xs sm:text-[13px] font-extrabold text-primary truncate tabular-nums"
         >
-          로그인 없이 1초 관심단지 찜 · 평일 07:00 실거래 변동 알림
+          로그인 없이 관심단지 찜 · 매일 오전 7시대 실거래 요약 알림
           {verifiedPriceLabel ? ` (최근 ${verifiedPriceLabel})` : ''}
         </span>
       </div>
@@ -89,7 +78,7 @@ export const ApartmentQuickRetentionBar = React.memo(function ApartmentQuickRete
             data-testid="apt-ssr-ios-a2hs-btn"
             aria-label="아이폰 홈 화면 추가 안내 열기"
             onClick={handleOpenIosA2hs}
-            className="min-h-[36px] px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-colors cursor-pointer"
+            className="min-h-[36px] px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-colors cursor-pointer"
           >
             <Smartphone size={13} className="shrink-0" />
             <span>홈 추가</span>

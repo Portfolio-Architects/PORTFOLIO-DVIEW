@@ -425,20 +425,20 @@ describe('DVIEW Apartment Statistics Hub: Tiers 1 ~ 4 Comprehensive E2E Test Sui
         const { container } = render(<LoungeHeader activeTab="stats" />);
         const statsLink = container.querySelector('a[href="/stats"]');
         expect(statsLink).not.toBeNull();
-        expect(statsLink?.className).toContain('text-blue-600');
-        expect(statsLink?.className).toContain('dark:text-blue-400');
-        expect(statsLink?.className).toContain('font-extrabold');
+        expect(statsLink?.className).toContain('text-primary');
+        expect(statsLink?.className).toContain('bg-white');
+        expect(statsLink?.className).toContain('font-black');
       });
 
-      test('T1.1.4: MobileDock highlights activeTab="stats" with text-blue token and animated pill', () => {
+      test('T1.1.4: MobileDock highlights activeTab="stats" with Live Spark ink token and animated pill', () => {
         const { container } = render(<MobileDock activeTab="stats" />);
         const statsLink = container.querySelector('a[href="/stats"]');
         expect(statsLink).not.toBeNull();
-        expect(statsLink?.className).toContain('text-blue-600');
-        expect(statsLink?.className).toContain('dark:text-blue-400');
+        expect(statsLink?.className).toContain('text-primary');
+        expect(statsLink?.className).toContain('font-black');
 
         // Check for active pill indicator inside stats link
-        const pill = statsLink?.querySelector('.bg-blue-50\\/90, [class*="bg-blue-50"]');
+        const pill = statsLink?.querySelector('[class*="bg-[#eff1f5]"]');
         expect(pill).not.toBeNull();
       });
 
@@ -1015,18 +1015,18 @@ describe('DVIEW Apartment Statistics Hub: Tiers 1 ~ 4 Comprehensive E2E Test Sui
       const headerStats = container.querySelector('header a[href="/stats"]');
       const dockStats = container.querySelector('footer a[href="/stats"], nav a[href="/stats"]');
 
-      expect(headerStats?.className).toContain('text-blue-600');
-      expect(dockStats?.className).toContain('text-blue-600');
+      expect(headerStats?.className).toContain('text-primary');
+      expect(dockStats?.className).toContain('text-primary');
     });
 
     test('T3.6: Switching activeTab between /stats and /explore updates highlighted link cleanly', () => {
       const { container: containerStats } = render(<LoungeHeader activeTab="stats" />);
-      expect(containerStats.querySelector('a[href="/stats"]')?.className).toContain('text-blue-600');
-      expect(containerStats.querySelector('a[href="/explore"]')?.className).not.toContain('text-blue-600');
+      expect(containerStats.querySelector('a[href="/stats"]')).toHaveClass('bg-white', 'text-primary');
+      expect(containerStats.querySelector('a[href="/explore"]')).not.toHaveClass('bg-white');
 
       const { container: containerExplore } = render(<LoungeHeader activeTab="imjang" />);
-      expect(containerExplore.querySelector('a[href="/explore"]')?.className).toContain('text-blue-600');
-      expect(containerExplore.querySelector('a[href="/stats"]')?.className).not.toContain('text-blue-600');
+      expect(containerExplore.querySelector('a[href="/explore"]')).toHaveClass('bg-white', 'text-primary');
+      expect(containerExplore.querySelector('a[href="/stats"]')).not.toHaveClass('bg-white');
     });
 
     test('T3.7: Filter reset to all restores baseline 127 complex sample and original OLS slope', () => {

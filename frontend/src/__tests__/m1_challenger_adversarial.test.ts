@@ -181,10 +181,12 @@ describe('Milestone 1 Empirical Challenger: Adversarial Stress Test Suite', () =
       expect(env.NEXT_PUBLIC_FIREBASE_PROJECT_ID).toContain('secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID');
     });
 
-    it('should correctly format production API curl request with Bearer token, date param, and 45s timeout', () => {
+    it('should correctly format production API curl request with fail-closed CRON_SECRET Bearer token, date param, and 45s timeout', () => {
       const script = pushStep.run;
       expect(script).toContain('APP_URL="${VERCEL_APP_URL:-https://dongtanview.com}"');
-      expect(script).toContain('CRON_AUTH="${CRON_SECRET:-dview-default-cron-secret-2026}"');
+      expect(script).not.toContain('dview-default-cron-secret-2026');
+      expect(script).toContain('if [ -z "${CRON_SECRET}" ]; then');
+      expect(script).toContain('CRON_AUTH="${CRON_SECRET}"');
       expect(script).toContain('TARGET_DATE=$(date +%Y%m%d)');
       expect(script).toContain('curl -sS -m 45 -X GET');
       expect(script).toContain('-H "Authorization: Bearer ${CRON_AUTH}"');

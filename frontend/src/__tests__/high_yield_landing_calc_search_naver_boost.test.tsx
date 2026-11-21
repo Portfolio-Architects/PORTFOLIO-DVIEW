@@ -313,7 +313,7 @@ describe('High-Yield Landing Conversion, GA4 search_term Coalescing & Naver Sear
       const { unmount: unmountB2b } = render(B2bGuideJsx);
       const b2bQuickBar = screen.getByTestId('top-landing-calculator-quick-bar');
       const corpBtn = within(b2bQuickBar).getByTestId('top-calc-quick-corporate-tax-btn');
-      expect(corpBtn.className).toContain('bg-emerald-600');
+      expect(corpBtn.className).toContain('bg-slate-900');
       unmountB2b();
 
       // 2) Boundary price clamping (NaN -> 30000, negative -> 30000, huge -> 500000) + missing #tax-simulator retry cleanup

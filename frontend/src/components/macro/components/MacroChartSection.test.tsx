@@ -232,4 +232,44 @@ describe('MacroChartSection Test Suite', () => {
     fireEvent.change(searchInput, { target: { value: '' } });
     expect(screen.getByText('내 관심단지 (1)')).toBeInTheDocument();
   });
+
+  it('renders Dongtan-wide default title, single timeframe selector (no duplicate granularity toggle), volume summary, and elevated wide-view height', () => {
+    render(
+      <MacroChartSection
+        {...defaultProps}
+        selectedTimelineApt={null}
+        isSplitMode={false}
+        mainLineData={[
+          { name: '26.10', '동탄 아파트 전체': 8.59, '동탄 아파트 전세 평균': 4.93, saleCount: 347, rentCount: 559 },
+          { name: '26.11', '동탄 아파트 전체': 9.02, '동탄 아파트 전세 평균': 4.83, saleCount: 230, rentCount: 248 },
+        ]}
+      />
+    );
+
+    expect(screen.getByText('동탄 전체 아파트 실거래 시세 추이')).toBeInTheDocument();
+    expect(screen.queryByTestId('chart-header-detail-cta')).not.toBeInTheDocument();
+
+    // No duplicate granularity toggle; only single timeframe selector renders
+    expect(screen.queryByTestId('chart-granularity-toggle')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '1Y' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '3Y' })).toHaveAttribute('aria-pressed', 'true');
+
+    // Period transaction volume summary
+    const summary = screen.getByTestId('chart-period-tx-summary');
+    expect(summary).toHaveTextContent('577건');
+    expect(summary).toHaveTextContent('807건');
+
+    // Wide-view height elevation
+    const root = screen.getByTestId('macro-chart-section-root');
+    expect(root.className).toContain('lg:h-[600px]');
+    expect(root.className).toContain('xl:h-[640px]');
+  });
+
+  it('offers one-click return button to Dongtan-wide chart when an apartment is selected', () => {
+    render(<MacroChartSection {...defaultProps} selectedTimelineApt="동탄역 롯데캐슬" />);
+    const resetBtn = screen.getByTestId('chart-header-reset-all-cta');
+    expect(resetBtn).toHaveTextContent('동탄 전체');
+    fireEvent.click(resetBtn);
+    expect(defaultProps.setSelectedTimelineApt).toHaveBeenCalledWith(null);
+  });
 });

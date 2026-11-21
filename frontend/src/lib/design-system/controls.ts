@@ -15,7 +15,7 @@ export type ToggleActiveTone = 'blue' | 'emerald' | 'neutral';
 
 export const DVIEW_CONTROL_CLASSES = {
   track:
-    'dview-toggle-track inline-flex items-center gap-0.5 p-[3px] rounded-[10px] bg-[#f2f4f6] dark:bg-[#202027] shrink-0 select-none',
+    'dview-toggle-track inline-flex items-center gap-0.5 p-[3px] rounded-[10px] bg-[#eff1f5] dark:bg-[#1e2532] shrink-0 select-none',
   btnBase:
     'dview-toggle-btn inline-flex items-center justify-center gap-1.5 rounded-[7px] font-extrabold transition-all cursor-pointer whitespace-nowrap',
   btnSize: {
@@ -23,24 +23,24 @@ export const DVIEW_CONTROL_CLASSES = {
     md: 'min-h-[28px] sm:min-h-[30px] px-2.5 sm:px-3.5 py-1 text-[12px] sm:text-[13px]',
   },
   btnActive: {
-    blue: 'dview-toggle-btn-active bg-surface dark:bg-[#2c2c35] text-blue-600 dark:text-blue-400 shadow-xs font-black',
+    blue: 'dview-toggle-btn-active bg-surface dark:bg-[#252c3d] text-primary shadow-xs font-black',
     emerald:
-      'dview-toggle-btn-active-emerald bg-surface dark:bg-[#2c2c35] text-emerald-600 dark:text-emerald-400 shadow-xs font-black',
+      'dview-toggle-btn-active-emerald bg-surface dark:bg-[#252c3d] text-emerald-600 dark:text-emerald-400 shadow-xs font-black',
     neutral:
-      'dview-toggle-btn-active-neutral bg-surface dark:bg-[#2c2c35] text-primary shadow-xs font-black',
+      'dview-toggle-btn-active-neutral bg-surface dark:bg-[#252c3d] text-primary shadow-xs font-black',
   },
   btnInactive:
     'dview-toggle-btn-inactive bg-transparent text-secondary hover:text-primary',
   select:
-    'dview-control-select h-[34px] sm:h-[36px] px-2.5 sm:px-3 rounded-[10px] bg-elevated hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-[12px] sm:text-[13px] font-extrabold text-secondary hover:text-primary transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-blue-600/20',
+    'dview-control-select h-[34px] sm:h-[36px] px-2.5 sm:px-3 rounded-[10px] bg-elevated hover:bg-[#eff1f5] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-[12px] sm:text-[13px] font-extrabold text-secondary hover:text-primary transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-slate-900/15 dark:focus:ring-white/20',
   selectActive:
-    'dview-control-select dview-control-select-active h-[34px] sm:h-[36px] px-2.5 sm:px-3 rounded-[10px] bg-blue-50 hover:bg-blue-100/80 dark:bg-blue-950/40 dark:hover:bg-blue-950/60 text-[12px] sm:text-[13px] font-black text-blue-600 dark:text-blue-400 ring-1 ring-inset ring-blue-500/25 dark:ring-blue-400/30 transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-blue-600/20',
+    'dview-control-select dview-control-select-active h-[34px] sm:h-[36px] px-2.5 sm:px-3 rounded-[10px] bg-slate-900/5 hover:bg-slate-900/10 dark:bg-white/10 dark:hover:bg-white/15 text-[12px] sm:text-[13px] font-black text-primary ring-1 ring-inset ring-slate-900/15 dark:ring-white/20 transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-slate-900/20',
   input:
-    'dview-control-input h-[34px] sm:h-[36px] rounded-[10px] bg-elevated dark:bg-[#202027] text-[12px] sm:text-[13px] font-bold text-primary placeholder:text-tertiary transition-colors outline-none focus:bg-surface dark:focus:bg-[#2c2c35] focus:ring-2 focus:ring-blue-600/20',
+    'dview-control-input h-[34px] sm:h-[36px] rounded-[10px] bg-elevated dark:bg-[#1e2532] text-[12px] sm:text-[13px] font-bold text-primary placeholder:text-tertiary transition-colors outline-none focus:bg-surface dark:focus:bg-[#252c3d] focus:ring-2 focus:ring-slate-900/15 dark:focus:ring-white/20',
   pill:
-    'dview-control-pill h-[34px] sm:h-[36px] px-3 sm:px-3.5 rounded-[10px] bg-elevated hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-[12px] sm:text-[13px] font-extrabold text-secondary hover:text-primary inline-flex items-center justify-center gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0',
+    'dview-control-pill h-[34px] sm:h-[36px] px-3 sm:px-3.5 rounded-[10px] bg-elevated hover:bg-[#eff1f5] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-[12px] sm:text-[13px] font-extrabold text-secondary hover:text-primary inline-flex items-center justify-center gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0',
   pillActive:
-    'dview-control-pill-active bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 hover:text-white shadow-xs',
+    'dview-control-pill-active bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white shadow-xs',
 } as const;
 
 const DISPLAY_OVERRIDE_TOKEN_REGEX = /(?:^|\s)(?:(?:inline-)?grid|flex|block)(?:\s|$)/;
@@ -71,7 +71,7 @@ export function getToggleBtnClass(
   const {
     active = false,
     size = 'md',
-    tone = 'blue',
+    tone = 'neutral',
     extraClass = '',
   } = resolved;
   const sizeCls = DVIEW_CONTROL_CLASSES.btnSize[size];

@@ -48,8 +48,8 @@ export const GlobalOfflineBanner = React.memo(function GlobalOfflineBanner() {
       aria-live={isOnline ? 'polite' : 'assertive'}
       className={`fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-2 py-2.5 px-4 text-[13px] md:text-[13.5px] font-extrabold shadow-sm border-b backdrop-blur-md transition-all duration-300 animate-in slide-in-from-top ${
         isOnline
-          ? 'bg-blue-50/90 dark:bg-[#003829]/80 text-blue-600 dark:text-blue-400 border-blue-600/20 dark:border-blue-600/30'
-          : 'bg-red-50/95 dark:bg-red-950/85 text-[#df223b] dark:text-[#f87171] border-red-100 dark:border-red-900/30'
+          ? 'bg-[#eff1f5]/95 dark:bg-[#1e2532]/95 text-primary border-border'
+          : 'bg-brand-red-light text-brand-red border-brand-red/20'
       }`}
     >
       {isOnline ? (
@@ -103,7 +103,7 @@ export const InlineOfflineBanner = React.memo(function InlineOfflineBanner({
         className={`px-4 py-2.5 rounded-2xl backdrop-blur-md shadow-lg flex items-center justify-between gap-3 text-[13px] font-medium border ${
           !isOnline
             ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 text-slate-900 dark:text-slate-200'
-            : 'bg-blue-500/10 dark:bg-blue-950/40 border-blue-500/30 text-blue-900 dark:text-blue-200'
+            : 'bg-[#f7f8fa]/95 dark:bg-[#151a23]/95 border-border text-primary'
         }`}
       >
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
@@ -112,7 +112,7 @@ export const InlineOfflineBanner = React.memo(function InlineOfflineBanner({
               <WifiOff size={16} />
             </span>
           ) : (
-            <span className="p-1 rounded-lg bg-blue-500/20 shrink-0 text-blue-600 dark:text-blue-400 animate-spin">
+            <span className="p-1 rounded-lg bg-[#eff1f5] dark:bg-[#1e2532] shrink-0 text-primary animate-spin">
               <RefreshCw size={16} />
             </span>
           )}
@@ -133,7 +133,7 @@ export const InlineOfflineBanner = React.memo(function InlineOfflineBanner({
           {onRefresh && isOnline && (
             <button
               onClick={onRefresh}
-              className="px-2.5 py-1 text-[12px] font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer"
+              className="px-2.5 py-1 text-[12px] font-bold rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 transition-colors cursor-pointer"
             >
               새로고침
             </button>

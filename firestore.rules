@@ -11,15 +11,20 @@ service cloud.firestore {
     }
 
     function isValidCounterField(field) {
-      return !(field in request.resource.data)
+      return (!(field in request.resource.data) && !(field in resource.data))
         || (
-          request.resource.data[field] is int
+          (field in request.resource.data)
+          && request.resource.data[field] is int
           && request.resource.data[field] >= 0
           && (
-            !(field in resource.data)
-            || !(resource.data[field] is int)
+            (
+              (!(field in resource.data) || !(resource.data[field] is int))
+              && request.resource.data[field] == 1
+            )
             || (
-              request.resource.data[field] - resource.data[field] >= -1
+              (field in resource.data)
+              && (resource.data[field] is int)
+              && request.resource.data[field] - resource.data[field] >= -1
               && request.resource.data[field] - resource.data[field] <= 1
             )
           )
@@ -97,38 +102,81 @@ service cloud.firestore {
 
     // Write-Only Intake Queues (active 'adInquiries', legacy 'ad_inquiries', 'pending_photos', 'sell_diagnosis_logs')
     match /adInquiries/{inquiryId} {
-      allow create: if request.resource.data.keys().size() <= 20
+      allow create: if request.resource.data.keys().hasOnly(['companyName', 'contactInfo', 'message', 'status', 'createdAt'])
                     && request.resource.data.keys().hasAll(['companyName', 'contactInfo', 'message'])
                     && request.resource.data.companyName is string
+                    && request.resource.data.companyName.size() > 0
                     && request.resource.data.companyName.size() <= 200
                     && request.resource.data.contactInfo is string
+                    && request.resource.data.contactInfo.size() > 0
                     && request.resource.data.contactInfo.size() <= 320
                     && request.resource.data.message is string
-                    && request.resource.data.message.size() <= 5000;
+                    && request.resource.data.message.size() > 0
+                    && request.resource.data.message.size() <= 5000
+                    && (!('status' in request.resource.data) || request.resource.data.status == 'pending')
+                    && (!('createdAt' in request.resource.data) || request.resource.data.createdAt is timestamp);
       allow read, update, delete: if isAdmin();
     }
 
     match /ad_inquiries/{inquiryId} {
-      allow create: if request.resource.data.keys().size() <= 20
+      allow create: if request.resource.data.keys().hasOnly(['companyName', 'contactInfo', 'message', 'status', 'createdAt'])
+                    && request.resource.data.keys().hasAll(['message'])
+                    && request.resource.data.message is string
+                    && request.resource.data.message.size() > 0
+                    && request.resource.data.message.size() <= 5000
                     && (!('companyName' in request.resource.data) || (request.resource.data.companyName is string && request.resource.data.companyName.size() <= 200))
                     && (!('contactInfo' in request.resource.data) || (request.resource.data.contactInfo is string && request.resource.data.contactInfo.size() <= 320))
-                    && (!('message' in request.resource.data) || (request.resource.data.message is string && request.resource.data.message.size() <= 5000));
+                    && (!('status' in request.resource.data) || request.resource.data.status == 'pending')
+                    && (!('createdAt' in request.resource.data) || request.resource.data.createdAt is timestamp);
       allow read, update, delete: if isAdmin();
     }
 
     match /pending_photos/{photoId} {
-      allow create: if request.resource.data.keys().size() <= 20
+      allow create: if isSignedIn()
+                    && request.resource.data.keys().hasOnly([
+                      'apartmentId', 'apartmentName', 'url', 'locationTag', 'locationTagId',
+                      'caption', 'status', 'createdAt', 'uploaderUid', 'uploaderEmail', 'uploaderName'
+                    ])
+                    && request.resource.data.keys().hasAll(['apartmentName', 'url', 'uploaderUid'])
+                    && (request.resource.data.uploaderUid == request.auth.uid || isAdmin())
                     && request.resource.data.url is string
                     && request.resource.data.url.size() <= 2048
-                    && request.resource.data.url.matches('https://(firebasestorage\\.googleapis\\.com|storage\\.googleapis\\.com)/.*')
+                    && request.resource.data.url.matches('https://(firebasestorage\\.googleapis\\.com/v0/b/portfolio-dtdls\\.(firebasestorage\\.app|appspot\\.com)/o/|storage\\.googleapis\\.com/portfolio-dtdls\\.(firebasestorage\\.app|appspot\\.com)/)[^\\s]+')
                     && request.resource.data.apartmentName is string
+                    && request.resource.data.apartmentName.size() > 0
                     && request.resource.data.apartmentName.size() <= 200
-                    && (!('caption' in request.resource.data) || (request.resource.data.caption is string && request.resource.data.caption.size() <= 500));
+                    && (!('apartmentId' in request.resource.data) || (request.resource.data.apartmentId is string && request.resource.data.apartmentId.size() <= 200))
+                    && (!('locationTag' in request.resource.data) || (request.resource.data.locationTag is string && request.resource.data.locationTag.size() <= 100))
+                    && (!('locationTagId' in request.resource.data) || (request.resource.data.locationTagId is string && request.resource.data.locationTagId.size() <= 64))
+                    && (!('caption' in request.resource.data) || (request.resource.data.caption is string && request.resource.data.caption.size() <= 500))
+                    && (!('status' in request.resource.data) || request.resource.data.status == 'pending' || isAdmin())
+                    && (!('createdAt' in request.resource.data) || request.resource.data.createdAt is timestamp)
+                    && (!('uploaderEmail' in request.resource.data) || (request.resource.data.uploaderEmail is string && request.resource.data.uploaderEmail.size() <= 320))
+                    && (!('uploaderName' in request.resource.data) || (request.resource.data.uploaderName is string && request.resource.data.uploaderName.size() <= 100));
       allow read, update, delete: if isAdmin();
     }
 
     match /sell_diagnosis_logs/{logId} {
-      allow create: if request.resource.data.keys().size() <= 25;
+      allow create: if request.resource.data.keys().hasOnly([
+                      'apartmentName', 'dong', 'transferPrice', 'acquisitionPrice',
+                      'holdingYears', 'resideYears', 'isOneHouse', 'userId', 'timestamp'
+                    ])
+                    && request.resource.data.keys().hasAll(['apartmentName', 'transferPrice', 'acquisitionPrice'])
+                    && request.resource.data.apartmentName is string
+                    && request.resource.data.apartmentName.size() > 0
+                    && request.resource.data.apartmentName.size() <= 200
+                    && (!('dong' in request.resource.data) || (request.resource.data.dong is string && request.resource.data.dong.size() <= 100))
+                    && request.resource.data.transferPrice is number
+                    && request.resource.data.transferPrice >= 0
+                    && request.resource.data.transferPrice <= 100000000
+                    && request.resource.data.acquisitionPrice is number
+                    && request.resource.data.acquisitionPrice >= 0
+                    && request.resource.data.acquisitionPrice <= 100000000
+                    && (!('holdingYears' in request.resource.data) || (request.resource.data.holdingYears is number && request.resource.data.holdingYears >= 0 && request.resource.data.holdingYears <= 100))
+                    && (!('resideYears' in request.resource.data) || (request.resource.data.resideYears is number && request.resource.data.resideYears >= 0 && request.resource.data.resideYears <= 100))
+                    && (!('isOneHouse' in request.resource.data) || request.resource.data.isOneHouse is bool)
+                    && (!('userId' in request.resource.data) || (request.resource.data.userId is string && request.resource.data.userId.size() <= 128))
+                    && (!('timestamp' in request.resource.data) || request.resource.data.timestamp is timestamp);
       allow read, update, delete: if isAdmin();
     }
 
@@ -174,6 +222,8 @@ service cloud.firestore {
                     || (
                       request.resource.data.keys().hasOnly(['aptName', 'count'])
                       && request.resource.data.aptName is string
+                      && request.resource.data.aptName.size() > 0
+                      && request.resource.data.aptName.size() <= 200
                       && request.resource.data.count == 1
                     );
       allow update: if isAdmin()
@@ -184,8 +234,10 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Default-Deny for all unlisted & server-managed collections
-    // (board_posts, board_comments, board_likes, board_author_profiles, push_subscriptions, subscriptions, ad_clicks, etc.)
+    // Default-Deny for all unlisted, legacy-unreferenced & server-managed collections
+    // (coLeasePosts, config/dongData, posts, board_posts, board_comments, board_likes,
+    //  board_author_profiles, push_subscriptions, subscriptions, ad_clicks, favorites,
+    //  matchupVotes, reportViews, etc.)
     match /{document=**} {
       allow read, write: if isAdmin();
     }

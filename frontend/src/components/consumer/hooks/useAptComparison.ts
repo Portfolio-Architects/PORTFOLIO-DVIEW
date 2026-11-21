@@ -1181,11 +1181,14 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
 
   // Highlight class generator
   const getCompareClass = useCallback((isApt1: boolean, winValue: boolean | null) => {
-    if (winValue === null) return 'border-border/50 text-secondary bg-surface/30';
+    if (winValue === null) return 'border-border/50 text-secondary bg-surface/30 tabular-nums';
     const isWinner = isApt1 ? winValue === true : winValue === false;
-    return isWinner
-      ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-500/10 shadow-[0_0_0_1px_#2563eb_inset]'
-      : 'border-border/30 text-tertiary opacity-70 bg-surface/10';
+    if (!isWinner) {
+      return 'border-border/30 text-tertiary opacity-70 bg-surface/10 tabular-nums';
+    }
+    return isApt1
+      ? 'border-brand-blue/50 text-brand-blue bg-brand-blue-light tabular-nums'
+      : 'border-brand-red/50 text-brand-red bg-brand-red-light tabular-nums';
   }, []);
 
   const apartments = useMemo(() => {

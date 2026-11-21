@@ -131,7 +131,7 @@ function filterOutliersRolling(txs) {
 
 /**
  * IQR 아웃라이어 빌드 타임 선 연산 (클라이언트 CPU 부하 0ms 최적화)
- * 상한/하한 양방향 이상치 탐지 (Two-Sided IQR Outlier Detection)
+ * 상한/하한 양방향 이상치 탐지 (Two-Sided IQR + 최근 시계열 연속성 가드 + 중개거래 상한 완화)
  * @param {Array<Object>} records - 거래 레코드 배열
  * @returns {Array<Object>} isOutlier 플래그가 주입된 레코드 배열
  */
@@ -160,7 +160,11 @@ function applyIqrOutlierDetection(records) {
     const iqr = q3 - q1;
     return {
       lower: q1 - 1.5 * iqr,
+      // 직거래용 엄격 상한선
       upper: Math.max(q3 + 1.5 * iqr, Math.round(median * 1.35)),
+      // 중개거래(비직거래)용 완화 상한선
+      brokerUpper: Math.max(q3 + 2.5 * iqr, Math.round(median * 1.50)),
+      median,
       iqr,
       count: prices.length
     };
@@ -168,6 +172,8 @@ function applyIqrOutlierDetection(records) {
 
   const groups = {};
   const yearGroups = {};
+  const groupItems = {};
+
   records.forEach(r => {
     const isRent = r.dealType === '전세' || r.dealType === '월세';
     const evaluatedPrice = isRent
@@ -178,10 +184,9 @@ function applyIqrOutlierDetection(records) {
     const groupKey = `${areaKey}_${typeKey}`;
     const rawYm = String(r.contractYm || r.contractDate || '');
     const yearKey = rawYm.length >= 4 ? `${groupKey}_${rawYm.slice(0, 4)}` : '';
-    
-    r.evaluatedPrice = evaluatedPrice;
-    r.groupKey = groupKey;
-    r.yearGroupKey = yearKey;
+    const dateMs = parseTxDateMs(r);
+    const direct = isDirectDeal(r);
+    const cancelled = isCancelledTransaction(r);
 
     if (!groups[groupKey]) {
       groups[groupKey] = [];
@@ -194,6 +199,19 @@ function applyIqrOutlierDetection(records) {
       }
       yearGroups[yearKey].push(evaluatedPrice);
     }
+
+    if (!groupItems[groupKey]) {
+      groupItems[groupKey] = [];
+    }
+    groupItems[groupKey].push({
+      record: r,
+      evaluatedPrice,
+      groupKey,
+      yearKey,
+      dateMs,
+      direct,
+      cancelled
+    });
   });
 
   const iqrBounds = {};
@@ -208,26 +226,130 @@ function applyIqrOutlierDetection(records) {
     }
   });
 
-  records.forEach(r => {
-    const bounds = iqrBounds[r.groupKey];
-    const yearBound = r.yearGroupKey ? yearIqrBounds[r.yearGroupKey] : undefined;
-    const effectiveUpper = bounds
-      ? (yearBound ? Math.max(bounds.upper, yearBound.upper) : bounds.upper)
-      : 0;
-    const isOutlier = !!(
-      bounds &&
-      bounds.count >= 4 &&
-      bounds.iqr > 0 &&
-      (r.evaluatedPrice < bounds.lower || r.evaluatedPrice > effectiveUpper)
-    );
-    r.isOutlier = isOutlier;
-    if (isDirectDeal(r)) {
-      r.isDirectDeal = true;
+  const DAY_MS = 86400000;
+  const WINDOW_180_MS = 180 * DAY_MS;
+  const WINDOW_365_MS = 365 * DAY_MS;
+  const WINDOW_5Y_MS = 5 * 365 * DAY_MS;
+
+  Object.entries(groupItems).forEach(([groupKey, items]) => {
+    const bounds = iqrBounds[groupKey];
+
+    // 표본이 4건 미만이거나 분산이 0인 경우 이상치 판정 생략
+    if (!bounds || bounds.count < 4 || bounds.iqr <= 0) {
+      items.forEach(({ record, direct }) => {
+        record.isOutlier = false;
+        if (direct) {
+          record.isDirectDeal = true;
+        }
+      });
+      return;
     }
-    
-    delete r.evaluatedPrice;
-    delete r.groupKey;
-    delete r.yearGroupKey;
+
+    // 원본 배열 순서를 유지한 채 시계열 연속성 판정을 위해 그룹 임시 뷰만 계약일 오름차순 정렬
+    const sortedItems = [...items].sort((a, b) => {
+      const da = a.dateMs ?? -Infinity;
+      const db = b.dateMs ?? -Infinity;
+      if (da !== db) return da - db;
+      return a.evaluatedPrice - b.evaluatedPrice;
+    });
+
+    const confirmedNormals = [];
+    const hardCap = bounds.median > 0 ? bounds.median * 3.5 : Infinity;
+
+    for (let sIdx = 0; sIdx < sortedItems.length; sIdx++) {
+      const item = sortedItems[sIdx];
+      const yearBound = item.yearKey ? yearIqrBounds[item.yearKey] : undefined;
+      const effectiveUpper = item.direct
+        ? (yearBound ? Math.max(bounds.upper, yearBound.upper) : bounds.upper)
+        : (yearBound ? Math.max(bounds.brokerUpper, yearBound.brokerUpper) : bounds.brokerUpper);
+
+      let isOutlier = item.evaluatedPrice < bounds.lower || item.evaluatedPrice > effectiveUpper;
+
+      // 상한 초과 비직거래·비취소 거래에 대한 시계열 연속성 및 동시세 지지 가드
+      if (
+        isOutlier &&
+        item.evaluatedPrice > effectiveUpper &&
+        item.evaluatedPrice <= hardCap &&
+        !item.direct &&
+        !item.cancelled &&
+        item.dateMs !== null
+      ) {
+        // 1) 순방향 시계열 연속성 가드: 직전 확정 정상 거래 대비 점진적 계단식 상승 인정
+        if (confirmedNormals.length > 0) {
+          const recent365 = [];
+          for (let i = confirmedNormals.length - 1; i >= 0 && recent365.length < 5; i--) {
+            const prev = confirmedNormals[i];
+            const gap = item.dateMs - prev.dateMs;
+            if (gap >= 0 && gap <= WINDOW_365_MS) {
+              recent365.push(prev);
+            } else if (gap > WINDOW_365_MS) {
+              break;
+            }
+          }
+
+          const recent180 = recent365.filter(p => (item.dateMs - p.dateMs) <= WINDOW_180_MS);
+          if (recent180.length > 0) {
+            const prices180 = recent180.map(p => p.evaluatedPrice).sort((a, b) => a - b);
+            const max180 = prices180[prices180.length - 1];
+            const med180 = getPercentile(prices180, 0.5);
+            const withinMax = item.evaluatedPrice <= max180 * 1.25;
+            const withinMed = recent180.length < 3 || item.evaluatedPrice <= med180 * 1.40;
+            if (withinMax && withinMed) {
+              isOutlier = false;
+            }
+          } else if (recent365.length > 0) {
+            const max365 = Math.max(...recent365.map(p => p.evaluatedPrice));
+            if (item.evaluatedPrice <= max365 * 1.30) {
+              isOutlier = false;
+            }
+          } else {
+            // 희소 대형 평형(1년 초과~5년 공백)의 장기 상승 연속성 보정
+            const last = confirmedNormals[confirmedNormals.length - 1];
+            const gapMs = item.dateMs - last.dateMs;
+            if (gapMs > WINDOW_365_MS && gapMs <= WINDOW_5Y_MS) {
+              const yearsGap = gapMs / WINDOW_365_MS;
+              const allowedRatio = Math.min(1.80, 1.30 + (yearsGap - 1) * 0.12);
+              if (item.evaluatedPrice <= last.evaluatedPrice * allowedRatio) {
+                isOutlier = false;
+              }
+            }
+          }
+        }
+
+        // 2) 근접 동시세 지지 클러스터 가드 (±365일 이내 다른 계약일, ±15% 가격대 비직거래 실거래 확인 시 정상 인정)
+        if (isOutlier) {
+          for (let j = 0; j < sortedItems.length; j++) {
+            if (j === sIdx) continue;
+            const peer = sortedItems[j];
+            if (peer.direct || peer.cancelled || peer.dateMs === null || peer.evaluatedPrice <= 0) {
+              continue;
+            }
+            if (peer.dateMs === item.dateMs) {
+              continue;
+            }
+            if (Math.abs(peer.dateMs - item.dateMs) <= WINDOW_365_MS) {
+              const ratio = peer.evaluatedPrice / item.evaluatedPrice;
+              if (ratio >= 0.85 && ratio <= 1.15) {
+                isOutlier = false;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      item.record.isOutlier = isOutlier;
+      if (item.direct) {
+        item.record.isDirectDeal = true;
+      }
+
+      if (!isOutlier && !item.direct && !item.cancelled && item.dateMs !== null && item.evaluatedPrice > 0) {
+        confirmedNormals.push({
+          dateMs: item.dateMs,
+          evaluatedPrice: item.evaluatedPrice
+        });
+      }
+    }
   });
 
   return records;

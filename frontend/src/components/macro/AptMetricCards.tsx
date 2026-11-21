@@ -280,13 +280,13 @@ export const AptMetricCards = React.memo(function AptMetricCards({
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   {item.isNewHigh ? (
-                    <span className="text-[9.5px] font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded shrink-0 leading-none whitespace-nowrap">
+                    <span className="text-[9.5px] font-black dview-spark-badge px-1.5 py-0.5 rounded shrink-0 leading-none whitespace-nowrap">
                       신고가
                     </span>
                   ) : hasDelta && item.delta !== 0 && deltaFormatted ? (
                     <span
-                      className={`text-[10px] font-semibold tabular-nums leading-none whitespace-nowrap shrink-0 ${
-                        item.delta > 0 ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'
+                      className={`text-[10px] font-bold tabular-nums leading-none whitespace-nowrap shrink-0 ${
+                        item.delta > 0 ? 'text-brand-red' : 'text-brand-blue'
                       }`}
                     >
                       {item.delta > 0 ? `+${deltaFormatted}` : `-${deltaFormatted}`}
@@ -297,13 +297,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
                     </span>
                   ) : null}
                   <span
-                    className={`text-[12.5px] sm:text-[13px] xl:text-[14px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 ${
-                      isRising
-                        ? 'text-red-600 dark:text-red-400'
-                        : isFalling
-                          ? 'text-blue-600 dark:text-blue-400'
-                          : 'text-slate-900 dark:text-white'
-                    }`}
+                    className="text-[12.5px] sm:text-[13px] xl:text-[14px] font-black tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-primary"
                   >
                     {item.priceEok}
                   </span>
@@ -314,11 +308,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
               <div className="flex items-center min-w-0 w-full mt-auto shrink-0 overflow-hidden">
                 <span
                   title={item.displayAptName || item.aptName}
-                  className={`w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors ${
-                    isRising
-                      ? 'group-hover:text-red-600 dark:group-hover:text-red-400'
-                      : 'group-hover:text-blue-600 dark:group-hover:text-blue-400'
-                  }`}
+                  className="w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors"
                 >
                   {item.displayAptName || item.aptName}
                 </span>
@@ -391,20 +381,20 @@ export const AptMetricCards = React.memo(function AptMetricCards({
           }
           className={`bg-elevated px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 text-left ${
             newHighComplex
-              ? 'hover:bg-slate-100/90 dark:hover:bg-slate-800/80 cursor-pointer group'
+              ? 'hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] cursor-pointer group'
               : 'cursor-default'
           }`}
         >
           <div className="flex items-center justify-between gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
             <div className="flex items-center gap-1 min-w-0 overflow-hidden">
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 shrink-0 leading-none whitespace-nowrap">
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-secondary shrink-0 leading-none whitespace-nowrap">
                 최고 거래가
               </span>
               <span className="text-[10px] font-medium text-tertiary truncate leading-none whitespace-nowrap">
                 {newHighComplex ? formatCompactSpecMeta(newHighComplex) : ''}
               </span>
             </div>
-            <span className="text-[13px] xl:text-[14.5px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-blue-600 dark:text-blue-400">
+            <span className="text-[13px] xl:text-[14.5px] font-black tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-primary">
               {newHighComplex?.highestPrice ? formatStatsPriceEok(newHighComplex.highestPrice) : '-'}
             </span>
           </div>
@@ -412,7 +402,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
           <div className="flex items-center min-w-0 w-full mt-auto shrink-0 overflow-hidden">
             <span
               title={newHighComplex?.aptName || undefined}
-              className="w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400"
+              className="w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors"
             >
               {newHighComplex?.aptName || '해당 없음'}
             </span>
@@ -439,20 +429,20 @@ export const AptMetricCards = React.memo(function AptMetricCards({
           }
           className={`bg-elevated px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 text-left ${
             optimalGapComplex
-              ? 'hover:bg-slate-100/90 dark:hover:bg-slate-800/80 cursor-pointer group'
+              ? 'hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] cursor-pointer group'
               : 'cursor-default'
           }`}
         >
           <div className="flex items-center justify-between gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
             <div className="flex items-center gap-1 min-w-0 overflow-hidden">
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 shrink-0 leading-none whitespace-nowrap">
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-secondary shrink-0 leading-none whitespace-nowrap">
                 최고 평당가
               </span>
               <span className="text-[10px] font-medium text-tertiary truncate leading-none whitespace-nowrap">
                 {optimalGapComplex ? formatCompactSpecMeta(optimalGapComplex, true) : ''}
               </span>
             </div>
-            <span className="text-[13px] xl:text-[14.5px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-emerald-600 dark:text-emerald-400">
+            <span className="text-[13px] xl:text-[14.5px] font-black tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-primary">
               {topPyeongPrice > 0 ? `${topPyeongPrice.toLocaleString()}만/평` : '-'}
             </span>
           </div>
@@ -460,7 +450,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
           <div className="flex items-center min-w-0 w-full mt-auto shrink-0 overflow-hidden">
             <span
               title={optimalGapComplex?.aptName || undefined}
-              className="w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors group-hover:text-emerald-600 dark:group-hover:text-emerald-400"
+              className="w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors"
             >
               {optimalGapComplex?.aptName || '해당 없음'}
             </span>
@@ -487,20 +477,20 @@ export const AptMetricCards = React.memo(function AptMetricCards({
           }
           className={`bg-elevated px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 text-left ${
             volumeSurgeComplex
-              ? 'hover:bg-slate-100/90 dark:hover:bg-slate-800/80 cursor-pointer group'
+              ? 'hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] cursor-pointer group'
               : 'cursor-default'
           }`}
         >
           <div className="flex items-center justify-between gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
             <div className="flex items-center gap-1 min-w-0 overflow-hidden">
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 shrink-0 leading-none whitespace-nowrap">
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-secondary shrink-0 leading-none whitespace-nowrap">
                 거래량 최다
               </span>
               <span className="text-[10px] font-medium text-tertiary truncate leading-none whitespace-nowrap">
                 {volumeSurgeComplex?.dong || ''}
               </span>
             </div>
-            <span className="text-[13px] xl:text-[14.5px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-blue-600 dark:text-blue-400">
+            <span className="text-[13px] xl:text-[14.5px] font-black tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-primary">
               {volumeSurgeComplex?.txCount ? `${volumeSurgeComplex.txCount}건` : '-'}
             </span>
           </div>
@@ -508,14 +498,14 @@ export const AptMetricCards = React.memo(function AptMetricCards({
           <div className="flex items-center min-w-0 w-full mt-auto shrink-0 overflow-hidden">
             <span
               title={volumeSurgeComplex?.aptName || undefined}
-              className="w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400"
+              className="w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors"
             >
               {volumeSurgeComplex?.aptName || '해당 없음'}
             </span>
           </div>
         </div>
 
-        {/* 4. 낙폭과대 급매 단지 */}
+        {/* 4. 낙폭과대 급매 단지 (Cool Spark — 하락=코발트 시맨틱 일관화) */}
         <div
           data-testid="insight-card-urgent-bargain"
           onClick={urgentBargainComplex ? () => handleInsightClick(urgentBargainComplex) : undefined}
@@ -535,20 +525,20 @@ export const AptMetricCards = React.memo(function AptMetricCards({
           }
           className={`bg-elevated px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 text-left ${
             urgentBargainComplex
-              ? 'hover:bg-slate-100/90 dark:hover:bg-slate-800/80 cursor-pointer group'
+              ? 'hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] cursor-pointer group'
               : 'cursor-default'
           }`}
         >
           <div className="flex items-center justify-between gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
             <div className="flex items-center gap-1 min-w-0 overflow-hidden">
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 shrink-0 leading-none whitespace-nowrap">
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-brand-blue-light text-brand-blue shrink-0 leading-none whitespace-nowrap">
                 직전가 대비 하락
               </span>
               <span className="text-[10px] font-medium text-tertiary truncate leading-none whitespace-nowrap">
                 {urgentBargainComplex?.dong || ''}
               </span>
             </div>
-            <span className="text-[13px] xl:text-[14.5px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-red-600 dark:text-red-400">
+            <span className="text-[13px] xl:text-[14.5px] font-black tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-brand-blue">
               {urgentBargainComplex?.urgentSaleDiscountRate
                 ? `-${urgentBargainComplex.urgentSaleDiscountRate}%`
                 : '-'}
@@ -558,7 +548,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
           <div className="flex items-center min-w-0 w-full mt-auto shrink-0 overflow-hidden">
             <span
               title={urgentBargainComplex?.aptName || undefined}
-              className="w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors group-hover:text-red-600 dark:group-hover:text-red-400"
+              className="w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors group-hover:text-brand-blue"
             >
               {urgentBargainComplex?.aptName || '해당 없음'}
             </span>
@@ -585,19 +575,19 @@ export const AptMetricCards = React.memo(function AptMetricCards({
                 : `전기 대비 ${newHighChange}건 하락세`}
             </span>
           </span>
-          <span className={`text-[9.5px] font-semibold px-1.5 py-0.5 rounded shrink-0 leading-none whitespace-nowrap ${
+          <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded shrink-0 leading-none whitespace-nowrap ${
             risingMetrics.risingRatio >= 50
-              ? 'text-red-600 dark:text-red-400 bg-red-500/10'
-              : 'text-blue-700 dark:text-blue-400 bg-blue-500/10'
+              ? 'text-brand-red bg-brand-red-light'
+              : 'text-brand-blue bg-brand-blue-light'
           }`}>
             {risingMetrics.statusLabel}
           </span>
         </div>
         <div className="flex items-baseline justify-between gap-1.5 sm:gap-2 mt-auto w-full min-w-0 shrink-0">
-          <span className={`text-[15px] sm:text-[16px] font-bold tabular-nums leading-none tracking-tight whitespace-nowrap shrink-0 ${
+          <span className={`text-[15px] sm:text-[16px] font-black tabular-nums leading-none tracking-tight whitespace-nowrap shrink-0 ${
             risingMetrics.risingRatio >= 50
-              ? 'text-red-600 dark:text-red-400'
-              : 'text-blue-600 dark:text-blue-400'
+              ? 'text-brand-red'
+              : 'text-brand-blue'
           }`}>
             {risingMetrics.risingRatio.toFixed(1)}%
           </span>
@@ -613,18 +603,18 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         data-testid="metric-card-mortgage-cta"
         onClick={() => onOpenMortgageModal && onOpenMortgageModal()}
         aria-label="평당 평균 실거래가 기반 주담대 및 정책자금 한도 계산기 열기"
-        className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
+        className="bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-slate-900/15 dark:focus:ring-white/20 group"
       >
         <div className="flex items-center justify-between gap-1.5 w-full min-w-0 shrink-0">
           <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none truncate">
             평당 평균 실거래가
           </span>
-          <span className="text-[9.5px] font-medium text-tertiary bg-slate-100 dark:bg-slate-800/80 px-1.5 py-0.5 rounded shrink-0 leading-none whitespace-nowrap">
+          <span className="text-[9.5px] font-medium text-tertiary bg-[#eff1f5] dark:bg-[#1e2532] px-1.5 py-0.5 rounded shrink-0 leading-none whitespace-nowrap">
             동탄 전체
           </span>
         </div>
         <div className="flex items-baseline justify-between gap-1.5 sm:gap-2 mt-auto w-full min-w-0 shrink-0">
-          <span className="text-[15px] sm:text-[16px] font-bold text-primary tabular-nums leading-none tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors whitespace-nowrap shrink-0">
+          <span className="text-[15px] sm:text-[16px] font-bold text-primary tabular-nums leading-none tracking-tight transition-colors whitespace-nowrap shrink-0">
             {computedAvgPyeongPrice.toLocaleString()}만원
           </span>
           <span className="text-[10px] font-medium text-tertiary tabular-nums leading-none truncate">
@@ -639,7 +629,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         data-testid="metric-card-jeonse-cta"
         onClick={() => onOpenJeonseSafetyModal && onOpenJeonseSafetyModal()}
         aria-label="평균 전세가율 기반 전세보증보험 및 깡통전세 안전진단 계산기 열기"
-        className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
+        className="bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-slate-900/15 dark:focus:ring-white/20 group"
       >
         <div className="flex items-center justify-between gap-1.5 w-full min-w-0 shrink-0">
           <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none truncate">
@@ -650,7 +640,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
           </span>
         </div>
         <div className="flex items-baseline justify-between gap-1.5 sm:gap-2 mt-auto w-full min-w-0 shrink-0">
-          <span className="text-[15px] sm:text-[16px] font-bold text-primary tabular-nums leading-none tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors whitespace-nowrap shrink-0">
+          <span className="text-[15px] sm:text-[16px] font-bold text-primary tabular-nums leading-none tracking-tight transition-colors whitespace-nowrap shrink-0">
             {computedAvgJeonseRate.toFixed(1)}%
           </span>
           <span className="text-[10px] font-medium text-tertiary leading-none truncate">
@@ -664,18 +654,15 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         type="button"
         onClick={() => onOpenSellTimingCalculator && onOpenSellTimingCalculator()}
         aria-label="우리집 적정 가치 및 매도 타이밍 진단 계산기 열기"
-        className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
+        className="bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-slate-900/15 dark:focus:ring-white/20 group"
       >
         <div className="flex items-center justify-between gap-1.5 w-full min-w-0 shrink-0">
           <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none truncate">
             자산 진단 시뮬레이터
           </span>
-          <span className="text-[9.5px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded shrink-0 leading-none whitespace-nowrap">
-            AI 진단
-          </span>
         </div>
         <div className="flex items-center justify-between gap-1.5 w-full min-w-0 mt-auto shrink-0">
-          <span className="text-[12px] sm:text-[13px] font-bold text-primary leading-none tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+          <span className="text-[12px] sm:text-[13px] font-bold text-primary leading-none tracking-tight transition-colors truncate">
             우리집 적정 가치 & 매도 타이밍
           </span>
         </div>

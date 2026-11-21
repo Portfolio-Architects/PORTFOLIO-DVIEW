@@ -120,11 +120,11 @@ export const TransactionTable = React.memo(function TransactionTable({
     !dealType || (dealType !== '전세' && dealType !== '월세');
 
   const getBadgeColorClasses = (dealType: string | undefined) => {
-    if (!dealType || dealType === '-') return 'bg-toss-blue-light text-blue-600 dark:text-blue-400'; // 매매 기본
-    if (dealType === '전세') return 'bg-[#e6f4ea] dark:bg-emerald-950/45 text-[#0d652d] dark:text-emerald-400';
-    if (dealType === '월세') return 'bg-blue-50 dark:bg-blue-950/45 text-blue-700 dark:text-blue-400';
+    if (!dealType || dealType === '-') return 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary'; // 매매 기본
+    if (dealType === '전세') return 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary';
+    if (dealType === '월세') return 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary';
     // 중개거래, 직거래, 매매 등 모두 매매 계열
-    return 'bg-toss-blue-light text-blue-600 dark:text-blue-400';
+    return 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary';
   };
 
   const getDealTypeLabel = (dealType: string | undefined) => {
@@ -227,22 +227,22 @@ export const TransactionTable = React.memo(function TransactionTable({
   }, [sortedFilteredTransactions, normalizeAptName, chartType]);
 
   return (
-    <div className={`flex flex-col bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl overflow-hidden ${compact ? '' : 'md:h-full ring-1 ring-[#e5e8eb] dark:ring-[#2d2d2d]'}`}>
+    <div className={`flex flex-col bg-elevated rounded-2xl overflow-hidden ${compact ? '' : 'md:h-full ring-1 ring-border'}`}>
       {jsonLd && (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <div className={`flex items-center justify-between bg-[#f9fafb] dark:bg-[#17171c] border-b border-[#f2f4f6] dark:border-[#202027] w-full ${compact ? 'px-4 py-3' : 'p-4'}`}>
+      <div className={`flex items-center justify-between bg-elevated border-b border-border w-full ${compact ? 'px-4 py-3' : 'p-4'}`}>
         <h2 className="text-[14px] font-bold text-secondary shrink-0">
-          실거래가 <span className="text-blue-600 dark:text-blue-400 ml-1">{filteredTransactions.length}</span>건
+          실거래가 <span className="text-primary tabular-nums ml-1">{filteredTransactions.length}</span>건
         </h2>
         {/* 정렬 필터 */}
         <div className="relative">
           <button 
             type="button"
-            className="flex items-center gap-1 text-[12.5px] font-bold text-[#4e5968] dark:text-secondary hover:text-[#191f28] dark:hover:text-primary transition-colors cursor-pointer bg-transparent border-none outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue rounded-md px-1.5 py-0.5"
+            className="flex items-center gap-1 text-[12.5px] font-bold text-secondary hover:text-primary transition-colors cursor-pointer bg-transparent border-none outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20 dark:focus-visible:ring-white/25 rounded-md px-1.5 py-0.5"
             onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'sort' ? null : 'sort'); }}
             aria-label="실거래가 정렬 필터 선택"
             aria-haspopup="listbox"
@@ -259,7 +259,7 @@ export const TransactionTable = React.memo(function TransactionTable({
                 { label: '높은가격순', value: 'price_desc' },
                 { label: '낮은가격순', value: 'price_asc' },
               ].map(opt => (
-                <button key={opt.value} className={`w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-body transition-colors ${txSort === opt.value ? 'text-toss-blue bg-body/50' : 'text-secondary'} border-none bg-transparent`}
+                <button key={opt.value} className={`w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-elevated transition-colors ${txSort === opt.value ? 'text-primary bg-[#eff1f5] dark:bg-[#1e2532]' : 'text-secondary'} border-none bg-transparent cursor-pointer`}
                   onClick={(e) => { e.stopPropagation(); loadAllTransactions?.(); setTxSort(opt.value as 'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'); setActiveDropdown(null); }}>
                   {opt.label}
                 </button>
@@ -270,7 +270,7 @@ export const TransactionTable = React.memo(function TransactionTable({
       </div>
 
       {/* 테이블 컬럼 헤더 추가 */}
-      <div className={`flex items-center justify-between bg-body border-b border-border text-[11px] font-extrabold text-[#4e5968] dark:text-[#cbd5e1] select-none shrink-0 w-full gap-2 ${compact ? 'pl-3 pr-4 py-1.5 sm:pl-4 sm:pr-[22px] sm:py-2' : 'pl-4 pr-[22px] py-2'}`}>
+      <div className={`flex items-center justify-between bg-elevated border-b border-border text-[11px] font-extrabold text-secondary select-none shrink-0 w-full gap-2 ${compact ? 'pl-3 pr-4 py-1.5 sm:pl-4 sm:pr-[22px] sm:py-2' : 'pl-4 pr-[22px] py-2'}`}>
         <div className="w-[74px] md:w-[84px] shrink-0 text-left">계약일</div>
         <div className="w-[48px] md:w-[56px] shrink-0 text-center">전용면적</div>
         <div className="w-[36px] md:w-[48px] shrink-0 text-center">층</div>
@@ -302,14 +302,14 @@ export const TransactionTable = React.memo(function TransactionTable({
 
         {filteredTransactions.length === 0 && (
           <div className="flex flex-col items-center justify-center h-[200px] text-tertiary gap-2">
-            <AlertCircle size={24} className="text-toss-gray" />
+            <AlertCircle size={24} className="text-tertiary" />
             <span className="text-[13px] font-bold">조건에 맞는 거래 내역이 없습니다.</span>
           </div>
         )}
       </div>
 
       {(sortedFilteredTransactions.length > defaultCount || (Boolean(loadAllTransactions) && !hasRequestedAll && transactions.length >= 15)) && (
-        <div className="border-t border-border/40 bg-surface flex shrink-0">
+        <div className="border-t border-border/60 bg-surface flex shrink-0">
           {(sortedFilteredTransactions.length > visibleCount || (Boolean(loadAllTransactions) && !hasRequestedAll && transactions.length >= 15)) ? (
             <button
               onClick={() => {
@@ -322,14 +322,14 @@ export const TransactionTable = React.memo(function TransactionTable({
                     : Math.min(prev + batchSize, sortedFilteredTransactions.length)
                 );
               }}
-              className="flex-1 py-3.5 text-center text-[13px] font-bold text-toss-blue hover:bg-toss-blue/5 active:bg-toss-blue/10 transition-colors flex items-center justify-center gap-1 focus:outline-none cursor-pointer border-none bg-transparent"
+              className="flex-1 py-3.5 text-center text-[13px] font-bold text-primary hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] transition-colors flex items-center justify-center gap-1 focus:outline-none cursor-pointer border-none bg-transparent tabular-nums"
             >
               실거래가 더보기 ({sortedFilteredTransactions.length > visibleCount ? Math.min(batchSize, sortedFilteredTransactions.length - visibleCount) : batchSize}개 더보기, {Math.min(visibleCount, sortedFilteredTransactions.length)}/{sortedFilteredTransactions.length})
             </button>
           ) : (
             <button
               onClick={() => setVisibleCount(defaultCount)}
-              className="flex-1 py-3.5 text-center text-[13px] font-bold text-tertiary hover:bg-body active:bg-body/80 transition-colors flex items-center justify-center gap-1 focus:outline-none cursor-pointer border-none bg-transparent"
+              className="flex-1 py-3.5 text-center text-[13px] font-bold text-tertiary hover:text-primary hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] transition-colors flex items-center justify-center gap-1 focus:outline-none cursor-pointer border-none bg-transparent"
             >
               접기
             </button>
@@ -426,54 +426,54 @@ const TransactionRow = React.memo(function TransactionRow({
   }, [tx.dealType, tx.deposit, displayMonthly, eok, rem]);
 
   return (
-    <div className={`flex items-center justify-between ${compact ? 'px-4 py-3' : 'p-3 md:p-4'} border-b border-[#f2f4f6] dark:border-[#202027] bg-surface hover:bg-[#f9fafb] dark:hover:bg-[#17171c] transition-colors cursor-default ${isCancelled ? 'opacity-40' : ''} gap-2`}>
+    <div className={`flex items-center justify-between ${compact ? 'px-4 py-3' : 'p-3 md:p-4'} border-b border-border bg-surface hover:bg-elevated transition-colors cursor-default ${isCancelled ? 'opacity-40' : ''} gap-2`}>
       {/* 1. 날짜 */}
-      <div className="flex flex-col w-[74px] md:w-[84px] shrink-0 text-left">
-        <div className={`text-[14px] md:text-[15px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-red-500/60 dark:decoration-red-400/60' : 'text-[#6b7684] dark:text-[#9ca3af]'}`}>
+      <div className="flex flex-col w-[74px] md:w-[84px] shrink-0 text-left tabular-nums">
+        <div className={`text-[14px] md:text-[15px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-brand-red/60' : 'text-secondary'}`}>
           {ym.length >= 4 ? ym.substring(2, 4) : '00'}.{m}.{d}
         </div>
         {isCancelled && (
-          <div className="text-[10px] font-bold text-red-500 dark:text-red-400 mt-0.5 leading-tight break-keep">
+          <div className="text-[10px] font-bold text-brand-red mt-0.5 leading-tight break-keep">
             취소{cancelDateLabel ? ` ${cancelDateLabel}` : ''}
           </div>
         )}
       </div>
       
       {/* 2. 평형 */}
-      <div className="w-[48px] md:w-[56px] shrink-0 flex justify-center">
+      <div className="w-[48px] md:w-[56px] shrink-0 flex justify-center tabular-nums">
         <span className={`w-full text-center text-[12.5px] tracking-tight font-bold ${isCancelled ? 'text-tertiary/50 dark:text-tertiary/40' : 'text-secondary'}`} title={typeLabel}>
           {typeLabel}
         </span>
       </div>
  
       {/* 3. 층수 */}
-      <div className="w-[36px] md:w-[48px] shrink-0 text-center">
+      <div className="w-[36px] md:w-[48px] shrink-0 text-center tabular-nums">
         <span className={`text-[14px] md:text-[15px] font-bold ${isCancelled ? 'text-tertiary/50 dark:text-tertiary/40' : 'text-tertiary'}`}>
           {tx.floor}층
         </span>
       </div>
  
       {/* 4. 거래금액 */}
-      <div className="flex items-center justify-end gap-1.5 shrink-0 text-right w-[90px] md:w-[110px]">
+      <div className="flex items-center justify-end gap-1.5 shrink-0 text-right w-[90px] md:w-[110px] tabular-nums">
         {tx.isOutlier && (
           <Tooltip content={tx.dealType === '직거래' ? "특수관계인 저가/고가 거래 의심 (직거래 편차)" : "시세 대비 이례적 편차"}>
             <div className="cursor-help flex items-center justify-center">
-              <AlertTriangle size={13} className="text-blue-500 dark:text-blue-400 drop-shadow-sm" />
+              <AlertTriangle size={13} className="text-brand-red drop-shadow-sm" />
             </div>
           </Tooltip>
         )}
  
         {(tx.dealType === '전세' || tx.dealType === '월세' || tx.dealType === '직거래') && (
           <span className={`w-[20px] h-[20px] md:w-[22px] md:h-[22px] flex items-center justify-center text-[11px] font-extrabold rounded-md shrink-0 ${isCancelled ? 'opacity-50' : ''} ${
-            tx.dealType === '전세' ? 'bg-[#e6f4ea] dark:bg-emerald-950/45 text-[#0d652d] dark:text-emerald-400' : 
-            tx.dealType === '월세' ? 'bg-blue-50 dark:bg-blue-950/45 text-blue-700 dark:text-blue-400' : 
-            'bg-toss-blue-light text-blue-600 dark:text-blue-400'
+            tx.dealType === '직거래'
+              ? 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary'
+              : 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary'
           }`}>
             {tx.dealType.charAt(0)}
           </span>
         )}
         
-        <div className={`text-[15px] md:text-[16px] font-black tracking-tight whitespace-nowrap text-right ${tx.isOutlier || isCancelled ? 'text-tertiary line-through decoration-[#c8ced4] dark:decoration-tertiary/40 decoration-2' : 'text-primary'}`}>
+        <div className={`text-[15px] md:text-[16px] font-black tracking-tight whitespace-nowrap text-right ${tx.isOutlier || isCancelled ? 'text-tertiary line-through decoration-slate-300 dark:decoration-slate-600 decoration-2' : 'text-primary'}`}>
           {priceText}
         </div>
       </div>

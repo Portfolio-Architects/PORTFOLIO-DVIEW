@@ -15,24 +15,31 @@
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
-
-// 1. Load environment variables (.env.local prioritized, fallback to .env)
-const envLocalPath = path.resolve(__dirname, '../.env.local');
-const envPath = path.resolve(__dirname, '../.env');
-if (fs.existsSync(envLocalPath)) {
-  dotenv.config({ path: envLocalPath, override: true });
-} else if (fs.existsSync(envPath)) {
-  dotenv.config({ path: envPath, override: true });
-} else {
-  dotenv.config();
-}
-
 const webpush = require('web-push');
+const {
+  ALLOWED_PUSH_EXACT_HOSTS,
+  ALLOWED_PUSH_HOST_SUFFIXES,
+  isForbiddenIpOrHost,
+  validatePushEndpointUrl,
+} = require('../src/lib/security/pushEndpointPolicy.cjs');
+
+// 1. Load environment variables (process.env > .env.local > .env)
+function loadEnvFiles() {
+  const envLocalPath = path.resolve(__dirname, '../.env.local');
+  const envPath = path.resolve(__dirname, '../.env');
+  if (fs.existsSync(envLocalPath)) {
+    dotenv.config({ path: envLocalPath });
+  }
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+  }
+}
 
 // 2. Parse command line arguments
 function parseArgs(argv) {
   const flags = {
     dryRun: false,
+    sendRequested: false,
     date: null,
     target: null,
     endpoint: null,
@@ -47,6 +54,8 @@ function parseArgs(argv) {
     const arg = argv[i];
     if (arg === '--dry-run') {
       flags.dryRun = true;
+    } else if (arg === '--send') {
+      flags.sendRequested = true;
     } else if (arg === '--verbose' || arg === '-v') {
       flags.verbose = true;
     } else if (arg === '--help' || arg === '-h') {
@@ -72,7 +81,7 @@ function parseArgs(argv) {
     } else if (arg === '--auth' && i + 1 < argv.length) {
       flags.auth = argv[++i].trim();
     } else if (arg.startsWith('--subscription=') || arg.startsWith('--sub=')) {
-      flags.subscription = arg.split('=')[1].trim();
+      flags.subscription = arg.slice(arg.indexOf('=') + 1).trim();
     } else if ((arg === '--subscription' || arg === '--sub') && i + 1 < argv.length) {
       flags.subscription = argv[++i].trim();
     }
@@ -97,13 +106,15 @@ function getTodayKstYmd() {
   return formatter.format(new Date()).replace(/[^0-9]/g, '');
 }
 
-// 4. Validate VAPID configuration
+function stripQuotes(val) {
+  return String(val || '').trim().replace(/^["']|["']$/g, '');
+}
+
+// 4. Validate VAPID configuration (strictly env-driven, zero hardcoded keys)
 function validateVapidConfig() {
-  const publicKey =
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-    'BJfvp3-MGu6cXDWL2GGKO019MjQhLFSwk1zvAIo8QgX31bfCwfjOHHr34iJcGYnhxpJBCsPoXeG6CAXql9KR9Xg';
-  const privateKey = process.env.VAPID_PRIVATE_KEY || 'YCeNPk2VFyunF4yNgdtqThe87T4BCyrsTlPS18K9m7Q';
-  const subject = process.env.VAPID_SUBJECT || 'mailto:admin@dview.kr';
+  const publicKey = stripQuotes(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
+  const privateKey = stripQuotes(process.env.VAPID_PRIVATE_KEY);
+  const subject = stripQuotes(process.env.VAPID_SUBJECT) || 'mailto:support@dongtanview.com';
 
   const errors = [];
   if (!publicKey) {
@@ -192,6 +203,30 @@ function resolveSubscription(flags) {
   return null;
 }
 
+// 6b. Safe live Web Push dispatch enforcing SSRF & official host allowlist
+async function dispatchLivePushNotification(subscription, sendPayload, webpushClient = webpush) {
+  if (!subscription || typeof subscription !== 'object' || !subscription.endpoint) {
+    throw new Error('실제 발송을 위한 --endpoint 또는 --subscription 정보가 누락되었습니다.');
+  }
+
+  const endpointVerdict = validatePushEndpointUrl(subscription.endpoint);
+  if (!endpointVerdict.valid || !endpointVerdict.normalizedUrl) {
+    throw new Error(
+      `허용되지 않은 Push 엔드포인트입니다: ${endpointVerdict.reason || 'Invalid Web Push endpoint'}`
+    );
+  }
+
+  const sanitizedSubscription = {
+    ...subscription,
+    endpoint: endpointVerdict.normalizedUrl,
+  };
+
+  return webpushClient.sendNotification(
+    sanitizedSubscription,
+    typeof sendPayload === 'string' ? sendPayload : JSON.stringify(sendPayload)
+  );
+}
+
 // 7. Print usage help
 function printHelp() {
   console.log(`
@@ -234,6 +269,27 @@ async function main() {
   if (flags.help) {
     printHelp();
     process.exit(0);
+  }
+
+  // Fail-closed endpoint SSRF/allowlist validation before any live dispatch workflow
+  let liveSubscription = null;
+  if (!flags.dryRun) {
+    liveSubscription = resolveSubscription(flags);
+    if (!liveSubscription || !liveSubscription.endpoint) {
+      console.error('\n❌ [오류] 실제 발송을 위한 --endpoint 또는 --subscription 정보가 누락되었습니다.');
+      process.exit(1);
+    }
+    const endpointVerdict = validatePushEndpointUrl(liveSubscription.endpoint);
+    if (!endpointVerdict.valid || !endpointVerdict.normalizedUrl) {
+      console.error(
+        `\n❌ [보안 차단] 허용되지 않은 Push 엔드포인트입니다: ${endpointVerdict.reason || 'Invalid Web Push endpoint'}`
+      );
+      process.exit(1);
+    }
+    liveSubscription = {
+      ...liveSubscription,
+      endpoint: endpointVerdict.normalizedUrl,
+    };
   }
 
   console.log('\n===================================================================');
@@ -347,35 +403,45 @@ async function main() {
 
   // [Branch] Dry-Run Completion vs Live Dispatch
   if (flags.dryRun) {
-    console.log('\n🛡️  [DRY-RUN 완료] 네트워크 푸시 발송을 건너뛰었습니다.');
-    console.log('   실제 브라우저로 1건 발송 테스트를 원하시면 아래 옵션을 사용하세요:');
-    console.log('   node scripts/test-push-notification.js --endpoint="<FCM_URL>" --p256dh="<KEY>" --auth="<KEY>"\n');
+    if (flags.sendRequested) {
+      console.log('\nℹ️  [--send 안내] 전체 구독자 일괄 발송은 /api/cron/send-tx-notifications 엔드포인트에서 수행됩니다.');
+      console.log('   단일 기기 직접 발송 테스트는 --endpoint 또는 --subscription 옵션을 함께 전달하세요.\n');
+    } else {
+      console.log('\n🛡️  [DRY-RUN 완료] 네트워크 푸시 발송을 건너뛰었습니다.');
+      console.log('   실제 브라우저로 1건 발송 테스트를 원하시면 아래 옵션을 사용하세요:');
+      console.log('   node scripts/test-push-notification.js --endpoint="<FCM_URL>" --p256dh="<KEY>" --auth="<KEY>"\n');
+    }
     process.exit(0);
   }
 
   // Live Transmission Branch
-  const subscription = resolveSubscription(flags);
+  const subscription = liveSubscription || resolveSubscription(flags);
   if (!subscription || !subscription.endpoint) {
     console.error('\n❌ [오류] 실제 발송을 위한 --endpoint 또는 --subscription 정보가 누락되었습니다.');
     process.exit(1);
   }
 
-  const sendPayload = payloads.length > 0 ? payloads[0].payload : buildPushPayload({
-    aptName: '동탄역 롯데캐슬',
-    areaPyeong: 34,
-    floor: 25,
-    priceEok: '16억2,000',
-    contractDate: targetDate,
-    registeredDate: targetDate,
-    isNewHigh: true,
-  });
-
-  console.log(`\n🚀 [네트워크 발송 시작] 엔드포인트: ${subscription.endpoint.slice(0, 50)}...`);
-  try {
-    const result = await webpush.sendNotification(
-      subscription,
-      JSON.stringify(sendPayload)
+  const endpointVerdict = validatePushEndpointUrl(subscription.endpoint);
+  if (!endpointVerdict.valid || !endpointVerdict.normalizedUrl) {
+    console.error(
+      `\n❌ [보안 차단] 허용되지 않은 Push 엔드포인트입니다: ${endpointVerdict.reason || 'Invalid Web Push endpoint'}`
     );
+    process.exit(1);
+  }
+
+  // Strict Real Data Only: fall back strictly to the latest real transaction in recent-transactions.json (never mock values)
+  const fallbackRealTx =
+    allTransactions.find((tx) => tx && tx.aptName && tx.priceEok) || null;
+  if (payloads.length === 0 && !fallbackRealTx) {
+    console.error('\n❌ [오류] 발송할 실제 거래 데이터가 recent-transactions.json에 없습니다.');
+    process.exit(1);
+  }
+
+  const sendPayload = payloads.length > 0 ? payloads[0].payload : buildPushPayload(fallbackRealTx);
+
+  console.log(`\n🚀 [네트워크 발송 시작] 엔드포인트: ${endpointVerdict.normalizedUrl.slice(0, 50)}...`);
+  try {
+    const result = await dispatchLivePushNotification(subscription, sendPayload);
     console.log(`✅ [발송 성공] HTTP 응답 코드: ${result.statusCode}`);
     console.log(`   알림이 성공적으로 Push Service에 인계되었습니다.`);
   } catch (err) {
@@ -389,7 +455,24 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(`❌ [치명적 오류] ${err.message}`);
-  process.exit(1);
-});
+if (require.main === module) {
+  loadEnvFiles();
+  main().catch((err) => {
+    console.error(`❌ [치명적 오류] ${err.message}`);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  ALLOWED_PUSH_EXACT_HOSTS,
+  ALLOWED_PUSH_HOST_SUFFIXES,
+  isForbiddenIpOrHost,
+  validatePushEndpointUrl,
+  parseArgs,
+  resolveSubscription,
+  buildPushPayload,
+  validateVapidConfig,
+  dispatchLivePushNotification,
+  loadEnvFiles,
+  main,
+};

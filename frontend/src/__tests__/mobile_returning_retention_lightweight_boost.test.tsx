@@ -337,8 +337,9 @@ describe('Mobile New -> Returning Visitor Lightweight Retention Boost (1-Click N
           guide_slug: 'dongtan-1-vs-2-comparison',
         })
       );
-      expect(screen.getByRole('dialog')).toHaveTextContent('동탄 더샵 레이크에듀타운 알림 신청');
-      expect(screen.getByRole('dialog')).toHaveTextContent('비로그인 1초 신청 · 평일 07:00 KST');
+      expect(screen.getByRole('dialog')).toHaveTextContent('동탄 실거래가 알림 설정');
+      expect(screen.getByRole('dialog')).toHaveTextContent('동탄 전체 + 동탄 더샵 레이크에듀타운');
+      expect(screen.getByRole('dialog')).toHaveTextContent('로그인 없이 신청 · 매일 오전 7시대 국토부 매매 요약');
 
       // Verify direct PushSubscriptionModal subscription on a brand-new complex auto-saves it to dview_guest_favorites
       window.localStorage.clear();
@@ -357,7 +358,9 @@ describe('Mobile New -> Returning Visitor Lightweight Retention Boost (1-Click N
       fireEvent.click(submitBtns[submitBtns.length - 1]);
 
       await waitFor(() => {
-        expect(mockPwaContext.subscribeToPush).toHaveBeenCalledWith(null, '힐스테이트동탄');
+        expect(mockPwaContext.subscribeToPush).toHaveBeenCalledWith(null, '힐스테이트동탄', {
+          extraAptNames: ['동탄 전체'],
+        });
         expect(onClose).toHaveBeenCalledTimes(1);
       });
 
@@ -389,16 +392,13 @@ describe('Mobile New -> Returning Visitor Lightweight Retention Boost (1-Click N
       const copyText = screen.getByTestId('apt-ssr-quick-retention-copy').textContent || '';
       expect(hasVerboseProseEnding(copyText)).toBe(false);
 
-      // Signal pills inside retentionBar obey <= 10 grapheme budget
+      // Retention bar avoids redundant duplicate signal pills alongside the single-line copy
       const pills = Array.from(
         retentionBar.querySelectorAll(
           'span.inline-flex.font-extrabold.tabular-nums.whitespace-nowrap.shrink-0.select-none'
         )
       );
-      expect(pills.length).toBe(2);
-      pills.forEach((pill) => {
-        expect(checkCopyBudget(pill.textContent || '', 'signalBadge').withinBudget).toBe(true);
-      });
+      expect(pills.length).toBe(0);
 
       fireEvent.click(screen.getByTestId('apt-ssr-retention-fav-btn'));
       expect(JSON.parse(window.localStorage.getItem('dview_guest_favorites') || '[]')).toContain(
@@ -523,7 +523,7 @@ describe('Mobile New -> Returning Visitor Lightweight Retention Boost (1-Click N
 
       // 5. Footer `GuideMorningAlertRetentionCard` reflects synchronized favorite state or transitions on click
       const footerCard = screen.getByTestId('guide-morning-alert-retention-card');
-      expect(footerCard).toHaveTextContent('평일 07:00');
+      expect(footerCard).toHaveTextContent('매일 오전 7시대');
       expect(footerCard).toHaveTextContent('비로그인 1초 찜');
 
       unmount();
@@ -573,7 +573,7 @@ describe('Mobile New -> Returning Visitor Lightweight Retention Boost (1-Click N
       expect(screen.getByTestId('guide-h2h-left-retention-fav-btn')).toHaveTextContent('찜됨');
       expect(screen.getByTestId('guide-retention-watchlist-btn')).toHaveTextContent('관심 저장됨');
       expect(screen.getByTestId('guide-morning-7am-push-btn')).toHaveTextContent(
-        '관심 저장됨 · 평일 07시 변동 알림 켜기'
+        '관심 저장됨 · 매일 오전 7시대 실거래 알림 켜기'
       );
     });
 
@@ -752,8 +752,11 @@ describe('Mobile New -> Returning Visitor Lightweight Retention Boost (1-Click N
       const prevNotification = Object.getOwnPropertyDescriptor(window, 'Notification');
       const prevOnLine = Object.getOwnPropertyDescriptor(window.navigator, 'onLine');
       const prevFetch = global.fetch;
+      const prevVapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
       try {
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY =
+          'BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
         const fakeSub = { endpoint: 'https://fcm.googleapis.com/fcm/send/test-ep-123' };
         Object.defineProperty(window.navigator, 'serviceWorker', {
           configurable: true,
@@ -843,6 +846,11 @@ describe('Mobile New -> Returning Visitor Lightweight Retention Boost (1-Click N
         expect(cappedBody.apartmentNames).not.toContain('동탄역 롯데캐슬');
       } finally {
         global.fetch = prevFetch;
+        if (prevVapidPublicKey === undefined) {
+          delete process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        } else {
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = prevVapidPublicKey;
+        }
         if (prevSw) Object.defineProperty(window.navigator, 'serviceWorker', prevSw);
         if (prevPushManager) Object.defineProperty(window, 'PushManager', prevPushManager);
         if (prevNotification) Object.defineProperty(window, 'Notification', prevNotification);
@@ -995,7 +1003,7 @@ describe('Mobile New -> Returning Visitor Lightweight Retention Boost (1-Click N
 
         // PWAProvider surfaces arrival confirmation toast and GA4 telemetry
         expect(
-          screen.getByText(/외 1곳 관심단지가 이어졌습니다 · 평일 07시 알림을 켜보세요/)
+          screen.getByText(/외 1곳 관심단지가 이어졌습니다 · 매일 오전 7시대 알림을 켜보세요/)
         ).toBeInTheDocument();
         expect(trackEventSpy).toHaveBeenCalledWith(
           'inapp_watchlist_handoff_restored',
@@ -1174,7 +1182,7 @@ describe('Mobile New -> Returning Visitor Lightweight Retention Boost (1-Click N
         );
         expect(window.location.search).toBe('');
         expect(
-          screen.getByText(/동탄파라곤3차 관심단지가 이어졌습니다 · 평일 07시 알림을 켜보세요/)
+          screen.getByText(/동탄파라곤3차 관심단지가 이어졌습니다 · 매일 오전 7시대 알림을 켜보세요/)
         ).toBeInTheDocument();
         expect(trackEventSpy).toHaveBeenCalledWith(
           'inapp_watchlist_handoff_restored',
@@ -1213,7 +1221,7 @@ describe('Mobile New -> Returning Visitor Lightweight Retention Boost (1-Click N
         );
         expect(readSanitizedGuestFavorites()).toEqual(['동탄역롯데캐슬', '더샵센트럴시티']);
         expect(
-          screen.getByText(/외 1곳 관심단지가 이어졌습니다 · 평일 07시 알림을 켜보세요/)
+          screen.getByText(/외 1곳 관심단지가 이어졌습니다 · 매일 오전 7시대 알림을 켜보세요/)
         ).toBeInTheDocument();
         unmountPreHydrated();
 

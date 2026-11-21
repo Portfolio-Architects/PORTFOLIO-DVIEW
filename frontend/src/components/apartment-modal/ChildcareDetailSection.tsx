@@ -385,9 +385,9 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
   }, [aptName, dong, jsonLdElements]);
 
   const gradeStyles = {
-    excellent: { text: 'text-brand-blue dark:text-brand-blue-light', bg: 'bg-brand-blue-light dark:bg-brand-blue-light/10 border-brand-blue/20', label: '최상' },
-    good: { text: 'text-brand-green dark:text-brand-green', bg: 'bg-brand-green-light dark:bg-brand-green-light/10 border-brand-green/20', label: '우수' },
-    average: { text: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50', label: '보통' }
+    excellent: { text: 'text-primary', bg: 'bg-[#eff1f5] dark:bg-[#1e2532] border-border', label: '최상' },
+    good: { text: 'text-secondary', bg: 'bg-[#eff1f5] dark:bg-[#1e2532] border-border', label: '우수' },
+    average: { text: 'text-tertiary', bg: 'bg-[#eff1f5] dark:bg-[#1e2532] border-border', label: '보통' }
   };
 
   return (
@@ -408,8 +408,8 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
         </div>
 
         {!childcareData ? (
-          <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5 flex items-center gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-surface dark:bg-[#202027] text-tertiary flex items-center justify-center shrink-0">
+          <div className="bg-elevated rounded-2xl p-5 flex items-center gap-3.5">
+            <div className="w-9 h-9 rounded-xl bg-surface dark:bg-[#1e2532] text-tertiary flex items-center justify-center shrink-0">
               <Clock size={18} />
             </div>
             <div className="flex flex-col gap-0.5 min-w-0">
@@ -423,12 +423,12 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {/* 어린이집 카드 */}
-              <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
+              <div className="bg-elevated rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
                 <h3 className="text-[13px] font-bold text-secondary flex items-center gap-1.5">
-                  <Heart size={14} className="text-emerald-700 dark:text-emerald-400" /> 단지 인근 어린이집 (영유아)
+                  <Heart size={14} className="text-secondary" /> 단지 인근 어린이집 (영유아)
                 </h3>
                 
-                <div className="flex flex-col divide-y divide-[#f2f4f6] dark:divide-[#202027]">
+                <div className="flex flex-col divide-y divide-border">
                   {childcareData.daycares.map((item) => {
                     const s = gradeStyles[item.grade];
                     return (
@@ -464,12 +464,12 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
               </div>
 
               {/* 유치원 카드 */}
-              <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
+              <div className="bg-elevated rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
                 <h3 className="text-[13px] font-bold text-secondary flex items-center gap-1.5">
-                  <Smile size={14} className="text-emerald-700 dark:text-emerald-400" /> 단지 인근 유치원 (5-7세)
+                  <Smile size={14} className="text-secondary" /> 단지 인근 유치원 (5-7세)
                 </h3>
 
-                <div className="flex flex-col divide-y divide-[#f2f4f6] dark:divide-[#202027]">
+                <div className="flex flex-col divide-y divide-border">
                   {childcareData.kindergartens.map((item) => {
                     const s = gradeStyles[item.grade];
                     return (
@@ -525,8 +525,8 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
           </span>
         </div>
 
-        <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex items-start gap-3.5">
-          <div className="w-9 h-9 rounded-xl bg-surface dark:bg-[#202027] text-tertiary flex items-center justify-center shrink-0">
+        <div className="bg-elevated rounded-2xl p-4 sm:p-5 flex items-start gap-3.5">
+          <div className="w-9 h-9 rounded-xl bg-surface dark:bg-[#1e2532] text-tertiary flex items-center justify-center shrink-0">
             <Shield size={17} />
           </div>
           <div className="flex flex-col gap-1 min-w-0">

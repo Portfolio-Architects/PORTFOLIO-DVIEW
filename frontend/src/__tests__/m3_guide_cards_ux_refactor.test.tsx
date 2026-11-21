@@ -96,10 +96,9 @@ describe('M3: /guide 2-Column Report Cards UX Refactor (R4 / F8)', () => {
       const classTokens = articleEl.className.split(/\s+/);
 
       // R-M3-01: Soft-Surface borderless, shadowless card container & min-w-0 grid containment
-      expect(classTokens).toContain('bg-[#f9fafb]');
-      expect(classTokens).toContain('hover:bg-[#f2f4f6]');
-      expect(classTokens).toContain('dark:bg-[#17171c]');
-      expect(classTokens).toContain('dark:hover:bg-[#202027]');
+      expect(classTokens).toContain('bg-elevated');
+      expect(classTokens).toContain('hover:bg-[#eff1f5]');
+      expect(classTokens).toContain('dark:hover:bg-[#1e2532]');
       expect(classTokens).toContain('rounded-2xl');
       expect(classTokens).toContain('min-w-0');
       expect(classTokens.some((token) => token.startsWith('border'))).toBe(false);
@@ -111,7 +110,7 @@ describe('M3: /guide 2-Column Report Cards UX Refactor (R4 / F8)', () => {
       expect(innerContentDiv!.className.split(/\s+/)).toContain('min-w-0');
 
       // R-M3-02: Max 2 borderless pills + compact tabular-nums meta + no repeated author
-      const categoryPill = articleEl.querySelector('span.bg-brand-green-light');
+      const categoryPill = articleEl.querySelector('span.text-secondary.whitespace-nowrap');
       expect(categoryPill).not.toBeNull();
       expect(categoryPill!.className).not.toContain('border');
       expect(measureCopyLength(categoryPill!.textContent || '')).toBeLessThanOrEqual(10);
@@ -121,7 +120,7 @@ describe('M3: /guide 2-Column Report Cards UX Refactor (R4 / F8)', () => {
         top3Count += 1;
         expect(top3Badge).not.toBeNull();
         expect(top3Badge!.className).not.toContain('border');
-        expect(top3Badge!.textContent?.trim()).toBe('신규 유입 TOP 3');
+        expect(top3Badge!.textContent?.trim()).toBe('인기 TOP 3');
       } else {
         expect(top3Badge).toBeNull();
       }

@@ -86,13 +86,14 @@ export function BoardPostWriteModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="write-modal-heading"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
+      data-scroll-interactive="true"
+      className="fixed inset-0 z-[10020] flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overscroll-none transition-opacity animate-in fade-in duration-150"
     >
-      <div className="relative w-full max-w-lg bg-surface dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden text-primary max-h-[90vh]">
+      <div className="relative w-full max-w-lg bg-surface dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden text-primary max-h-[90dvh] pb-[env(safe-area-inset-bottom,0px)]">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/80 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <PenSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <PenSquare className="w-5 h-5 text-primary" />
             <h2 id="write-modal-heading" className="text-base sm:text-lg font-black tracking-tight">
               새 이야기 작성
             </h2>
@@ -101,7 +102,7 @@ export function BoardPostWriteModal({
             type="button"
             onClick={onClose}
             aria-label="닫기"
-            className="p-1 rounded-lg text-tertiary hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-1 rounded-lg text-tertiary hover:text-primary hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -114,7 +115,7 @@ export function BoardPostWriteModal({
             <label className="text-xs font-bold text-secondary flex items-center justify-between">
               <span>작성자 단지 타이틀</span>
               {!selectedTitle && (
-                <span className="text-[11px] text-red-500 font-extrabold">필수 선택</span>
+                <span className="text-[11px] text-brand-red font-extrabold">필수 선택</span>
               )}
             </label>
 
@@ -122,15 +123,15 @@ export function BoardPostWriteModal({
               type="button"
               data-testid="write-modal-title-trigger"
               onClick={onOpenTitleSelector}
-              className="w-full px-3.5 py-3 rounded-xl bg-elevated hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between gap-2 text-left transition-colors"
+              className="w-full px-3.5 py-3 rounded-xl bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border flex items-center justify-between gap-2 text-left transition-colors"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <Building2 className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                <Building2 className="w-4 h-4 text-secondary shrink-0" />
                 <span className="text-sm font-extrabold truncate">
                   {selectedTitle || '단지 타이틀을 선택해주세요'}
                 </span>
                 {dong && (
-                  <span className="text-[11px] font-bold text-secondary px-1.5 py-0.5 rounded bg-slate-200/60 dark:bg-slate-700">
+                  <span className="text-[11px] font-bold text-secondary px-1.5 py-0.5 rounded bg-[#eff1f5] dark:bg-[#1e2532]">
                     {dong}
                   </span>
                 )}
@@ -141,7 +142,7 @@ export function BoardPostWriteModal({
 
           {/* GPS Verification Badge & Trigger */}
           {selectedTitle && (
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/40 flex items-center justify-between">
+            <div className="p-3 rounded-xl bg-elevated border border-border flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {isCurrentGpsVerified ? (
                   <>
@@ -165,7 +166,7 @@ export function BoardPostWriteModal({
                   type="button"
                   data-testid="write-modal-gps-trigger"
                   onClick={onOpenGpsModal}
-                  className="px-2.5 py-1 rounded-lg text-xs font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 transition-colors"
+                  className="px-2.5 py-1 rounded-lg text-xs font-extrabold text-primary bg-[#eff1f5] dark:bg-[#1e2532] hover:bg-slate-200/80 dark:hover:bg-slate-700/80 border border-border transition-colors"
                 >
                   GPS 인증하기
                 </button>
@@ -183,7 +184,7 @@ export function BoardPostWriteModal({
               onChange={(e) => setTitle(e.target.value)}
               placeholder="제목을 입력해주세요 (2자 이상 100자 이하)"
               maxLength={100}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-elevated dark:bg-slate-800 text-sm font-bold text-primary placeholder:text-tertiary outline-none focus:ring-2 focus:ring-blue-600/30 transition-all"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-elevated dark:bg-[#1e2532] text-sm font-bold text-primary placeholder:text-tertiary outline-none focus:ring-2 focus:ring-slate-900/20 dark:focus:ring-white/25 transition-all"
             />
             <div className="text-right text-[11px] text-tertiary tabular-nums">
               {title.length}/100
@@ -200,7 +201,7 @@ export function BoardPostWriteModal({
               placeholder="동탄 이웃과 나누고 싶은 따뜻한 이야기를 적어보세요 (5자 이상 3000자 이하)"
               rows={6}
               maxLength={3000}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-elevated dark:bg-slate-800 text-sm font-medium text-primary placeholder:text-tertiary outline-none focus:ring-2 focus:ring-blue-600/30 transition-all resize-none leading-relaxed"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-elevated dark:bg-[#1e2532] text-sm font-medium text-primary placeholder:text-tertiary outline-none focus:ring-2 focus:ring-slate-900/20 dark:focus:ring-white/25 transition-all resize-none leading-relaxed"
             />
             <div className="text-right text-[11px] text-tertiary tabular-nums">
               {content.length}/3000
@@ -209,7 +210,7 @@ export function BoardPostWriteModal({
 
           {/* Error Message */}
           {errorMessage && (
-            <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-300 text-xs font-bold flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-brand-red-light text-brand-red text-xs font-bold flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
@@ -221,7 +222,7 @@ export function BoardPostWriteModal({
               type="submit"
               data-testid="write-post-submit-btn"
               disabled={!isValid || isSubmitting}
-              className="w-full py-3 rounded-xl text-sm font-black text-white bg-blue-600 hover:bg-blue-700 shadow-xs transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full py-3 rounded-xl text-sm font-black bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 shadow-xs transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>

@@ -207,7 +207,7 @@ const PullToRefresh = React.memo(function PullToRefresh({
           <div className="bg-surface rounded-full p-2.5 shadow-md flex items-center justify-center">
             <RefreshCw 
               size={20} 
-              className={`text-emerald-500 transition-transform ${isRefreshing ? 'animate-spin' : ''}`}
+              className={`text-primary transition-transform ${isRefreshing ? 'animate-spin' : ''}`}
               style={{
                 transform: isRefreshing ? 'none' : `rotate(${pullProgress * 3.6}deg)`
               }}

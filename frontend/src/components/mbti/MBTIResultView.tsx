@@ -61,10 +61,7 @@ export function MBTIResultView({
         <div
           className={`w-full h-36 bg-gradient-to-r ${profile.bannerGradient} p-6 flex flex-col justify-between text-white relative`}
         >
-          <div className="flex items-center justify-between">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-black/25 backdrop-blur-md border border-white/20">
-              나의 주거 성향 분석 리포트
-            </span>
+          <div className="flex items-center justify-end">
             <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md">
               {temperament.name}
             </span>
@@ -91,10 +88,10 @@ export function MBTIResultView({
             {/* Left Column: Matched Apartment & Rationale */}
             <div className="lg:col-span-7 flex flex-col justify-between gap-5">
               {/* Matched Apartment Core Highlight Box */}
-              <div className="rounded-2xl p-5 sm:p-6 bg-body border border-emerald-500/30 shadow-2xs flex flex-col gap-4">
+              <div className="rounded-2xl p-5 sm:p-6 bg-body border border-border/80 shadow-2xs flex flex-col gap-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
                   <div>
-                    <div className="flex items-center text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-1">
+                    <div className="flex items-center text-xs font-bold text-secondary mb-1">
                       <span>영혼의 궁합 동탄 매칭 단지</span>
                     </div>
                     <h2 className="text-xl sm:text-2xl font-black text-primary tracking-tight">
@@ -111,7 +108,7 @@ export function MBTIResultView({
                       <span className="text-[11px] text-secondary font-medium">
                         최근 실거래가
                       </span>
-                      <div className="flex items-baseline text-emerald-700 dark:text-emerald-400 font-black text-lg sm:text-xl">
+                      <div className="flex items-baseline text-primary font-black text-lg sm:text-xl tabular-nums">
                         <span>{txData.latestPriceEok}</span>
                       </div>
                       {txData.latestDate && (
@@ -128,7 +125,7 @@ export function MBTIResultView({
                   {profile.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20"
+                      className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#eff1f5] dark:bg-[#1e2532] text-primary border border-border/60"
                     >
                       {tag}
                     </span>
@@ -153,7 +150,7 @@ export function MBTIResultView({
                   </span>
                   {profile.lifestyleFit.map((fit, idx) => (
                     <div key={idx} className="flex items-start gap-2 text-xs text-secondary">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 mt-1.5" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1.5" />
                       <span>{fit}</span>
                     </div>
                   ))}
@@ -181,7 +178,7 @@ export function MBTIResultView({
                 type="button"
                 data-testid="cta-open-apt-modal"
                 onClick={handleOpenAptModal}
-                className="w-full py-4 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-black text-sm sm:text-base shadow-sm flex items-center justify-center transition-all cursor-pointer"
+                className="w-full py-4 px-5 rounded-xl bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 active:scale-[0.98] text-white dark:text-slate-900 font-black text-sm sm:text-base flex items-center justify-center transition-all cursor-pointer"
               >
                 <span>{profile.aptName} 실거래 & 가치평가 리포트 보기</span>
               </button>

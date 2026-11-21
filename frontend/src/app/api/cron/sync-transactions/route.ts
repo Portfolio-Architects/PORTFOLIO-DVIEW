@@ -13,6 +13,11 @@ import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
 import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import {
+  getConfiguredCronSecret,
+  isAuthorizedCronBearerRequest,
+  verifyCronBearerToken,
+} from '@/lib/api/cronAuth';
 import { resilientFetch, resilientFetchText } from '@/lib/api/resilientFetch';
 import { getSupplyPyeong } from '@/lib/utils/areaConverter';
 
@@ -21,10 +26,6 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 export const preferredRegion = 'icn1';
 
-export const DEFAULT_BUILDING_API_KEY = '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
-export const DEFAULT_CRON_SECRET = 'dview-default-cron-secret-2026';
-
-const API_KEY = process.env.BUILDING_API_KEY || DEFAULT_BUILDING_API_KEY;
 const LAWD_CDS = ['41590', '41597']; // 화성시(기존) 및 동탄구(신설) 모두 스캔
 const API_BASE_TRADE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev';
 const API_BASE_RENT = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent';
@@ -140,39 +141,16 @@ function getTag(map: Map<string, string>, ...keys: string[]): string {
 }
 
 export const authHeaderSchema = z.string().refine(
-  (val) => {
-    const configuredSecret = process.env.CRON_SECRET?.trim() || DEFAULT_CRON_SECRET;
-    return val === `Bearer ${configuredSecret}`;
-  },
+  (val) => verifyCronBearerToken(val),
   { message: 'Invalid authorization token' }
 );
 
-export function isAuthorizedProxyRequest(request: NextRequest, expectedApiKey?: string): boolean {
-  const authHeader = (request.headers.get('authorization') || '').trim();
-  if (authHeaderSchema.safeParse(authHeader).success) {
-    return true;
-  }
-  const headerApiKey = (request.headers.get('x-building-api-key') || '').trim();
-  const targetApiKey = (expectedApiKey?.trim() || process.env.BUILDING_API_KEY?.trim() || DEFAULT_BUILDING_API_KEY);
-  if (headerApiKey && headerApiKey === targetApiKey) {
-    return true;
-  }
-  return false;
+export function isAuthorizedProxyRequest(request: NextRequest): boolean {
+  return isAuthorizedCronBearerRequest(request);
 }
 
-export function isAuthorizedCronRequest(request: NextRequest, expectedApiKey?: string): boolean {
-  if (isAuthorizedProxyRequest(request, expectedApiKey)) {
-    return true;
-  }
-  const configuredSecret = process.env.CRON_SECRET?.trim();
-  if (!configuredSecret) {
-    const ua = (request.headers.get('user-agent') || '').toLowerCase();
-    const vercelCron = (request.headers.get('x-vercel-cron') || '').toLowerCase();
-    if (ua.startsWith('vercel-cron/') || vercelCron === '1' || vercelCron === 'true') {
-      return true;
-    }
-  }
-  return false;
+export function isAuthorizedCronRequest(request: NextRequest): boolean {
+  return isAuthorizedCronBearerRequest(request);
 }
 
 export function shouldTriggerDeployHook(
@@ -231,37 +209,30 @@ export async function GET(request: NextRequest) {
       return rateLimitResult.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
-    const expectedServerApiKey =
+    const resolvedApiKey = (
       process.env.BUILDING_API_KEY?.trim() ||
-      API_KEY?.trim() ||
-      DEFAULT_BUILDING_API_KEY;
-
-    const resolvedApiKey =
-      process.env.BUILDING_API_KEY?.trim() ||
-      request.headers.get('x-building-api-key')?.trim() ||
-      API_KEY?.trim() ||
-      DEFAULT_BUILDING_API_KEY;
+      process.env.PUBLIC_DATA_PORTAL_KEY?.trim() ||
+      ''
+    );
 
     const mode = (request.nextUrl.searchParams.get('mode') || '').trim().toLowerCase();
 
-    if (process.env.NODE_ENV !== 'development') {
-      const authorized =
-        mode === 'proxy'
-          ? isAuthorizedProxyRequest(request, expectedServerApiKey)
-          : isAuthorizedCronRequest(request, expectedServerApiKey);
-      if (!authorized) {
-        const authHeader = request.headers.get('authorization') || '';
-        logger.warn('SyncTransactionsAPI.GET', 'Unauthorized access attempt', {
-          authHeader: authHeader ? 'Present' : 'Missing',
+    const authorized =
+      mode === 'proxy'
+        ? isAuthorizedProxyRequest(request)
+        : isAuthorizedCronRequest(request);
+    if (!authorized) {
+      const authHeader = request.headers.get('authorization') || '';
+      if (!getConfiguredCronSecret()) {
+        logger.error('SyncTransactionsAPI.GET', 'CRON_SECRET is not configured — failing closed', {
           mode: mode || 'sync',
         });
-        return apiError('UNAUTHORIZED', 'Unauthorized', 401);
       }
-    }
-
-    if (!resolvedApiKey) {
-      logger.error('SyncTransactionsAPI.GET', 'BUILDING_API_KEY is not configured', {});
-      return apiError('CONFIG_ERROR', 'BUILDING_API_KEY not set', 500);
+      logger.warn('SyncTransactionsAPI.GET', 'Unauthorized access attempt', {
+        authHeader: authHeader ? 'Present' : 'Missing',
+        mode: mode || 'sync',
+      });
+      return apiError('UNAUTHORIZED', 'Unauthorized', 401);
     }
 
     // Optional Korean Edge/Serverless relay mode (?mode=proxy&target=trade|rent&lawdCd=...&dealYmd=...)
@@ -282,6 +253,11 @@ export async function GET(request: NextRequest) {
 
       if (!isValidTarget || !isValidLawd || !isValidYm || !isValidPage || !isValidRows || !isValidType) {
         return apiError('BAD_REQUEST', 'Invalid lawdCd, dealYmd, or proxy query parameters', 400);
+      }
+
+      if (!resolvedApiKey) {
+        logger.error('SyncTransactionsAPI.GET', 'BUILDING_API_KEY is not configured', { mode: 'proxy' });
+        return apiError('CONFIG_ERROR', 'BUILDING_API_KEY not set', 500);
       }
 
       const upstreamBase = target === 'rent' ? API_BASE_RENT : API_BASE_TRADE;
@@ -314,6 +290,11 @@ export async function GET(request: NextRequest) {
         const d = new Date(Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth() - i, 1));
         monthsToSync.add(`${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, '0')}`);
       }
+    }
+
+    if (!resolvedApiKey) {
+      logger.error('SyncTransactionsAPI.GET', 'BUILDING_API_KEY is not configured', {});
+      return apiError('CONFIG_ERROR', 'BUILDING_API_KEY not set', 500);
     }
 
     if (!db) {
@@ -896,20 +877,25 @@ export async function GET(request: NextRequest) {
       } else {
         try {
           const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://dongtanview.com').replace(/\/$/, '');
-          const cronAuth = process.env.CRON_SECRET?.trim() || DEFAULT_CRON_SECRET;
-          const pushRes = await resilientFetch(`${appUrl}/api/cron/send-tx-notifications`, {
-            method: 'GET',
-            headers: { Authorization: `Bearer ${cronAuth}` },
-            timeoutMs: 8000,
-            retries: 1,
-          });
-          if (pushRes.ok) {
-            const pushResult = await pushRes.json();
-            syncLog.push(`Web Push Triggered: ${JSON.stringify(pushResult)}`);
-            logger.info('SyncTransactionsAPI.GET', 'Web Push Triggered successfully', { result: pushResult });
+          const cronAuth = getConfiguredCronSecret();
+          if (!cronAuth) {
+            syncLog.push('Web Push Trigger Skipped: CRON_SECRET not configured');
+            logger.error('SyncTransactionsAPI.GET', 'CRON_SECRET is not configured; cannot trigger web push cron', {});
           } else {
-            syncLog.push(`Web Push Trigger Failed: HTTP ${pushRes.status}`);
-            logger.warn('SyncTransactionsAPI.GET', 'Web Push Trigger Failed', { status: pushRes.status });
+            const pushRes = await resilientFetch(`${appUrl}/api/cron/send-tx-notifications`, {
+              method: 'GET',
+              headers: { Authorization: `Bearer ${cronAuth}` },
+              timeoutMs: 8000,
+              retries: 1,
+            });
+            if (pushRes.ok) {
+              const pushResult = await pushRes.json();
+              syncLog.push(`Web Push Triggered: ${JSON.stringify(pushResult)}`);
+              logger.info('SyncTransactionsAPI.GET', 'Web Push Triggered successfully', { result: pushResult });
+            } else {
+              syncLog.push(`Web Push Trigger Failed: HTTP ${pushRes.status}`);
+              logger.warn('SyncTransactionsAPI.GET', 'Web Push Trigger Failed', { status: pushRes.status });
+            }
           }
         } catch (err) {
           syncLog.push(`Web Push Trigger Error: ${(err as Error).message}`);

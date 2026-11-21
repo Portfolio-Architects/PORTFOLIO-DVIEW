@@ -11,6 +11,7 @@ import { getBrandMultiplier } from '@/lib/utils/scoring';
 import { shareRecommendationsToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
 import { usePWA } from '@/components/pwa/PWAProvider';
+import { acquireBodyScrollLock } from '@/lib/utils/bodyScrollLock';
 import { logger } from '@/lib/services/logger';
 
 const LOADING_TEXTS = [
@@ -157,15 +158,11 @@ const AptFitFinder = React.memo(function AptFitFinder({
     return () => setMounted(false);
   }, []);
 
-  // Prevent body scroll when modal is open
+  // Prevent body scroll when modal is open (reference-counted across stacked modals)
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!isOpen) return;
-    const originalStyle = window.getComputedStyle(document.body).overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
-    };
+    return acquireBodyScrollLock();
   }, [isOpen]);
 
   // Focus and Escape key management
@@ -692,7 +689,8 @@ const AptFitFinder = React.memo(function AptFitFinder({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overscroll-none animate-in fade-in duration-300"
+      data-scroll-interactive="true"
+      className="fixed inset-0 z-[10020] flex items-end sm:items-center justify-center p-0 sm:p-6 overscroll-none animate-in fade-in duration-300"
       onWheel={(e) => e.stopPropagation()}
     >
       {/* Sibling Backdrop Button */}
@@ -709,32 +707,36 @@ const AptFitFinder = React.memo(function AptFitFinder({
         aria-modal="true"
         aria-labelledby="fit-title"
         aria-describedby="fit-desc"
-        className="w-full sm:w-[660px] md:w-[740px] lg:w-[800px] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col min-h-[420px] sm:min-h-[460px] max-h-[94vh] sm:max-h-[92vh] relative animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-300"
+        className="w-full sm:w-[660px] md:w-[740px] lg:w-[800px] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col min-h-[420px] sm:min-h-[460px] max-h-[92dvh] sm:max-h-[90dvh] pb-[env(safe-area-inset-bottom,0px)] relative animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-300"
       >
+        <div className="sm:hidden w-full pt-2.5 pb-0.5 flex justify-center shrink-0" aria-hidden="true">
+          <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+        </div>
         {/* Header */}
-        <div className="flex justify-between items-center px-5 py-3.5 sm:px-6 sm:py-4 border-b border-slate-100 dark:border-slate-900 shrink-0">
-          <div className="flex items-center gap-2">
-            <Compass className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-pulse" />
-            <span id="fit-title" className="font-extrabold text-[15px] sm:text-[16px] text-primary tracking-tight">나만의 동탄 찰떡 아파트 찾기</span>
+        <div className="flex justify-between items-center px-4 py-3.5 sm:px-6 sm:py-4 border-b border-border shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <Compass className="w-5 h-5 text-primary animate-pulse shrink-0" />
+            <span id="fit-title" className="font-extrabold text-[15px] sm:text-[16px] text-primary tracking-tight truncate">나만의 동탄 찰떡 아파트 찾기</span>
             <span id="fit-desc" className="sr-only">라이프스타일과 예산 조건에 가장 적합한 동탄 아파트 단지를 AI가 진단하고 추천합니다.</span>
           </div>
           <button 
             ref={closeButtonRef}
+            type="button"
             onClick={onClose} 
-            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full transition-colors active:scale-95 cursor-pointer"
+            className="w-9 h-9 inline-flex items-center justify-center hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] rounded-full transition-colors active:scale-95 cursor-pointer shrink-0 touch-manipulation"
             aria-label="닫기"
           >
             <X className="w-5 h-5 text-tertiary" />
           </button>
         </div>
 
-        {/* Dynamic Step View */}
-        <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-none p-5 sm:p-6 flex flex-col justify-center min-h-[320px] sm:min-h-[360px]">
+        {/* Dynamic Step View (avoid justify-center on overflow-y-auto to prevent mobile top clipping on tall results) */}
+        <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-none p-4 sm:p-6 flex flex-col min-h-[320px] sm:min-h-[360px]">
 
           {/* STEP 0: Intro Screen */}
           {step === 0 && (
-            <div className="flex flex-col items-center text-center gap-6 py-4">
-              <div className="w-16 h-16 bg-gradient-to-tr from-blue-600/20 to-blue-500/20 dark:from-blue-500/20 dark:to-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center shadow-inner scale-110">
+            <div className="my-auto flex flex-col items-center text-center gap-6 py-4">
+              <div className="w-16 h-16 bg-[#eff1f5] dark:bg-[#1e2532] text-primary rounded-2xl flex items-center justify-center shadow-inner scale-110">
                 <Building2 size={32} />
               </div>
               <div className="flex flex-col gap-2">
@@ -749,7 +751,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
               </div>
               <button
                 onClick={() => setStep(1)}
-                className="w-full mt-4 py-4 bg-blue-600 hover:bg-[#04635e] dark:bg-blue-600 dark:hover:bg-blue-700 active:scale-[0.98] text-white text-[15px] font-extrabold rounded-2xl transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full mt-4 py-4 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white active:scale-[0.98] text-white dark:text-slate-900 text-[15px] font-extrabold rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>찰떡 단지 매칭 시작하기</span>
                 <ChevronRight size={16} />
@@ -761,8 +763,8 @@ const AptFitFinder = React.memo(function AptFitFinder({
           {step === 1 && (
             <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-black text-blue-600 dark:text-blue-400 px-2 py-0.5 bg-blue-600/10 dark:bg-blue-400/10 rounded-md">Q1. 예산</span>
-                <span className="text-[12.5px] text-tertiary font-bold">1 / 7</span>
+                <span className="text-[11px] font-black text-secondary px-2 py-0.5 bg-[#eff1f5] dark:bg-[#1e2532] rounded-md">Q1. 예산</span>
+                <span className="text-[12.5px] text-tertiary font-bold tabular-nums">1 / 7</span>
               </div>
               <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
                 최대 가용 가능한 아파트 매매가는?
@@ -778,9 +780,9 @@ const AptFitFinder = React.memo(function AptFitFinder({
                   <button
                     key={opt.value}
                     onClick={() => handleSelectOption('budget', opt.value)}
-                    className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-slate-50 hover:bg-blue-600/5 border border-transparent hover:border-blue-600/20 dark:bg-slate-900/50 dark:hover:bg-blue-500/10 dark:hover:border-blue-500/30 rounded-2xl transition-all group flex flex-col gap-0.5 sm:gap-1 cursor-pointer"
+                    className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-transparent hover:border-border rounded-2xl transition-all group flex flex-col gap-0.5 sm:gap-1 cursor-pointer"
                   >
-                    <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{opt.label}</span>
+                    <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-primary transition-colors">{opt.label}</span>
                     <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
                   </button>
                 ))}
@@ -792,8 +794,8 @@ const AptFitFinder = React.memo(function AptFitFinder({
           {step === 2 && (
             <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-black text-blue-600 dark:text-blue-400 px-2 py-0.5 bg-blue-600/10 dark:bg-blue-400/10 rounded-md">Q2. 자녀/학군</span>
-                <span className="text-[12.5px] text-tertiary font-bold">2 / 7</span>
+                <span className="text-[11px] font-black text-secondary px-2 py-0.5 bg-[#eff1f5] dark:bg-[#1e2532] rounded-md">Q2. 자녀/학군</span>
+                <span className="text-[12.5px] text-tertiary font-bold tabular-nums">2 / 7</span>
               </div>
               <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
                 가장 중요한 교육 환경이나 자녀 여건은?
@@ -810,13 +812,13 @@ const AptFitFinder = React.memo(function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('family', opt.value)}
-                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-slate-50 hover:bg-blue-600/5 border border-transparent hover:border-blue-600/20 dark:bg-slate-900/50 dark:hover:bg-blue-500/10 dark:hover:border-blue-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-transparent hover:border-border rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700/60 flex items-center justify-center text-secondary group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:scale-105 transition-all shrink-0">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-surface shadow-xs border border-border flex items-center justify-center text-secondary group-hover:text-primary group-hover:scale-105 transition-all shrink-0">
                         <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{opt.label}</span>
+                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-primary transition-colors">{opt.label}</span>
                         <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
                       </div>
                     </button>
@@ -833,8 +835,8 @@ const AptFitFinder = React.memo(function AptFitFinder({
           {step === 3 && (
             <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-black text-blue-600 dark:text-blue-400 px-2 py-0.5 bg-blue-600/10 dark:bg-blue-400/10 rounded-md">Q3. 교통</span>
-                <span className="text-[12.5px] text-tertiary font-bold">3 / 7</span>
+                <span className="text-[11px] font-black text-secondary px-2 py-0.5 bg-[#eff1f5] dark:bg-[#1e2532] rounded-md">Q3. 교통</span>
+                <span className="text-[12.5px] text-tertiary font-bold tabular-nums">3 / 7</span>
               </div>
               <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
                 출퇴근 시 가장 선호하는 교통 요건은?
@@ -851,13 +853,13 @@ const AptFitFinder = React.memo(function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('transit', opt.value)}
-                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-slate-50 hover:bg-blue-600/5 border border-transparent hover:border-blue-600/20 dark:bg-slate-900/50 dark:hover:bg-blue-500/10 dark:hover:border-blue-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-transparent hover:border-border rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700/60 flex items-center justify-center text-secondary group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:scale-105 transition-all shrink-0">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-surface shadow-xs border border-border flex items-center justify-center text-secondary group-hover:text-primary group-hover:scale-105 transition-all shrink-0">
                         <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{opt.label}</span>
+                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-primary transition-colors">{opt.label}</span>
                         <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
                       </div>
                     </button>
@@ -874,8 +876,8 @@ const AptFitFinder = React.memo(function AptFitFinder({
           {step === 4 && (
             <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-black text-blue-600 dark:text-blue-400 px-2 py-0.5 bg-blue-600/10 dark:bg-blue-400/10 rounded-md">Q4. 라이프스타일</span>
-                <span className="text-[12.5px] text-tertiary font-bold">4 / 7</span>
+                <span className="text-[11px] font-black text-secondary px-2 py-0.5 bg-[#eff1f5] dark:bg-[#1e2532] rounded-md">Q4. 라이프스타일</span>
+                <span className="text-[12.5px] text-tertiary font-bold tabular-nums">4 / 7</span>
               </div>
               <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
                 일상의 삶의 질을 높이는 최적의 장소는?
@@ -891,13 +893,13 @@ const AptFitFinder = React.memo(function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('lifestyle', opt.value)}
-                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-slate-50 hover:bg-blue-600/5 border border-transparent hover:border-blue-600/20 dark:bg-slate-900/50 dark:hover:bg-blue-500/10 dark:hover:border-blue-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-transparent hover:border-border rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700/60 flex items-center justify-center text-secondary group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:scale-105 transition-all shrink-0">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-surface shadow-xs border border-border flex items-center justify-center text-secondary group-hover:text-primary group-hover:scale-105 transition-all shrink-0">
                         <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{opt.label}</span>
+                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-primary transition-colors">{opt.label}</span>
                         <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
                       </div>
                     </button>
@@ -914,8 +916,8 @@ const AptFitFinder = React.memo(function AptFitFinder({
           {step === 5 && (
             <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-black text-blue-600 dark:text-blue-400 px-2 py-0.5 bg-blue-600/10 dark:bg-blue-400/10 rounded-md">Q5. 단지 규모/브랜드</span>
-                <span className="text-[12.5px] text-tertiary font-bold">5 / 7</span>
+                <span className="text-[11px] font-black text-secondary px-2 py-0.5 bg-[#eff1f5] dark:bg-[#1e2532] rounded-md">Q5. 단지 규모/브랜드</span>
+                <span className="text-[12.5px] text-tertiary font-bold tabular-nums">5 / 7</span>
               </div>
               <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
                 선호하는 단지 규모 및 브랜드 타입은?
@@ -931,13 +933,13 @@ const AptFitFinder = React.memo(function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('scaleBrand', opt.value)}
-                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-slate-50 hover:bg-blue-600/5 border border-transparent hover:border-blue-600/20 dark:bg-slate-900/50 dark:hover:bg-blue-500/10 dark:hover:border-blue-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-transparent hover:border-border rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700/60 flex items-center justify-center text-secondary group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:scale-105 transition-all shrink-0">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-surface shadow-xs border border-border flex items-center justify-center text-secondary group-hover:text-primary group-hover:scale-105 transition-all shrink-0">
                         <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{opt.label}</span>
+                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-primary transition-colors">{opt.label}</span>
                         <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
                       </div>
                     </button>
@@ -954,8 +956,8 @@ const AptFitFinder = React.memo(function AptFitFinder({
           {step === 6 && (
             <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-black text-blue-600 dark:text-blue-400 px-2 py-0.5 bg-blue-600/10 dark:bg-blue-400/10 rounded-md">Q6. 연식/트렌드</span>
-                <span className="text-[12.5px] text-tertiary font-bold">6 / 7</span>
+                <span className="text-[11px] font-black text-secondary px-2 py-0.5 bg-[#eff1f5] dark:bg-[#1e2532] rounded-md">Q6. 연식/트렌드</span>
+                <span className="text-[12.5px] text-tertiary font-bold tabular-nums">6 / 7</span>
               </div>
               <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
                 선호하는 아파트의 준공 연식은?
@@ -971,13 +973,13 @@ const AptFitFinder = React.memo(function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('yearBuilt', opt.value)}
-                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-slate-50 hover:bg-blue-600/5 border border-transparent hover:border-blue-600/20 dark:bg-slate-900/50 dark:hover:bg-blue-500/10 dark:hover:border-blue-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-transparent hover:border-border rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700/60 flex items-center justify-center text-secondary group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:scale-105 transition-all shrink-0">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-surface shadow-xs border border-border flex items-center justify-center text-secondary group-hover:text-primary group-hover:scale-105 transition-all shrink-0">
                         <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{opt.label}</span>
+                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-primary transition-colors">{opt.label}</span>
                         <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
                       </div>
                     </button>
@@ -994,8 +996,8 @@ const AptFitFinder = React.memo(function AptFitFinder({
           {step === 7 && (
             <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-black text-blue-600 dark:text-blue-400 px-2 py-0.5 bg-blue-600/10 dark:bg-blue-400/10 rounded-md">Q7. 실수요 및 자금 성향</span>
-                <span className="text-[12.5px] text-tertiary font-bold">7 / 7</span>
+                <span className="text-[11px] font-black text-secondary px-2 py-0.5 bg-[#eff1f5] dark:bg-[#1e2532] rounded-md">Q7. 실수요 및 자금 성향</span>
+                <span className="text-[12.5px] text-tertiary font-bold tabular-nums">7 / 7</span>
               </div>
               <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
                 실주거 선택 및 자금 부담 설계 스타일은?
@@ -1011,13 +1013,13 @@ const AptFitFinder = React.memo(function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('investmentStyle', opt.value)}
-                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-slate-50 hover:bg-blue-600/5 border border-transparent hover:border-blue-600/20 dark:bg-slate-900/50 dark:hover:bg-blue-500/10 dark:hover:border-blue-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-transparent hover:border-border rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700/60 flex items-center justify-center text-secondary group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:scale-105 transition-all shrink-0">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-surface shadow-xs border border-border flex items-center justify-center text-secondary group-hover:text-primary group-hover:scale-105 transition-all shrink-0">
                         <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{opt.label}</span>
+                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-primary transition-colors">{opt.label}</span>
                         <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
                       </div>
                     </button>
@@ -1034,11 +1036,11 @@ const AptFitFinder = React.memo(function AptFitFinder({
           {step === 8 && (
             <div className="flex flex-col items-center justify-center gap-6 py-10">
               <div className="relative w-16 h-16 flex items-center justify-center">
-                <div className="absolute inset-0 rounded-full border-4 border-blue-600/20 border-t-blue-600 dark:border-blue-400/20 dark:border-t-blue-400 animate-spin" />
-                <Compass className="w-6 h-6 text-blue-600 dark:text-blue-400 animate-pulse" />
+                <div className="absolute inset-0 rounded-full border-4 border-slate-900/15 border-t-slate-900 dark:border-white/15 dark:border-t-white animate-spin" />
+                <Compass className="w-6 h-6 text-primary animate-pulse" />
               </div>
               <div className="flex flex-col gap-2 text-center h-[54px] justify-center items-center">
-                <h4 className="text-[15px] sm:text-[16px] font-black text-blue-600 dark:text-blue-400 transition-all duration-300">
+                <h4 className="text-[15px] sm:text-[16px] font-black text-primary transition-all duration-300">
                   {LOADING_TEXTS[loadingTextIndex]}
                 </h4>
                 <p className="text-[11.5px] sm:text-[12.5px] text-tertiary font-semibold">동탄 100여 개 아파트 단지 실거래가 및 인프라 점수를 실시간 분석하고 있습니다.</p>
@@ -1050,8 +1052,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
           {step === 9 && (
             <div className="flex flex-col gap-5 py-2">
               <div className="text-center mb-1">
-                <span className="text-[11px] font-extrabold text-blue-600 dark:text-blue-400 tracking-wider uppercase bg-blue-600/10 dark:bg-blue-400/10 px-2.5 py-1 rounded-full">AI 매칭 분석 완료</span>
-                <h3 className="text-[19px] font-black text-primary tracking-tight mt-2.5">당신에게 제안하는 찰떡 단지 TOP 3</h3>
+                <h3 className="text-[19px] font-black text-primary tracking-tight">당신에게 제안하는 찰떡 단지 TOP 3</h3>
               </div>
 
               {/* Suggestions Cards Grid */}
@@ -1061,31 +1062,26 @@ const AptFitFinder = React.memo(function AptFitFinder({
                   return (
                     <div
                       key={item.apt.name}
-                      className={`group border border-slate-100 dark:border-slate-900 rounded-2xl bg-slate-50/50 dark:bg-slate-900/30 overflow-hidden transition-all duration-300 ${
+                      className={`group border border-border rounded-2xl bg-elevated overflow-hidden transition-all duration-300 ${
                         isExpanded 
-                          ? 'ring-1 ring-blue-600/50 shadow-md bg-white dark:bg-slate-950/80' 
-                          : 'hover:border-blue-600/30 dark:hover:border-blue-400/40'
+                          ? 'ring-2 ring-slate-900/20 dark:ring-white/25 shadow-md bg-surface' 
+                          : 'hover:border-slate-300 dark:hover:border-slate-700'
                       }`}
                     >
                       {/* Main Card Header (Clickable to toggle accordion) */}
                       <button 
                         type="button"
                         onClick={() => setExpandedIndex(isExpanded ? null : index)}
-                        className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 dark:focus-visible:ring-blue-400 p-4 flex items-center justify-between gap-4 cursor-pointer active:scale-[0.99] transition-all relative"
+                        className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20 dark:focus-visible:ring-white/25 p-4 flex items-center justify-between gap-4 cursor-pointer active:scale-[0.99] transition-all relative"
                         aria-expanded={isExpanded}
                         aria-label={`${index + 1}순위: ${item.apt.name} 상세 매칭 분석 보기`}
                       >
-                        {/* Background glow for rank 1 */}
-                        {index === 0 && (
-                          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/5 dark:bg-blue-400/5 rounded-full blur-2xl pointer-events-none" />
-                        )}
-                        
                         <div className="flex items-center gap-3 min-w-0 relative z-10">
                           {/* Rank Indicator */}
                           <div className={`w-8 h-8 rounded-full font-black text-[14px] flex items-center justify-center shrink-0 shadow-sm border ${
                             index === 0 
-                              ? 'bg-blue-600 dark:bg-blue-600 text-white border-transparent' 
-                              : 'bg-white text-secondary dark:bg-slate-800 border-slate-100 dark:border-slate-700'
+                              ? 'dview-spark-badge border-transparent' 
+                              : 'bg-surface text-secondary border-border'
                           }`}>
                             {index + 1}
                           </div>
@@ -1093,13 +1089,13 @@ const AptFitFinder = React.memo(function AptFitFinder({
                           {/* Info */}
                           <div className="flex flex-col gap-1 min-w-0">
                             <div className="flex items-baseline gap-1.5 flex-wrap">
-                              <h4 className="text-[14.5px] font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate max-w-[150px] sm:max-w-[200px]" title={item.apt.name}>
+                              <h4 className="text-[14.5px] font-extrabold text-primary group-hover:text-primary transition-colors truncate max-w-[150px] sm:max-w-[200px]" title={item.apt.name}>
                                 {item.apt.name}
                               </h4>
                               <span className="text-[10.5px] text-tertiary font-bold shrink-0">{item.apt.dong}</span>
                             </div>
                             {/* Metrics snippet */}
-                            <div className="text-[11px] sm:text-[11.5px] text-secondary font-bold flex items-center gap-1.5 flex-wrap">
+                            <div className="text-[11px] sm:text-[11.5px] text-secondary font-bold flex items-center gap-1.5 flex-wrap tabular-nums">
                               <span>평균가: {priceFormatter(item.salesPrice)}</span>
                               {item.jeonseRatio > 0 && (
                                 <>
@@ -1111,26 +1107,26 @@ const AptFitFinder = React.memo(function AptFitFinder({
                             {/* Matching Tags */}
                             <div className="flex gap-1.5 mt-0.5">
                               {item.tags.map((tag: string) => (
-                                <span key={tag} className="text-[9.5px] font-extrabold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800/80 text-secondary dark:text-slate-300 rounded-[4px] tracking-wide">
+                                <span key={tag} className="text-[9.5px] font-extrabold px-1.5 py-0.5 bg-[#eff1f5] dark:bg-[#1e2532] text-secondary rounded-[4px] tracking-wide">
                                   #{tag}
                                 </span>
                               ))}
                             </div>
 
                             {/* Mini scoring breakdown (Visible at all times for easy comparison) */}
-                            <div className="grid grid-cols-4 gap-x-2.5 gap-y-1 mt-2.5 border-t border-slate-100/60 dark:border-slate-900/50 pt-2.5 w-[240px] sm:w-[320px] md:w-[360px] shrink-0">
+                            <div className="grid grid-cols-4 gap-x-2.5 gap-y-1 mt-2.5 border-t border-border/60 pt-2.5 w-[240px] sm:w-[320px] md:w-[360px] shrink-0 tabular-nums">
                               {[
-                                { label: '자금', score: item.scores.budget, color: 'bg-blue-500' },
-                                { label: '교통', score: item.scores.transit, color: 'bg-emerald-500' },
-                                { label: '교육', score: item.scores.education, color: 'bg-emerald-400' },
-                                { label: '생활', score: item.scores.lifestyle, color: 'bg-[#c084fc]' }
+                                { label: '자금', score: item.scores.budget, color: 'bg-slate-900 dark:bg-slate-100' },
+                                { label: '교통', score: item.scores.transit, color: 'bg-brand-blue' },
+                                { label: '교육', score: item.scores.education, color: 'bg-slate-500 dark:bg-slate-400' },
+                                { label: '생활', score: item.scores.lifestyle, color: 'bg-slate-700 dark:bg-slate-300' }
                               ].map(scoreItem => (
                                 <div key={scoreItem.label} className="flex flex-col gap-0.5 min-w-0">
                                   <div className="flex justify-between items-center text-[9px] font-black text-tertiary">
                                     <span>{scoreItem.label}</span>
                                     <span className="font-extrabold text-primary">{scoreItem.score}%</span>
                                   </div>
-                                  <div className="w-full h-1 bg-slate-100 dark:bg-slate-800/80 rounded-full overflow-hidden">
+                                  <div className="w-full h-1 bg-[#eff1f5] dark:bg-[#1e2532] rounded-full overflow-hidden">
                                     <div 
                                       className={`h-full ${scoreItem.color} rounded-full`}
                                       style={{ width: `${scoreItem.score}%` }}
@@ -1146,11 +1142,11 @@ const AptFitFinder = React.memo(function AptFitFinder({
                         <div className="flex items-center gap-2 shrink-0 relative z-10">
                           <div className="flex flex-col items-end justify-center shrink-0 whitespace-nowrap">
                             <span className="text-[9px] text-tertiary font-bold tracking-tight whitespace-nowrap">매칭률</span>
-                            <span className="text-[18px] sm:text-[20px] font-black text-blue-600 dark:text-blue-400 tracking-tighter tabular-nums whitespace-nowrap">{item.matchPercentage}%</span>
+                            <span className="text-[18px] sm:text-[20px] font-black text-primary tracking-tighter tabular-nums whitespace-nowrap">{item.matchPercentage}%</span>
                           </div>
                           <ChevronRight 
                             size={16} 
-                            className={`text-tertiary transition-transform duration-300 ${isExpanded ? 'rotate-90 text-blue-600 dark:text-blue-400' : ''}`} 
+                            className={`text-tertiary transition-transform duration-300 ${isExpanded ? 'rotate-90 text-primary' : ''}`} 
                           />
                         </div>
                       </button>
@@ -1158,10 +1154,10 @@ const AptFitFinder = React.memo(function AptFitFinder({
                       {/* Accordion Detail Breakdown Panel */}
                       <div 
                         className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                          isExpanded ? 'max-h-[300px] border-t border-slate-100 dark:border-slate-900 bg-slate-50/30 dark:bg-slate-950/20' : 'max-h-0'
+                          isExpanded ? 'max-h-[300px] border-t border-border bg-elevated/60' : 'max-h-0'
                         }`}
                       >
-                        <div className="p-4 flex flex-col gap-3.5">
+                        <div className="p-4 flex flex-col gap-3.5 tabular-nums">
                           <div className="text-[11.5px] font-black text-secondary tracking-tight">지표별 매칭 분석 결과</div>
                           
                           {/* 2x2 Grid of Progress Bars */}
@@ -1169,12 +1165,12 @@ const AptFitFinder = React.memo(function AptFitFinder({
                             {/* Budget Fit */}
                             <div className="flex flex-col gap-1">
                               <div className="flex justify-between items-center text-[10.5px] font-bold text-secondary">
-                                <span className="flex items-center gap-1"><Coins size={12} className="text-blue-600" /> 자금 적합성</span>
+                                <span className="flex items-center gap-1"><Coins size={12} className="text-secondary" /> 자금 적합성</span>
                                 <span className="font-extrabold text-primary">{item.scores.budget}%</span>
                               </div>
-                              <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                              <div className="w-full h-1.5 bg-[#eff1f5] dark:bg-[#1e2532] rounded-full overflow-hidden">
                                 <div 
-                                  className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500" 
+                                  className="h-full bg-slate-900 dark:bg-slate-100 rounded-full transition-all duration-500" 
                                   style={{ width: `${item.scores.budget}%` }}
                                 />
                               </div>
@@ -1183,12 +1179,12 @@ const AptFitFinder = React.memo(function AptFitFinder({
                             {/* Transit Fit */}
                             <div className="flex flex-col gap-1">
                               <div className="flex justify-between items-center text-[10.5px] font-bold text-secondary">
-                                <span className="flex items-center gap-1"><Train size={12} className="text-blue-600 dark:text-blue-400" /> 교통 편의성</span>
+                                <span className="flex items-center gap-1"><Train size={12} className="text-secondary" /> 교통 편의성</span>
                                 <span className="font-extrabold text-primary">{item.scores.transit}%</span>
                               </div>
-                              <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                              <div className="w-full h-1.5 bg-[#eff1f5] dark:bg-[#1e2532] rounded-full overflow-hidden">
                                 <div 
-                                  className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all duration-500" 
+                                  className="h-full bg-brand-blue rounded-full transition-all duration-500" 
                                   style={{ width: `${item.scores.transit}%` }}
                                 />
                               </div>
@@ -1197,12 +1193,12 @@ const AptFitFinder = React.memo(function AptFitFinder({
                             {/* Education Fit */}
                             <div className="flex flex-col gap-1">
                               <div className="flex justify-between items-center text-[10.5px] font-bold text-secondary">
-                                <span className="flex items-center gap-1"><GraduationCap size={12} className="text-emerald-500" /> 교육/보육</span>
+                                <span className="flex items-center gap-1"><GraduationCap size={12} className="text-secondary" /> 교육/보육</span>
                                 <span className="font-extrabold text-primary">{item.scores.education}%</span>
                               </div>
-                              <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                              <div className="w-full h-1.5 bg-[#eff1f5] dark:bg-[#1e2532] rounded-full overflow-hidden">
                                 <div 
-                                  className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500" 
+                                  className="h-full bg-slate-600 dark:bg-slate-400 rounded-full transition-all duration-500" 
                                   style={{ width: `${item.scores.education}%` }}
                                 />
                               </div>
@@ -1211,12 +1207,12 @@ const AptFitFinder = React.memo(function AptFitFinder({
                             {/* Lifestyle Fit */}
                             <div className="flex flex-col gap-1">
                               <div className="flex justify-between items-center text-[10.5px] font-bold text-secondary">
-                                <span className="flex items-center gap-1"><Sparkles size={12} className="text-[#a855f7]" /> 라이프스타일</span>
+                                <span className="flex items-center gap-1"><Sparkles size={12} className="text-secondary" /> 라이프스타일</span>
                                 <span className="font-extrabold text-primary">{item.scores.lifestyle}%</span>
                               </div>
-                              <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                              <div className="w-full h-1.5 bg-[#eff1f5] dark:bg-[#1e2532] rounded-full overflow-hidden">
                                 <div 
-                                  className="h-full bg-gradient-to-r from-[#c084fc] to-[#a855f7] rounded-full transition-all duration-500" 
+                                  className="h-full bg-slate-700 dark:bg-slate-300 rounded-full transition-all duration-500" 
                                   style={{ width: `${item.scores.lifestyle}%` }}
                                 />
                               </div>
@@ -1229,7 +1225,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
                               onSelectApt(item.apt.name, item.apt.dong);
                               onClose();
                             }}
-                            className="w-full py-2.5 bg-blue-600 hover:bg-[#04635e] dark:bg-blue-600 dark:hover:bg-blue-700 active:scale-[0.98] text-white text-[12px] font-extrabold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1 cursor-pointer mt-1"
+                            className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white active:scale-[0.98] text-white dark:text-slate-900 text-[12px] font-extrabold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1 cursor-pointer mt-1"
                           >
                             <span>단지 상세 보고서 바로가기</span>
                             <ChevronRight size={14} />
@@ -1245,7 +1241,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
               <div className="flex gap-2 mt-3 shrink-0">
                 <button
                   onClick={handleReset}
-                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-secondary dark:text-slate-300 text-[12.5px] font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 border border-transparent"
+                  className="flex-1 py-3 bg-[#eff1f5] hover:bg-slate-200 dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-secondary hover:text-primary text-[12.5px] font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 border border-transparent"
                 >
                   <RefreshCw size={14} />
                   <span>다시 검사</span>
@@ -1253,7 +1249,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
 
                 <button
                   onClick={handleKakaoShare}
-                  className="flex-1 py-3 bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] text-[12.5px] font-extrabold rounded-xl transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer border-none shadow-sm font-black"
+                  className="flex-1 py-3 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 text-[12.5px] font-black rounded-xl transition-all flex items-center justify-center gap-1 active:scale-95 cursor-pointer border-none shadow-sm"
                 >
                   <MessageSquare size={14} />
                   <span>카카오 공유</span>
@@ -1261,11 +1257,11 @@ const AptFitFinder = React.memo(function AptFitFinder({
 
                 <button
                   onClick={handleShare}
-                  className="flex-1 py-3 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/50 dark:hover:bg-slate-850 text-secondary dark:text-slate-300 text-[12.5px] font-extrabold rounded-xl transition-all cursor-pointer border border-slate-200/50 dark:border-slate-800 flex items-center justify-center gap-1 active:scale-95"
+                  className="flex-1 py-3 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-secondary hover:text-primary text-[12.5px] font-extrabold rounded-xl transition-all cursor-pointer border border-border flex items-center justify-center gap-1 active:scale-95"
                 >
                   {isCopied ? (
                     <>
-                      <Check size={14} className="text-emerald-500" />
+                      <Check size={14} className="text-primary" />
                       <span>복사 완료</span>
                     </>
                   ) : (

@@ -53,13 +53,13 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
       {/* Hero Section — Layout: Global Filter Bar + (Inline: 35% table / 65% chart | Inspector: Full-width stacked Chart + Table) */}
       <section
         className={`w-full flex flex-col bg-surface shrink-0 ${
-          inline ? 'py-4 md:py-5 md:h-[700px] border-b border-[#f2f4f6] dark:border-[#202027]' : 'pt-1 pb-2 md:py-2'
+          inline ? 'py-4 md:py-5 md:h-[700px] border-b border-border' : 'pt-1 pb-2 md:py-2'
         }`}
       >
         {/* Global Real Transaction Filter Bar (Zero-CLS Fixed Coordinates on Mobile & Desktop) */}
         <div
           className={`w-full flex flex-wrap items-center gap-x-2 gap-y-1.5 shrink-0 ${
-            inline ? 'pb-4 mb-4 gap-x-2.5 gap-y-2 border-b border-[#f2f4f6] dark:border-[#202027]' : 'pb-3 mb-2'
+            inline ? 'pb-4 mb-4 gap-x-2.5 gap-y-2 border-b border-border' : 'pb-3 mb-2'
           }`}
         >
           {/* 1. Deal Type Toggle — pinned top-left on both mobile & desktop */}
@@ -80,15 +80,15 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
             <button
               onClick={handleToggleFilter}
               className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-                filterOutliers ? 'bg-blue-600 dark:bg-blue-500' : 'bg-secondary/20'
+                filterOutliers ? 'bg-slate-900 dark:bg-slate-100' : 'bg-secondary/20'
               }`}
               role="switch"
               aria-checked={filterOutliers}
               aria-label="이상거래 필터 활성화"
             >
               <span
-                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                  filterOutliers ? 'translate-x-4' : 'translate-x-0'
+                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full shadow-sm ring-0 transition duration-200 ease-in-out ${
+                  filterOutliers ? 'translate-x-4 bg-white dark:bg-slate-900' : 'translate-x-0 bg-white'
                 }`}
               />
             </button>
@@ -130,7 +130,7 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
               <div
                 key="area-filter-skeleton"
                 aria-hidden="true"
-                className="h-[34px] sm:h-[36px] w-44 rounded-[10px] bg-slate-100 dark:bg-slate-800/60 animate-pulse shrink-0"
+                className="h-[34px] sm:h-[36px] w-44 rounded-[10px] bg-[#eff1f5] dark:bg-[#1e2532] animate-pulse shrink-0"
               />
             ) : null}
           </div>

@@ -108,11 +108,11 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       expect(screen.getByText('2026.08.21 (목)')).toBeInTheDocument();
       expect(screen.getByText('2026.08.20 (수)')).toBeInTheDocument();
 
-      // Verify explicit highest price badge on first group
+      // Verify explicit highest price badge on first group (Live Spark neutral ink pill)
       const badge1 = screen.getByTestId('highest-price-badge-2026.08.21 (목)');
       expect(badge1).toBeInTheDocument();
-      expect(badge1).toHaveClass('bg-emerald-50');
-      expect(badge1).toHaveClass('text-emerald-700');
+      expect(badge1).toHaveClass('bg-[#eff1f5]');
+      expect(badge1).toHaveClass('text-primary');
       expect(badge1).toHaveTextContent('최고가:');
       expect(badge1).toHaveTextContent('동탄역 롯데캐슬');
       expect(badge1).toHaveTextContent('16억 5,000만');
@@ -162,11 +162,11 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
         />
       );
 
-      const activeDots = container.querySelectorAll('.bg-blue-600.ring-4');
+      const activeDots = container.querySelectorAll('.bg-primary.ring-4');
       expect(activeDots.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('highlights sticky date header dot in emerald and renders today badge for today group', () => {
+    it('highlights sticky date header dot in Live Spark ink without redundant today badge', () => {
       const todayYmd = getTodayYmdKST();
       const todayGroup = {
         dateStr: `${todayYmd.slice(0, 4)}.${todayYmd.slice(4, 6)}.${todayYmd.slice(6, 8)}`,
@@ -186,8 +186,8 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       expect(screen.queryByText('오늘 신규 반영')).not.toBeInTheDocument();
       expect(screen.queryByTestId('timeline-today-registered-badge')).not.toBeInTheDocument();
 
-      const emeraldDots = container.querySelectorAll('.bg-emerald-500.ring-4');
-      expect(emeraldDots.length).toBeGreaterThanOrEqual(1);
+      const todayDots = container.querySelectorAll('[data-testid="timeline-today-dot"].bg-primary.ring-4');
+      expect(todayDots.length).toBeGreaterThanOrEqual(1);
     });
   });
 

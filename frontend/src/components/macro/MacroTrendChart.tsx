@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
-  AreaChart,
+  ComposedChart,
   Area,
+  Bar,
   XAxis,
   YAxis,
   Tooltip as RechartsTooltip,
@@ -9,8 +10,13 @@ import {
   ReferenceArea,
   ReferenceLine,
 } from "recharts";
-import type { DongtanMacroTrendPoint } from "@/types/transaction";
-import { processMacroTrendData, formatXAxisTick } from "@/lib/utils/macroChartTransform";
+import type { ChartGranularity } from "@/types/transaction";
+import {
+  processMacroTrendData,
+  formatXAxisTick,
+  formatTooltipPeriodLabel,
+  type FormattedMacroPoint,
+} from "@/lib/utils/macroChartTransform";
 import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
 import { calculateTwoSigma, type TwoSigmaStats } from "@/lib/analytics/twoSigmaEngine";
 
@@ -23,16 +29,17 @@ interface TooltipPayloadEntry {
   name?: string;
   value: number;
   color?: string;
-  payload?: unknown;
+  payload?: FormattedMacroPoint;
 }
 
 interface CustomTooltipProps {
   active?: boolean;
   payload?: TooltipPayloadEntry[];
   label?: string;
+  granularity?: ChartGranularity;
 }
 
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+const CustomTooltip = ({ active, payload, label, granularity = "monthly" }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const saleData = payload.find(
       (p) => p.dataKey === "동탄 아파트 전체" || p.name === "평균 매매가"
@@ -41,9 +48,13 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
       (p) =>
         p.dataKey === "동탄 아파트 전세 평균" || p.name === "평균 전세가"
     );
+    const rawPoint = payload[0]?.payload;
 
     const salePrice = saleData?.value || 0;
     const rentPrice = rentData?.value || 0;
+    const saleCount = typeof rawPoint?.saleCount === "number" ? rawPoint.saleCount : undefined;
+    const rentCount = typeof rawPoint?.rentCount === "number" ? rawPoint.rentCount : undefined;
+    const hasCountInfo = saleCount !== undefined || (rentCount !== undefined && rentCount > 0);
 
     let ratio = 0;
     if (salePrice > 0 && rentPrice > 0) {
@@ -53,47 +64,86 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     const gapPrice = salePrice > 0 && rentPrice > 0 ? salePrice - rentPrice : 0;
     const gapPriceStr = gapPrice > 0 ? `${gapPrice.toFixed(1)}억` : null;
 
+    const priceEntries = payload.filter(
+      (entry) =>
+        (entry.dataKey === "동탄 아파트 전체" || entry.dataKey === "동탄 아파트 전세 평균") &&
+        entry.value !== undefined &&
+        entry.value !== null &&
+        entry.value > 0
+    );
+
     return (
-      <div className="bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md p-3.5 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-border/60 dark:border-white/10 flex flex-col gap-2 min-w-[170px] transition-all duration-300 ease-out">
+      <div className="bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md p-3.5 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-border/60 dark:border-white/10 flex flex-col gap-2 min-w-[188px] tabular-nums transition-all duration-300 ease-out">
         <div className="text-[12px] font-extrabold text-tertiary mb-0.5">
-          {label ? formatXAxisTick(String(label)) : ""}
+          {label ? formatTooltipPeriodLabel(String(label), granularity) : ""}
         </div>
-        {payload
-          .filter((entry) => entry.value !== undefined && entry.value !== null && entry.value > 0)
-          .map((entry, index: number) => {
-            const isRent =
-              entry.dataKey === "동탄 아파트 전세 평균" ||
-              entry.name === "평균 전세가";
-            return (
-              <div
-                key={index}
-                className="flex items-center justify-between gap-6"
-              >
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: entry.color }}
-                  />
-                  <span className="text-[13px] font-bold text-secondary">
-                    {isRent ? "전세가" : "매매가"}
-                  </span>
-                </div>
-                <span className="text-[13.5px] font-black text-primary">
-                  {entry.value}억
+        {priceEntries.map((entry, index: number) => {
+          const isRent =
+            entry.dataKey === "동탄 아파트 전세 평균" ||
+            entry.name === "평균 전세가";
+          return (
+            <div
+              key={index}
+              className="flex items-center justify-between gap-6"
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-[13px] font-bold text-secondary">
+                  {isRent ? "전세가" : "매매가"}
                 </span>
               </div>
-            );
-          })}
+              <span className="text-[13.5px] font-black text-primary">
+                {entry.value}억
+              </span>
+            </div>
+          );
+        })}
+        {hasCountInfo && (
+          <>
+            <div className="w-full h-[1px] bg-body my-0.5" />
+            <div className="flex flex-col gap-1">
+              {saleCount !== undefined && (
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-[3px] bg-brand-blue/25 border border-brand-blue/50" />
+                    <span className="text-[12px] font-bold text-tertiary">
+                      매매 거래량
+                    </span>
+                  </div>
+                  <span className="text-[13px] font-black text-primary">
+                    {saleCount.toLocaleString()}건
+                  </span>
+                </div>
+              )}
+              {rentCount !== undefined && rentCount > 0 && (
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-[3px] bg-slate-500/20 border border-slate-500/50" />
+                    <span className="text-[12px] font-bold text-tertiary">
+                      전세 거래량
+                    </span>
+                  </div>
+                  <span className="text-[13px] font-extrabold text-secondary">
+                    {rentCount.toLocaleString()}건
+                  </span>
+                </div>
+              )}
+            </div>
+          </>
+        )}
         {ratio > 0 && (
           <>
-            <div className="w-full h-[1px] bg-body my-1" />
+            <div className="w-full h-[1px] bg-body my-0.5" />
             <div className="flex flex-col gap-1.5">
               {gapPriceStr && (
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-[12px] font-bold text-tertiary">
                     예상 갭차이
                   </span>
-                  <span className="text-[13.5px] font-black text-blue-600 dark:text-blue-400">
+                  <span className="text-[13.5px] font-black text-primary">
                     {gapPriceStr}
                   </span>
                 </div>
@@ -102,7 +152,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                 <span className="text-[12px] font-bold text-tertiary">
                   전세가율
                 </span>
-                <span className="text-[13.5px] font-black text-[var(--brand-blue)]">
+                <span className="text-[13.5px] font-black text-brand-blue">
                   {ratio.toFixed(1)}%
                 </span>
               </div>
@@ -140,7 +190,7 @@ export const DiamondVertex = React.memo(function DiamondVertex({
   cy,
   radius = 3.6,
   r,
-  fill = "#2563eb",
+  fill = "#2f6bff",
   stroke = "#ffffff",
   strokeWidth = 1.5,
   className,
@@ -181,7 +231,7 @@ export const SaleDiamondDot = (props: MacroDotProps): React.ReactElement | null 
     cx={props.cx}
     cy={props.cy}
     radius={3.6}
-    fill="#2563eb"
+    fill="#2f6bff"
     stroke="#ffffff"
     strokeWidth={1.5}
     className={props.className}
@@ -194,7 +244,7 @@ export const SaleActiveDiamondDot = (props: MacroDotProps): React.ReactElement |
     cx={props.cx}
     cy={props.cy}
     radius={6.0}
-    fill="#2563eb"
+    fill="#2f6bff"
     stroke="#ffffff"
     strokeWidth={2}
     className={props.className}
@@ -207,7 +257,7 @@ export const RentDiamondDot = (props: MacroDotProps): React.ReactElement | null 
     cx={props.cx}
     cy={props.cy}
     radius={3.6}
-    fill="#059669"
+    fill="#64748b"
     stroke="#ffffff"
     strokeWidth={1.5}
     className={props.className}
@@ -220,7 +270,7 @@ export const RentActiveDiamondDot = (props: MacroDotProps): React.ReactElement |
     cx={props.cx}
     cy={props.cy}
     radius={6.0}
-    fill="#059669"
+    fill="#64748b"
     stroke="#ffffff"
     strokeWidth={2}
     className={props.className}
@@ -233,10 +283,14 @@ export interface MacroTrendChartProps {
     name: string;
     "동탄 아파트 전체"?: number | null;
     "동탄 아파트 전세 평균"?: number | null;
+    saleCount?: number;
+    rentCount?: number;
   }>;
   xTicks: string[];
   yTicks: number[];
   timeframe: string;
+  granularity?: ChartGranularity;
+  isSplitMode?: boolean;
   isBottomSheet?: boolean;
   className?: string;
 }
@@ -325,6 +379,8 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
   xTicks,
   yTicks,
   timeframe,
+  granularity = "monthly",
+  isSplitMode = false,
   isBottomSheet = false,
   className,
 }: MacroTrendChartProps) {
@@ -342,12 +398,40 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
   );
 
   const fontSize = isBottomSheet ? 11 : 12;
-  const yWidth = isBottomSheet ? 35 : 40;
+  const yWidth = isBottomSheet ? 35 : 42;
 
   // Process data with null/undefined guards
   const processedData = useMemo(() => {
     return processMacroTrendData(lineData);
   }, [lineData]);
+
+  // Volume bar axis scale (occupies lower ~38% of chart so bars never obscure price lines)
+  const volumeAxisMeta = useMemo(() => {
+    let maxCount = 0;
+    for (let i = 0; i < processedData.length; i++) {
+      const cnt = processedData[i]?.saleCount;
+      if (typeof cnt === "number" && cnt > maxCount) {
+        maxCount = cnt;
+      }
+    }
+    if (maxCount <= 0) {
+      return { hasVolumeData: false, domainMax: 10, ticks: [0] as number[] };
+    }
+
+    let step = 1;
+    if (maxCount <= 10) step = 2;
+    else if (maxCount <= 50) step = 10;
+    else if (maxCount <= 200) step = 50;
+    else if (maxCount <= 1000) step = 200;
+    else step = 500;
+
+    const niceMax = Math.max(step, Math.ceil(maxCount / step) * step);
+    const domainMax = Math.ceil(niceMax * 2.5);
+    const midTick = Math.round(niceMax / 2);
+    const ticks = niceMax >= 4 && midTick > 0 && midTick < niceMax ? [0, midTick, niceMax] : [0, niceMax];
+
+    return { hasVolumeData: true, domainMax, ticks };
+  }, [processedData]);
 
   // Two-sigma statistical confidence interval bounds
   const twoSigmaStats = useMemo<TwoSigmaStats>(() => {
@@ -384,7 +468,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
 
   const saleDotProp = useMemo(() => {
     if (nonNullSaleCount === 1) return SaleDiamondDot;
-    if (isBottomSheet || timeframe === "ALL" || timeframe === "5Y") return false;
+    if (isBottomSheet || timeframe === "ALL" || timeframe === "5Y" || nonNullSaleCount > 45) return false;
     return SaleDiamondDot;
   }, [isBottomSheet, timeframe, nonNullSaleCount]);
 
@@ -392,7 +476,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
 
   const rentDotProp = useMemo(() => {
     if (nonNullRentCount === 1) return RentDiamondDot;
-    if (isBottomSheet || timeframe === "ALL" || timeframe === "5Y") return false;
+    if (isBottomSheet || timeframe === "ALL" || timeframe === "5Y" || nonNullRentCount > 45) return false;
     return RentDiamondDot;
   }, [isBottomSheet, timeframe, nonNullRentCount]);
 
@@ -412,30 +496,48 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
     : {};
 
   const chartW = size.width > 0 ? size.width : 380;
-  const chartH = isBottomSheet ? 220 : (size.height > 0 ? size.height : 300);
+  const chartH = isBottomSheet ? 220 : (size.height > 0 ? size.height : 330);
+  const volumeYAxisWidth = volumeAxisMeta.hasVolumeData ? (isBottomSheet ? 34 : 46) : 0;
+
+  const formatVolumeTick = (value: number) => {
+    if (!Number.isFinite(value) || value <= 0) return "";
+    if (value >= 1000) {
+      const k = value / 1000;
+      return `${Number.isInteger(k) ? k : k.toFixed(1)}천건`;
+    }
+    return `${value.toLocaleString()}건`;
+  };
+
+  const containerMinHeightClass = isBottomSheet
+    ? "min-h-[220px]"
+    : isSplitMode
+      ? "min-h-[330px]"
+      : "min-h-[330px] lg:min-h-[430px] xl:min-h-[470px]";
 
   return (
     <ChartErrorBoundary fallbackText="동탄 매크로 트렌드 차트를 로드할 수 없습니다.">
       <div
         ref={refCallback}
         data-testid="macro-trend-chart-container"
-        className={`w-full h-full flex-1 ${isBottomSheet ? 'min-h-[220px]' : 'min-h-[330px]'} touch-pan-y relative overflow-hidden flex items-center justify-center ${className || ''}`}
+        data-granularity={granularity}
+        data-has-volume={String(volumeAxisMeta.hasVolumeData)}
+        className={`w-full h-full flex-1 ${containerMinHeightClass} touch-pan-y relative overflow-hidden flex items-center justify-center tabular-nums ${className || ''}`}
       >
-      <AreaChart
+      <ComposedChart
         width={chartW}
         height={chartH}
         data={processedData}
-        margin={{ top: 14, right: 18, left: 4, bottom: 6 }}
+        margin={{ top: 14, right: volumeAxisMeta.hasVolumeData ? 8 : 18, left: 4, bottom: 6 }}
         {...desktopEventHandlers}
       >
         <defs>
           <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.30} />
-            <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
+            <stop offset="5%" stopColor="#2f6bff" stopOpacity={0.20} />
+            <stop offset="95%" stopColor="#2f6bff" stopOpacity={0.0} />
           </linearGradient>
           <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#059669" stopOpacity={0.25} />
-            <stop offset="95%" stopColor="#059669" stopOpacity={0.0} />
+            <stop offset="5%" stopColor="#64748b" stopOpacity={0.14} />
+            <stop offset="95%" stopColor="#64748b" stopOpacity={0.0} />
           </linearGradient>
         </defs>
         <CartesianGrid
@@ -452,9 +554,10 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
           tick={{ fill: "#64748b", fontSize, fontFamily: "inherit", fontWeight: 700 }}
           dy={10}
           ticks={xTicks}
-          tickFormatter={formatXAxisTick}
+          tickFormatter={(val: string) => formatXAxisTick(val, granularity)}
         />
         <YAxis
+          yAxisId="price"
           axisLine={false}
           tickLine={false}
           tick={{ fill: "#64748b", fontSize, fontFamily: "inherit", fontWeight: 700 }}
@@ -465,14 +568,28 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
           ticks={yTicks}
           width={yWidth}
         />
+        {volumeAxisMeta.hasVolumeData && (
+          <YAxis
+            yAxisId="volume"
+            orientation="right"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: "#94a3b8", fontSize: isBottomSheet ? 10 : 11, fontFamily: "inherit", fontWeight: 700 }}
+            tickFormatter={formatVolumeTick}
+            domain={[0, volumeAxisMeta.domainMax]}
+            ticks={volumeAxisMeta.ticks}
+            width={volumeYAxisWidth}
+          />
+        )}
         <RechartsTooltip
-          content={<CustomTooltip />}
+          content={<CustomTooltip granularity={granularity} />}
           cursor={tooltipCursorStyle}
           isAnimationActive={false}
           wrapperStyle={{ zIndex: 50, pointerEvents: "none", opacity: 1 }}
         />
         {twoSigmaStats.isValid && twoSigmaStats.lower2SD !== null && twoSigmaStats.upper2SD !== null && (
           <SafeReferenceArea
+            yAxisId="price"
             y1={twoSigmaStats.lower2SD}
             y2={twoSigmaStats.upper2SD}
             fill="var(--brand-primary)"
@@ -482,6 +599,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
         )}
         {twoSigmaStats.isValid && twoSigmaStats.upper2SD !== null && (
           <ReferenceLine
+            yAxisId="price"
             y={twoSigmaStats.upper2SD}
             stroke="var(--brand-primary)"
             strokeDasharray="3 3"
@@ -489,6 +607,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
         )}
         {twoSigmaStats.isValid && twoSigmaStats.mean !== null && (
           <ReferenceLine
+            yAxisId="price"
             y={twoSigmaStats.mean}
             stroke="var(--brand-primary)"
             strokeDasharray="5 5"
@@ -496,17 +615,31 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
         )}
         {twoSigmaStats.isValid && twoSigmaStats.lower2SD !== null && (
           <ReferenceLine
+            yAxisId="price"
             y={twoSigmaStats.lower2SD}
             stroke="var(--brand-primary)"
             strokeDasharray="3 3"
           />
         )}
+        {volumeAxisMeta.hasVolumeData && (
+          <Bar
+            yAxisId="volume"
+            dataKey="saleCount"
+            name="실거래 건수"
+            fill="#64748b"
+            fillOpacity={0.14}
+            radius={[3, 3, 0, 0]}
+            maxBarSize={24}
+            isAnimationActive={false}
+          />
+        )}
         <Area
+          yAxisId="price"
           key="동탄 아파트 전체"
           type="linear"
           name="평균 매매가"
           dataKey="동탄 아파트 전체"
-          stroke="#2563eb"
+          stroke="#2f6bff"
           strokeWidth={isBottomSheet ? 1.8 : 2.2}
           fill="url(#colorSale)"
           isAnimationActive={false}
@@ -515,11 +648,12 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
           activeDot={saleActiveDotProp}
         />
         <Area
+          yAxisId="price"
           key="동탄 아파트 전세 평균"
           type="linear"
           name="평균 전세가"
           dataKey="동탄 아파트 전세 평균"
-          stroke="#059669"
+          stroke="#64748b"
           strokeWidth={isBottomSheet ? 1.2 : 1.5}
           fill="url(#colorRent)"
           isAnimationActive={false}
@@ -527,7 +661,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
           dot={rentDotProp}
           activeDot={rentActiveDotProp}
         />
-      </AreaChart>
+      </ComposedChart>
     </div>
   </ChartErrorBoundary>
   );

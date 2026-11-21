@@ -18,7 +18,6 @@ self.addEventListener('install', (event) => {
         '/data/local-events.json',
         '/data/location-scores.json',
         '/data/macro-trend.json',
-        '/data/public-prices.json',
         '/data/type-map.json',
         '/tx-data/_index.json'
       ]);

@@ -312,7 +312,7 @@ describe('TechnoValley Track 1 (?jisan= Bounce Defense & SERP CTR) + Track 2 (De
         'technovalley-b2b-adslot-bottom',
       ]) {
         const wrapper = getByTestId(testId);
-        expect(wrapper.className).toContain('bg-[#f9fafb]');
+        expect(wrapper.className).toMatch(/bg-elevated|bg-\[#f9fafb\]/);
         expect(wrapper.className).toContain('min-h-[250px]');
         expect(wrapper.className).not.toContain('backdrop-blur-xl');
         expect(wrapper.className).not.toContain('border-slate-200/80');

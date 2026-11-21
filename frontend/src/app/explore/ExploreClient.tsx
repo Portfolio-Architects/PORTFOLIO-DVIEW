@@ -77,7 +77,7 @@ const ExploreListSkeleton = () => (
         {/* Main Table Area Skeleton */}
         <div className="flex-1 flex flex-col bg-transparent min-w-0 md:pl-6 lg:pl-8 md:pr-6 lg:pr-8 py-2 md:rounded-r-2xl">
           {/* Title, Total count and Search Bar Skeleton */}
-          <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-md relative z-30">
+          <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-surface/95 backdrop-blur-md relative z-30">
             <div className="flex flex-row justify-between items-center md:flex-col md:items-start w-full md:w-auto">
               <div className="w-40 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
               <div className="w-20 h-4 bg-black/5 dark:bg-surface/5 rounded mt-2 hidden md:block" />
@@ -140,12 +140,12 @@ const CalculatorLoader = ({ text }: { text: string }) => (
     <div className="bg-surface/75 dark:bg-surface/75 border border-border/50 p-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col items-center gap-5 text-center min-w-[280px] max-w-[320px] backdrop-blur-2xl">
       <div className="relative w-14 h-14 flex items-center justify-center">
         {/* outer spin */}
-        <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-toss-blue animate-spin" style={{ animationDuration: '0.8s' }} />
+        <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-primary animate-spin" style={{ animationDuration: '0.8s' }} />
         {/* inner reverse spin */}
-        <div className="absolute inset-1.5 rounded-full border-[2px] border-transparent border-b-toss-blue/60 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.2s' }} />
-        {/* center emerald diamond */}
+        <div className="absolute inset-1.5 rounded-full border-[2px] border-transparent border-b-primary/40 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.2s' }} />
+        {/* center diamond */}
         <div className="absolute flex items-center justify-center">
-          <svg className="w-5 h-5 text-toss-blue animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg className="w-5 h-5 text-primary animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 3h12l4 6-10 13L2 9z" />
             <path d="M11 3 8 9l4 13 4-13-3-6" />
             <path d="M2 9h20" />
@@ -1093,6 +1093,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                       subtitleStrong={<MarketStatsStrong />}
                       subtitleLight={<MarketStatsLight />}
                       isSplitMode={false}
+                      hideMobileStickyBar
                     />
                     <ErrorBoundary name="아파트 맞춤 탐색">
                       <TossApartmentExploreClient
@@ -1247,7 +1248,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
             return (
               <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
                 <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
-                  <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-brand-red-light text-brand-red flex items-center justify-center mb-4">
                     <span className="text-xl font-black">!</span>
                   </div>
                   <h3 className="text-[15px] font-black text-primary mb-1">비교 분석기 로드 실패</h3>
@@ -1257,7 +1258,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   <div className="flex gap-2 w-full">
                     <button
                       onClick={reset}
-                      className="flex-1 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                      className="flex-1 py-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
                     >
                       다시 시도
                     </button>
@@ -1310,7 +1311,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
             return (
               <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
                 <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
-                  <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-brand-red-light text-brand-red flex items-center justify-center mb-4">
                     <span className="text-xl font-black">!</span>
                   </div>
                   <h3 className="text-[15px] font-black text-primary mb-1">전세 안전진단 로드 실패</h3>
@@ -1320,7 +1321,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   <div className="flex gap-2 w-full">
                     <button
                       onClick={reset}
-                      className="flex-1 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                      className="flex-1 py-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
                     >
                       다시 시도
                     </button>
@@ -1362,7 +1363,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
             return (
               <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
                 <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
-                  <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-brand-red-light text-brand-red flex items-center justify-center mb-4">
                     <span className="text-xl font-black">!</span>
                   </div>
                   <h3 className="text-[15px] font-black text-primary mb-1">대출 계산기 로드 실패</h3>
@@ -1372,7 +1373,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   <div className="flex gap-2 w-full">
                     <button
                       onClick={reset}
-                      className="flex-1 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                      className="flex-1 py-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
                     >
                       다시 시도
                     </button>
@@ -1416,7 +1417,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
             return (
               <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
                 <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
-                  <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-brand-red-light text-brand-red flex items-center justify-center mb-4">
                     <span className="text-xl font-black">!</span>
                   </div>
                   <h3 className="text-[15px] font-black text-primary mb-1">계산기 로드 실패</h3>
@@ -1426,7 +1427,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   <div className="flex gap-2 w-full">
                     <button
                       onClick={reset}
-                      className="flex-1 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                      className="flex-1 py-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
                     >
                       다시 시도
                     </button>
@@ -1469,7 +1470,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
             return (
               <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
                 <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
-                  <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-brand-red-light text-brand-red flex items-center justify-center mb-4">
                     <span className="text-xl font-black">!</span>
                   </div>
                   <h3 className="text-[15px] font-black text-primary mb-1">진단기 로드 실패</h3>
@@ -1479,7 +1480,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   <div className="flex gap-2 w-full">
                     <button
                       onClick={reset}
-                      className="flex-1 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                      className="flex-1 py-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
                     >
                       다시 시도
                     </button>

@@ -150,7 +150,7 @@ describe('Milestone 3 Integration Tests: TimelineItemCard & TimelineItemRow', ()
 
       const row = screen.getByTestId('timeline-row-동탄역 시범 더샵 센트럴시티');
       expect(row).toBeInTheDocument();
-      expect(row).toHaveClass('bg-blue-50/60');
+      expect(row).toHaveClass('bg-[#eff1f5]');
 
       // Apt name and dong/area/floor
       expect(screen.getByText('동탄역 시범 더샵 센트럴시티')).toBeInTheDocument();

@@ -13,6 +13,7 @@ import path from 'path';
 import fs from 'fs';
 import {
   selectGlobalHighlightTransactions,
+  buildGlobalDailySummaryPayload,
   isValidPushSubscription,
   GET,
   TransactionRecord,
@@ -63,10 +64,19 @@ jest.mock('@/lib/firebaseAdmin', () => ({
 }));
 
 describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
+  const TEST_CRON_SECRET = 'jest-test-cron-secret-m3';
+  const originalCronSecret = process.env.CRON_SECRET;
+  const originalVapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const originalVapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockPushSubscriptions.length = 0;
     mockDeleteDoc.mockResolvedValue(undefined);
+    process.env.CRON_SECRET = TEST_CRON_SECRET;
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY =
+      'BTestPublicKeyForJestUnitVerificationOnly0123456789abcdefghijklmnopqrstuvwxyzABCDEFGH';
+    process.env.VAPID_PRIVATE_KEY = 'TestPrivateKeyForJestUnitVerificationOnly0123';
 
     (db?.collection as jest.Mock).mockImplementation((colName: string) => ({
       where: jest.fn((field: string, op: string, value: unknown) => ({
@@ -373,7 +383,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
       const req = new NextRequest('https://dview.kr/api/cron/send-tx-notifications?dryRun=true&date=20261111', {
         headers: {
           host: 'dview.kr',
-          authorization: `Bearer ${process.env.CRON_SECRET || 'dview-default-cron-secret-2026'}`,
+          authorization: `Bearer ${TEST_CRON_SECRET}`,
         },
       });
 
@@ -386,17 +396,19 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
       expect(json.data.targetDate).toBe('20261111');
     });
 
-    it('should allow access from localhost without secret', async () => {
-      const req = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=20261111', {
+    it('should block localhost host header and ?auth= query string bypasses without Bearer CRON_SECRET', async () => {
+      const localhostReq = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=20261111', {
         headers: { host: 'localhost:5000' },
       });
+      const localhostRes = await GET(localhostReq);
+      expect(localhostRes.status).toBe(401);
 
-      const res = await GET(req);
-      expect(res.status).toBe(200);
-
-      const json = await res.json();
-      expect(json.success).toBe(true);
-      expect(json.data.targetDate).toBe('20261111');
+      const queryAuthReq = new NextRequest(
+        `https://dview.kr/api/cron/send-tx-notifications?dryRun=true&date=20261111&auth=${TEST_CRON_SECRET}`,
+        { headers: { host: 'dview.kr' } }
+      );
+      const queryAuthRes = await GET(queryAuthReq);
+      expect(queryAuthRes.status).toBe(401);
     });
 
     it('should execute dry-run simulation without dispatching webpush network calls', async () => {
@@ -423,7 +435,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
       });
 
       const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=${latestRealRegDate}`, {
-        headers: { host: 'localhost:5000' },
+        headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` },
       });
 
       const res = await GET(req);
@@ -474,7 +486,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
       });
 
       const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?date=${latestRealRegDate}`, {
-        headers: { host: 'localhost:5000' },
+        headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` },
       });
 
       const res = await GET(req);
@@ -509,7 +521,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
       });
 
       const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?date=${latestRealRegDate}`, {
-        headers: { host: 'localhost:5000' },
+        headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` },
       });
 
       const res = await GET(req);
@@ -537,7 +549,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
       });
 
       const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=${latestRealRegDate}`, {
-        headers: { host: 'localhost:5000' },
+        headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` },
       });
 
       const res = await GET(req);
@@ -551,7 +563,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
 
     it('should handle zero matching transactions gracefully', async () => {
       const req = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?date=19990101', {
-        headers: { host: 'localhost:5000' },
+        headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` },
       });
 
       const res = await GET(req);
@@ -563,28 +575,36 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
       expect(json.data.sentCount).toBe(0);
     });
 
-    it('should authorize native Vercel Cron header when CRON_SECRET is unset and block it when CRON_SECRET is set', async () => {
+    it('should fail closed on spoofed Vercel Cron header and legacy default secret regardless of CRON_SECRET presence', async () => {
       const prevSecret = process.env.CRON_SECRET;
       try {
         delete process.env.CRON_SECRET;
-        const allowedReq = new NextRequest('https://dongtanview.com/api/cron/send-tx-notifications?dryRun=true&date=19990101', {
+        const spoofedWhenUnsetReq = new NextRequest('https://dongtanview.com/api/cron/send-tx-notifications?dryRun=true&date=19990101', {
           headers: {
             host: 'dongtanview.com',
             'user-agent': 'vercel-cron/1.0',
+            'x-vercel-cron': '1',
           },
         });
-        const allowedRes = await GET(allowedReq);
-        expect(allowedRes.status).toBe(200);
+        expect((await GET(spoofedWhenUnsetReq)).status).toBe(401);
+
+        const defaultSecretReq = new NextRequest('https://dongtanview.com/api/cron/send-tx-notifications?dryRun=true&date=19990101', {
+          headers: {
+            host: 'dongtanview.com',
+            authorization: 'Bearer dview-default-cron-secret-2026',
+          },
+        });
+        expect((await GET(defaultSecretReq)).status).toBe(401);
 
         process.env.CRON_SECRET = 'custom-prod-secret';
         const blockedReq = new NextRequest('https://dongtanview.com/api/cron/send-tx-notifications?dryRun=true&date=19990101', {
           headers: {
             host: 'dongtanview.com',
             'user-agent': 'vercel-cron/1.0',
+            'x-vercel-cron': '1',
           },
         });
-        const blockedRes = await GET(blockedReq);
-        expect(blockedRes.status).toBe(401);
+        expect((await GET(blockedReq)).status).toBe(401);
       } finally {
         if (prevSecret === undefined) {
           delete process.env.CRON_SECRET;
@@ -663,7 +683,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
 
       // 1st invocation at 07:00 KST: loads from Firestore fallback, sends 1 push, persists log
       const req1 = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?date=20991231', {
-        headers: { host: 'localhost:5000' },
+        headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` },
       });
       const res1 = await GET(req1);
       const json1 = await res1.json();
@@ -674,7 +694,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
 
       // 2nd invocation later same day (e.g. delayed GitHub Actions run): deduplicated -> 0 sent!
       const req2 = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?date=20991231', {
-        headers: { host: 'localhost:5000' },
+        headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` },
       });
       const res2 = await GET(req2);
       const json2 = await res2.json();
@@ -786,7 +806,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
 
       const dryRunReq = new NextRequest(
         `http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=${aliasCandidateTx!.registeredDate}`,
-        { headers: { host: 'localhost:5000' } }
+        { headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` } }
       );
       const dryRunRes = await GET(dryRunReq);
       expect(dryRunRes.status).toBe(200);
@@ -798,7 +818,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
       (webpush.sendNotification as jest.Mock).mockResolvedValue({ statusCode: 201 });
       const liveReq = new NextRequest(
         `http://localhost:5000/api/cron/send-tx-notifications?date=${aliasCandidateTx!.registeredDate}`,
-        { headers: { host: 'localhost:5000' } }
+        { headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` } }
       );
       const liveRes = await GET(liveReq);
       expect(liveRes.status).toBe(200);
@@ -815,6 +835,114 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
       expect(deliveredEndpoints).toContain(
         'https://fcm.googleapis.com/fcm/send/spaced-display-subscriber'
       );
+    });
+  });
+
+  describe('7. Upgraded Global Daily Summary Payload & VAPID Security Guard', () => {
+    afterAll(() => {
+      if (originalCronSecret === undefined) {
+        delete process.env.CRON_SECRET;
+      } else {
+        process.env.CRON_SECRET = originalCronSecret;
+      }
+      if (originalVapidPublicKey === undefined) {
+        delete process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      } else {
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = originalVapidPublicKey;
+      }
+      if (originalVapidPrivateKey === undefined) {
+        delete process.env.VAPID_PRIVATE_KEY;
+      } else {
+        process.env.VAPID_PRIVATE_KEY = originalVapidPrivateKey;
+      }
+    });
+
+    it('builds consolidated Dongtan-wide daily summary with new-high count and top highlight', () => {
+      const txs: TransactionRecord[] = [
+        {
+          aptName: '동탄역롯데캐슬',
+          contractDate: '20261118',
+          registeredDate: '20261119',
+          priceEok: '15억 8,000만',
+          priceVal: 15.8,
+          areaPyeong: 34,
+          floor: 24,
+          dealType: '중개거래',
+          isNewHigh: true,
+        },
+        {
+          aptName: '동탄더샵레이크에듀타운',
+          contractDate: '20261117',
+          registeredDate: '20261119',
+          priceEok: '11억 2,000만',
+          priceVal: 11.2,
+          areaPyeong: 34,
+          floor: 14,
+          dealType: '중개거래',
+          isNewHigh: false,
+        },
+      ];
+
+      const highlights = selectGlobalHighlightTransactions(txs);
+      const summary = buildGlobalDailySummaryPayload(txs, highlights);
+
+      expect(summary).not.toBeNull();
+      expect(summary!.title).toBe('[동탄 실거래] 오늘 매매 2건 · 신고가 1건');
+      expect(summary!.body).toContain('대표 신고가');
+      expect(summary!.body).toContain('동탄역 롯데캐슬 34평 24층 15억 8,000만');
+      expect(summary!.body).toContain('2개 단지 2건');
+      expect(summary!.url).toBe('/');
+    });
+
+    it('sends exactly 1 consolidated global summary notification to global-only subscribers', async () => {
+      mockPushSubscriptions.push({
+        id: 'sub_global_summary_only',
+        data: () => ({
+          subscription: {
+            endpoint: 'https://fcm.googleapis.com/fcm/send/global-only-device',
+            keys: { p256dh: 'p256-g', auth: 'auth-g' },
+          },
+          apts: ['동탄 전체'],
+        }),
+      });
+
+      const req = new NextRequest(
+        `http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=${latestRealRegDate}`,
+        { headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` } }
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.success).toBe(true);
+      expect(json.data.simulatedSentCount).toBe(1);
+      expect(json.data.samplePayloads[0].recipientType).toBe('global');
+      expect(json.data.samplePayloads[0].title).toContain('[동탄 실거래] 오늘 매매');
+    });
+
+    it('fails fast with 503 VAPID_NOT_CONFIGURED in live mode when VAPID_PRIVATE_KEY is missing', async () => {
+      delete process.env.VAPID_PRIVATE_KEY;
+
+      mockPushSubscriptions.push({
+        id: 'sub_missing_vapid_guard',
+        data: () => ({
+          subscription: {
+            endpoint: 'https://fcm.googleapis.com/fcm/send/missing-vapid-device',
+            keys: { p256dh: 'p256-mv', auth: 'auth-mv' },
+          },
+          apts: ['동탄 전체'],
+        }),
+      });
+
+      const req = new NextRequest(
+        `http://localhost:5000/api/cron/send-tx-notifications?date=${latestRealRegDate}`,
+        { headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` } }
+      );
+      const res = await GET(req);
+      expect(res.status).toBe(503);
+      const json = await res.json();
+      expect(json.success).toBe(false);
+      expect(json.code).toBe('VAPID_NOT_CONFIGURED');
+      expect(webpush.sendNotification).not.toHaveBeenCalled();
     });
   });
 });

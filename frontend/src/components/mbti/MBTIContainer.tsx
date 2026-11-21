@@ -82,7 +82,6 @@ export function MBTIContainer({
             onClick={() => setViewMode(currentProfile ? 'result' : 'intro')}
             className={getToggleBtnClass({
               active: viewMode === 'intro' || viewMode === 'quiz' || viewMode === 'result',
-              tone: 'emerald',
             })}
           >
             <span>성향 진단 퀴즈</span>
@@ -94,17 +93,10 @@ export function MBTIContainer({
             onClick={handleViewEncyclopedia}
             className={getToggleBtnClass({
               active: viewMode === 'encyclopedia',
-              tone: 'emerald',
             })}
           >
             <span>16개 아파트 도감</span>
           </button>
-        </div>
-
-        <div className="hidden md:flex items-center gap-2 px-2 text-xs font-semibold text-secondary">
-          <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-500/20">
-            <span>5대 입지 지표 · 16개 랜드마크 정량 매칭</span>
-          </span>
         </div>
       </div>
 
@@ -118,10 +110,10 @@ export function MBTIContainer({
           <div className="lg:col-span-5 flex flex-col justify-between gap-6 p-5 sm:p-6 rounded-2xl bg-body border border-border/60">
             <div className="flex flex-col gap-4">
               <div>
-                <span className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
+                <span className="text-[11px] font-extrabold text-secondary uppercase tracking-wider block">
                   D-VIEW 주거 성향 테스트
                 </span>
-                <span className="text-xs font-semibold text-secondary">
+                <span className="text-xs font-semibold text-tertiary">
                   교통·자연·학군·상권·미래가치 5대 축 진단
                 </span>
               </div>
@@ -134,19 +126,19 @@ export function MBTIContainer({
               </p>
 
               <div className="grid grid-cols-2 gap-2.5 w-full pt-1">
-                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300">
+                <div className="p-3 rounded-xl bg-surface border border-border/70 text-primary">
                   <span className="block font-black text-xs">NT 분석가형</span>
                   <span className="text-[11px] text-secondary font-medium">데이터·환금성</span>
                 </div>
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+                <div className="p-3 rounded-xl bg-surface border border-border/70 text-primary">
                   <span className="block font-black text-xs">NF 외교관형</span>
                   <span className="text-[11px] text-secondary font-medium">호수·자연힐링</span>
                 </div>
-                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300">
+                <div className="p-3 rounded-xl bg-surface border border-border/70 text-primary">
                   <span className="block font-black text-xs">SJ 관리자형</span>
                   <span className="text-[11px] text-secondary font-medium">초품아·원스톱</span>
                 </div>
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+                <div className="p-3 rounded-xl bg-surface border border-border/70 text-primary">
                   <span className="block font-black text-xs">SP 탐험가형</span>
                   <span className="text-[11px] text-secondary font-medium">기동력·슬세권</span>
                 </div>
@@ -158,7 +150,7 @@ export function MBTIContainer({
                 type="button"
                 data-testid="start-quiz-btn"
                 onClick={handleStartQuiz}
-                className="flex-1 py-3.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-black text-sm shadow-sm flex items-center justify-center transition-all cursor-pointer"
+                className="flex-1 py-3.5 px-5 rounded-xl bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 active:scale-[0.98] text-white dark:text-slate-900 font-black text-sm flex items-center justify-center transition-all cursor-pointer"
               >
                 <span>1분 만에 테스트 시작하기</span>
               </button>
@@ -176,18 +168,13 @@ export function MBTIContainer({
 
           {/* Right Panel: SSR Semantic Matrix of 16 MBTI Profiles */}
           <div className="lg:col-span-7 flex flex-col justify-between text-left">
-            <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-border/60">
-              <div>
-                <h3 className="text-sm sm:text-base font-extrabold text-primary">
-                  동탄 16개 주거 성향 유형별 매칭 랜드마크 단지 요약
-                </h3>
-                <p className="text-[11px] sm:text-xs text-secondary mt-0.5">
-                  유형 카드를 클릭하면 해당 MBTI의 5대 입지 레이더 차트와 매칭 단지를 즉시 확인할 수 있습니다.
-                </p>
-              </div>
-              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 shrink-0">
-                16개 유형
-              </span>
+            <div className="mb-3 pb-2.5 border-b border-border/60">
+              <h3 className="text-sm sm:text-base font-extrabold text-primary">
+                동탄 16개 주거 성향 유형별 매칭 랜드마크 단지 요약
+              </h3>
+              <p className="text-[11px] sm:text-xs text-secondary mt-0.5">
+                유형 카드를 클릭하면 해당 MBTI의 5대 입지 레이더 차트와 매칭 단지를 즉시 확인할 수 있습니다.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-[11px]">
@@ -196,10 +183,10 @@ export function MBTIContainer({
                   key={item.type}
                   type="button"
                   onClick={() => handleSelectFromEncyclopedia(item)}
-                  className="p-3 rounded-xl bg-body hover:bg-emerald-500/[0.04] border border-border/60 hover:border-emerald-500/40 text-left transition-all cursor-pointer group flex flex-col justify-between gap-1"
+                  className="p-3 rounded-xl bg-body hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border/60 hover:border-slate-400/60 text-left transition-all cursor-pointer group flex flex-col justify-between gap-1"
                 >
                   <div className="flex items-center justify-between w-full">
-                    <span className="font-black text-xs text-emerald-600 dark:text-emerald-400">
+                    <span className="font-black text-xs text-primary">
                       {item.type}
                     </span>
                   </div>

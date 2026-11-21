@@ -190,25 +190,25 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
     if (currentDsrPercent > 40.0) {
       return {
         label: '규제 한도 초과',
-        color: 'text-red-600 dark:text-red-400',
-        badgeBg: 'bg-red-100 text-red-700 dark:bg-red-950/80 dark:text-red-300 border-red-200 dark:border-red-800',
-        barColor: 'bg-red-500',
+        color: 'text-brand-red',
+        badgeBg: 'bg-brand-red-light text-brand-red border border-brand-red/20',
+        barColor: 'bg-brand-red',
         isExceeded: true,
       };
     }
     if (currentDsrPercent >= 35.0) {
       return {
         label: '한도 주의 구간',
-        color: 'text-red-600 dark:text-red-400',
-        badgeBg: 'bg-red-100 text-red-700 dark:bg-red-950/80 dark:text-red-300 border-red-200 dark:border-red-800',
-        barColor: 'bg-red-600',
+        color: 'text-brand-red',
+        badgeBg: 'bg-brand-red-light text-brand-red border border-brand-red/20',
+        barColor: 'bg-brand-red',
         isExceeded: false,
       };
     }
     return {
       label: '한도 여유 (안정)',
       color: 'text-emerald-600 dark:text-emerald-400',
-      badgeBg: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+      badgeBg: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60',
       barColor: 'bg-emerald-500',
       isExceeded: false,
     };
@@ -270,7 +270,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
   return (
     <div
       data-testid="mortgage-ldi-sentinel-card"
-      className="w-full bg-surface dark:bg-[#101013] flex flex-col gap-6 text-slate-800 dark:text-slate-100"
+      className="w-full bg-surface flex flex-col gap-6 text-primary"
     >
       {/* 1. 헤더 영역 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -287,7 +287,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
           <button
             type="button"
             onClick={() => onOpenMortgageCalculator(aptName)}
-            className="self-start sm:self-auto inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-semibold rounded-lg bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary border-none transition-colors cursor-pointer"
+            className="self-start sm:self-auto inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-semibold rounded-lg bg-[#eff1f5] hover:bg-[#e4e8ef] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-secondary hover:text-primary border-none transition-colors cursor-pointer"
           >
             <Calculator size={13} />
             <span>상세 계산기 열기</span>
@@ -296,7 +296,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
       </div>
 
       {/* 2. 대화형 제어 패널 (슬라이더 및 상환 방식/기간 토글) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 bg-elevated rounded-2xl p-4 sm:p-5">
         {/* 좌측: 상환 방식 토글 및 대출 기간 칩 (5열) */}
         <div className="lg:col-span-5 flex flex-col gap-4">
           <div>
@@ -310,7 +310,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
                 onClick={() => handleRepaymentToggle('EQUAL_PRINCIPAL_AND_INTEREST')}
                 className={getToggleBtnClass({
                   active: repaymentType === 'EQUAL_PRINCIPAL_AND_INTEREST',
-                  tone: 'blue',
+                  tone: 'neutral',
                 })}
               >
                 원리금균등
@@ -321,7 +321,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
                 onClick={() => handleRepaymentToggle('EQUAL_PRINCIPAL')}
                 className={getToggleBtnClass({
                   active: repaymentType === 'EQUAL_PRINCIPAL',
-                  tone: 'blue',
+                  tone: 'neutral',
                 })}
               >
                 원금균등
@@ -339,7 +339,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
               <label className="text-[12px] font-bold text-secondary">
                 대출 기간 (만기)
               </label>
-              <span className="text-[12px] tabular-nums font-bold text-blue-600 dark:text-blue-400">
+              <span className="text-[12px] tabular-nums font-bold text-primary">
                 {loanPeriodYears}년 ({loanPeriodYears * 12}개월)
               </span>
             </div>
@@ -353,7 +353,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
                   className={getToggleBtnClass({
                     active: loanPeriodYears === years,
                     size: 'sm',
-                    tone: 'blue',
+                    tone: 'neutral',
                     extraClass: 'tabular-nums',
                   })}
                 >
@@ -384,7 +384,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
               step={1000}
               value={principalManwon}
               onChange={handlePrincipalChange}
-              className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-slate-900 dark:accent-slate-100"
             />
             <div className="flex justify-between text-[10px] text-tertiary tabular-nums mt-0.5">
               <span>1,000만</span>
@@ -411,7 +411,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
               step={500}
               value={annualIncomeManwon}
               onChange={handleIncomeChange}
-              className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-slate-900 dark:accent-slate-100"
             />
             <div className="flex justify-between text-[10px] text-tertiary tabular-nums mt-0.5">
               <span>2,000만</span>
@@ -426,7 +426,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
               <span className="text-[12px] font-bold text-secondary">
                 대출 금리
               </span>
-              <span className="text-[13px] font-bold tabular-nums text-blue-600 dark:text-blue-400">
+              <span className="text-[13px] font-bold tabular-nums text-primary">
                 {annualRatePercent.toFixed(1)}%
               </span>
             </div>
@@ -438,7 +438,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
               step={0.1}
               value={annualRatePercent}
               onChange={handleRateChange}
-              className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-slate-900 dark:accent-slate-100"
             />
             <div className="flex justify-between text-[10px] text-tertiary tabular-nums mt-0.5">
               <span>2.0%</span>
@@ -452,7 +452,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
       {/* 3. 핵심 상환액 및 총이자 비교 지표 카드 그리드 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {/* 카드 1: 월 상환액 */}
-        <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
+        <div className="bg-elevated rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[12px] font-semibold text-tertiary">
               {repaymentType === 'EQUAL_PRINCIPAL_AND_INTEREST' ? '월 상환액 (고정)' : '1회차 월 상환액'}
@@ -477,7 +477,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
         </div>
 
         {/* 카드 2: 총 대출 이자 */}
-        <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
+        <div className="bg-elevated rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[12px] font-semibold text-tertiary">
               총 납부 이자
@@ -488,7 +488,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
             <div className="text-[20px] md:text-[22px] font-extrabold tabular-nums text-primary">
               {formatWon(mortgageResult.totalInterestWon)}
             </div>
-            <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums mt-1">
+            <div className="text-[11px] text-secondary font-semibold tabular-nums mt-1">
               {repaymentType === 'EQUAL_PRINCIPAL'
                 ? `원리금균등 대비 ₩${Math.round(interestDeltaWon / 10000).toLocaleString()}만원 이자 절감`
                 : `원금균등 전환 시 ₩${Math.round(interestDeltaWon / 10000).toLocaleString()}만원 이자 절감`}
@@ -497,7 +497,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
         </div>
 
         {/* 카드 3: 총 상환 총액 */}
-        <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
+        <div className="bg-elevated rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[12px] font-semibold text-tertiary">
               원리금 총 상환액
@@ -516,7 +516,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
       </div>
 
       {/* 4. 스트레스 DSR 40% 한도 모듈 */}
-      <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5 flex flex-col gap-3.5">
+      <div className="bg-elevated rounded-2xl p-5 flex flex-col gap-3.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
             <ShieldAlert size={16} className="text-secondary" />
@@ -545,11 +545,11 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
         <div className="relative w-full pt-4 pb-2">
           {/* 규제 기준선 40% 마커 레이블 */}
           <div
-            className="absolute top-0 text-[10px] tabular-nums font-bold text-red-600 dark:text-red-400 flex flex-col items-center -translate-x-1/2 pointer-events-none"
+            className="absolute top-0 text-[10px] tabular-nums font-bold text-brand-red flex flex-col items-center -translate-x-1/2 pointer-events-none"
             style={{ left: `${(40 / 60) * 100}%` }}
           >
             <span>규제 상한 40.0%</span>
-            <div className="w-0.5 h-2 bg-red-500 mt-0.5" />
+            <div className="w-0.5 h-2 bg-brand-red mt-0.5" />
           </div>
 
           {/* 게이지 트랙 */}
@@ -571,7 +571,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
         </div>
 
         {/* 대출 가능 한도 통계 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-[#f2f4f6] dark:border-[#202027] text-[12.5px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-border text-[12.5px]">
           <div className="flex items-center justify-between">
             <span className="text-secondary">연소득 기준 최대 대출 한도</span>
             <span className="tabular-nums font-bold text-primary">
@@ -584,7 +584,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
               className={`tabular-nums font-bold ${
                 loanMarginManwon >= 0
                   ? 'text-emerald-600 dark:text-emerald-400'
-                  : 'text-red-600 dark:text-red-400'
+                  : 'text-brand-red'
               }`}
             >
               {loanMarginManwon >= 0
@@ -618,16 +618,16 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
                 data-testid={`rate-shock-card-${sc.spreadPercent}`}
                 className={`p-3.5 rounded-2xl flex flex-col justify-between transition-colors ${
                   isHighSeverity
-                    ? 'bg-red-50/60 dark:bg-red-950/30'
-                    : 'bg-slate-50/90 dark:bg-[#17171c]'
+                    ? 'bg-brand-red-light'
+                    : 'bg-elevated'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span
                     className={`text-[11px] font-extrabold tabular-nums ${
                       isHighSeverity
-                        ? 'text-red-700 dark:text-red-300'
-                        : 'text-blue-600 dark:text-blue-400'
+                        ? 'text-brand-red'
+                        : 'text-primary'
                     }`}
                   >
                     +{sc.spreadPercent.toFixed(1)}%p
@@ -642,7 +642,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
                   <div
                     className={`text-[15px] font-extrabold tabular-nums ${
                       isHighSeverity
-                        ? 'text-red-700 dark:text-red-300'
+                        ? 'text-brand-red'
                         : 'text-primary'
                     }`}
                   >
@@ -650,7 +650,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
                   </div>
                 </div>
 
-                <div className="mt-1.5 pt-1.5 border-t border-[#f2f4f6] dark:border-[#202027] flex items-center justify-between text-[10.5px] text-tertiary tabular-nums">
+                <div className="mt-1.5 pt-1.5 border-t border-border flex items-center justify-between text-[10.5px] text-tertiary tabular-nums">
                   <span>연 부담</span>
                   <span>+{formatWon(sc.deltaAnnualPaymentWon)}</span>
                 </div>
@@ -661,14 +661,14 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
       </div>
 
       {/* 6. 역전세 보증금 차액 점검 */}
-      <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5 flex flex-col gap-3.5">
+      <div className="bg-elevated rounded-2xl p-5 flex flex-col gap-3.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <AlertTriangle
               size={16}
               className={
                 jeonseShortfallResult.hasShortfall
-                  ? 'text-red-600 dark:text-red-400'
+                  ? 'text-brand-red'
                   : 'text-emerald-600 dark:text-emerald-400'
               }
             />
@@ -715,13 +715,13 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
           data-testid="jeonse-shortfall-alert"
           className={`p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
             jeonseShortfallResult.hasShortfall
-              ? 'bg-red-50/70 dark:bg-red-950/35 text-red-900 dark:text-red-200'
-              : 'bg-emerald-50/70 dark:bg-emerald-950/35 text-emerald-900 dark:text-emerald-200'
+              ? 'bg-brand-red-light text-brand-red'
+              : 'bg-emerald-50/70 dark:bg-emerald-950/35 text-emerald-800 dark:text-emerald-200'
           }`}
         >
           <div className="flex items-start gap-2.5">
             {jeonseShortfallResult.hasShortfall ? (
-              <AlertTriangle size={18} className="text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+              <AlertTriangle size={18} className="text-brand-red shrink-0 mt-0.5" />
             ) : (
               <ShieldCheck size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
             )}
@@ -731,7 +731,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
                   ? `전세 ${jeonseShockRate}% 하락 시 보증금 반환 부족액 예상`
                   : '보증금 반환 여유 (부족액 없음)'}
               </div>
-              <p className="text-[11.5px] opacity-85 mt-0.5">
+              <p className="text-[11.5px] text-secondary mt-0.5">
                 {jeonseShortfallResult.hasShortfall
                   ? '만기 퇴거 시 반환대출(DSR 40%) 또는 현금 확보 필요'
                   : '추가 자금 조달 없이 기존 보증금 반환 가능'}
@@ -740,11 +740,11 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
           </div>
 
           <div className="text-right shrink-0">
-            <div className="text-[11px] opacity-80">부족 예상 금액</div>
+            <div className="text-[11px] text-secondary">부족 예상 금액</div>
             <div className="text-[18px] font-extrabold tabular-nums">
               {formatWon(jeonseShortfallResult.shortfallWon)}
             </div>
-            <div className="text-[10.5px] opacity-75 tabular-nums">
+            <div className="text-[10.5px] text-secondary tabular-nums">
               ({formatManwonToKorean(shortfallManwon)})
             </div>
           </div>

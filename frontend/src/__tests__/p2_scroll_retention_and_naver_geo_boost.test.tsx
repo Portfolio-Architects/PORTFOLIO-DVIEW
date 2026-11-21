@@ -394,7 +394,7 @@ describe('P2 Boost: Mobile Scroll Depth, Morning 7AM Revisit Retention & Naver/G
       const ssrHtml = renderToString(
         <GuideMorningAlertRetentionCard guideSlug="guide-empty" apartments={[]} />
       );
-      expect(ssrHtml).toContain('실거래 신고 즉시 오전 7시 알림 받기');
+      expect(ssrHtml).toContain('매일 오전 7시대 동탄 실거래 요약 받기');
       expect(ssrHtml).toContain('동탄 전역');
       expect(ssrHtml).not.toContain('최근 실거래');
 
@@ -464,7 +464,8 @@ describe('P2 Boost: Mobile Scroll Depth, Morning 7AM Revisit Retention & Naver/G
           guide_slug: 'dongtan-1-vs-2-comparison',
         })
       );
-      expect(screen.getByRole('dialog')).toHaveTextContent(`${realApts[1].displayName} 알림 신청`);
+      expect(screen.getByRole('dialog')).toHaveTextContent('동탄 실거래가 알림 설정');
+      expect(screen.getByRole('dialog')).toHaveTextContent(`동탄 전체 + ${realApts[1].displayName}`);
     });
 
     it('bridges iOS Safari non-standalone visitors to CustomA2HSModal while keeping disabled fallback on unsupported desktop browsers', () => {
@@ -1158,7 +1159,8 @@ describe('P2 Boost: Mobile Scroll Depth, Morning 7AM Revisit Retention & Naver/G
       });
       expect(mockPwaState.subscribeToPush).toHaveBeenCalledWith(
         'uid_logged_in_p2_user',
-        apt.canonicalSlug
+        apt.canonicalSlug,
+        { extraAptNames: ['동탄 전체'] }
       );
       unmountAuth();
       useFavoritesSpy.mockRestore();

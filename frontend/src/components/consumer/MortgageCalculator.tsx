@@ -1040,6 +1040,7 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
 
   return createPortal(
     <div
+      data-scroll-interactive="true"
       className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center items-center p-0 md:p-6 lg:p-8 overscroll-none animate-in fade-in duration-200"
       onWheel={(e) => e.stopPropagation()}
     >
@@ -1056,16 +1057,19 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
         aria-describedby="loan-desc"
         className={`relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/80 w-full ${
           step === 4 ? 'max-w-[580px] md:max-w-[960px]' : 'max-w-[580px]'
-        } max-h-[90vh] md:max-h-[88vh] rounded-t-[24px] md:rounded-[20px] flex flex-col shadow-[0_24px_64px_-12px_rgba(15,23,42,0.28)] overflow-hidden transition-[max-width] duration-300`}
+        } max-h-[92dvh] md:max-h-[88dvh] rounded-t-[24px] md:rounded-[20px] flex flex-col shadow-[0_24px_64px_-12px_rgba(15,23,42,0.28)] overflow-hidden transition-[max-width] duration-300`}
       >
+        <div className="md:hidden w-full pt-2 pb-0.5 flex justify-center shrink-0 bg-slate-50/50 dark:bg-slate-900/50" aria-hidden="true">
+          <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+        </div>
         {/* Header */}
-        <header className="flex items-center justify-between border-b border-slate-200/70 dark:border-slate-800 px-6 py-4 shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
-          <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-2">
-              <h2 id="loan-title" className="text-[17px] font-black text-primary tracking-tight flex items-center gap-1.5">
+        <header className="flex items-center justify-between gap-2 border-b border-slate-200/70 dark:border-slate-800 px-4 py-3.5 sm:px-6 sm:py-4 shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 id="loan-title" className="text-[16px] sm:text-[17px] font-black text-primary tracking-tight flex items-center gap-1.5">
                 <span>내 집 마련 대출 자가진단</span>
               </h2>
-              <span className="text-[10px] font-extrabold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md tabular-nums">
+              <span className="text-[10px] font-extrabold text-secondary bg-[#eff1f5] dark:bg-[#1e2532] px-2 py-0.5 rounded-md tabular-nums shrink-0">
                 STEP {step} / 4
               </span>
             </div>
@@ -1075,8 +1079,9 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
           </div>
           <button
             ref={closeButtonRef}
+            type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center bg-body hover:bg-border/30 text-secondary transition-all"
+            className="w-9 h-9 rounded-full flex items-center justify-center bg-body hover:bg-border/30 text-secondary transition-all shrink-0 touch-manipulation"
             aria-label="닫기"
           >
             <X size={18} />
@@ -1084,7 +1089,7 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
         </header>
 
         {/* Content Section */}
-        <div className="flex-1 overflow-y-auto overscroll-contain custom-scrollbar p-6 space-y-6">
+        <div className={`flex-1 overflow-y-auto overscroll-contain custom-scrollbar p-4 sm:p-6 space-y-5 sm:space-y-6 ${step === 4 ? '' : 'pb-[calc(env(safe-area-inset-bottom,0px)+20px)] md:pb-6'}`}>
           
           {/* STEP 1: Select Apartment (Fixed-Height Zero-CLS Frame + Region Explorer + Recent History) */}
           {step === 1 && (
@@ -1115,7 +1120,7 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                         }
                       }}
                       onFocus={() => setIsFocused(true)}
-                      className="w-full bg-body border border-transparent focus:border-blue-600 focus:bg-surface rounded-xl py-2 pl-9 pr-8 text-[13px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
+                      className="w-full bg-body border border-transparent focus:border-slate-900 dark:focus:border-slate-100 focus:bg-surface rounded-xl py-2 pl-9 pr-8 text-[13px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
                     />
                     {searchQuery && (
                       <button
@@ -1138,7 +1143,7 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
 
                 {/* Recent Selection History Bar */}
                 <div
-                  className="bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 rounded-xl px-3 py-2"
+                  className="bg-elevated border border-border rounded-xl px-3 py-2"
                   data-testid="recent-apartments-bar"
                 >
                   <div className="flex items-center justify-between mb-1.5">
@@ -1171,8 +1176,8 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                             key={item.name}
                             className={`inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-lg border text-[11px] font-bold shrink-0 transition-all ${
                               isCurrent
-                                ? 'bg-blue-500/10 border-blue-600 text-blue-600 dark:text-blue-400'
-                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-secondary hover:border-slate-300'
+                                ? 'bg-[#eff1f5] dark:bg-[#1e2532] border-slate-900/30 dark:border-white/30 text-primary'
+                                : 'bg-surface border-border text-secondary hover:border-slate-400'
                             }`}
                           >
                             <button
@@ -1214,8 +1219,8 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                         onClick={() => setSelectedRegion(tab.id)}
                         className={`px-2.5 py-1 rounded-lg text-[10.5px] font-extrabold shrink-0 transition-all cursor-pointer border ${
                           selectedRegion === tab.id
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : 'bg-body text-tertiary border-border/40 hover:text-secondary'
+                            ? 'bg-slate-900 hover:bg-slate-800 text-white border-slate-900 dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 dark:border-slate-100'
+                            : 'bg-body text-tertiary border-border/40 hover:text-primary'
                         }`}
                       >
                         {tab.label}
@@ -1240,12 +1245,12 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                             onClick={() => handleAptSelect(apt)}
                             className={`w-full text-left px-3.5 py-2 text-[12.5px] font-bold flex items-center justify-between cursor-pointer transition-colors ${
                               isSelected
-                                ? 'bg-blue-50/70 dark:bg-blue-950/25 text-blue-600 dark:text-blue-400'
+                                ? 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary'
                                 : 'hover:bg-body text-secondary'
                             }`}
                           >
                             <div className="flex items-center gap-1.5 min-w-0">
-                              {isSelected && <Check size={13} className="text-blue-600 shrink-0" />}
+                              {isSelected && <Check size={13} className="text-primary shrink-0" />}
                               <span className="truncate">{getDisplayAptName(apt.name)}</span>
                               <span className="text-[10px] text-tertiary px-1.5 py-0.5 bg-body rounded shrink-0">
                                 {apt.dong}
@@ -1331,11 +1336,7 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                     )}
                   </div>
                   <span
-                    className={`text-[10.5px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
-                      isStandaloneBudgetMode || (selectedApt && marketPrice === 0)
-                        ? 'bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                        : 'bg-[#e8f3ff] text-blue-600'
-                    }`}
+                    className="text-[10.5px] font-bold px-2 py-0.5 rounded-md shrink-0 bg-[#eff1f5] dark:bg-[#1e2532] text-secondary"
                   >
                     {isStandaloneBudgetMode
                       ? '선택 예산 기준'
@@ -1349,7 +1350,7 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                 {hasSimulationTarget && loanResults && repaymentDetails && (
                   <div
                     data-testid="mortgage-step1-live-summary"
-                    className="rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-3 sm:p-3.5 space-y-2.5 tabular-nums"
+                    className="rounded-2xl bg-elevated p-3 sm:p-3.5 space-y-2.5 tabular-nums"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-[11px] font-extrabold text-secondary">
@@ -1361,21 +1362,21 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                         type="button"
                         data-testid="mortgage-jump-step4-btn"
                         onClick={() => setStep(4)}
-                        className="text-[11px] font-extrabold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                        className="text-[11px] font-extrabold text-primary hover:underline cursor-pointer"
                       >
                         상세 상환 리포트 바로보기
                       </button>
                     </div>
                     <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-                      <div className="min-w-0 rounded-xl bg-surface dark:bg-[#202027] p-2 sm:p-2.5">
+                      <div className="min-w-0 rounded-xl bg-surface border border-border/60 p-2 sm:p-2.5">
                         <span className="block text-[10px] font-bold text-tertiary truncate">LTV 한도</span>
                         <strong className="mt-0.5 block text-[12px] sm:text-[13px] font-black text-primary truncate">
                           {(loanResults.ltvLimit / 10000).toFixed(1)}억원
                         </strong>
                       </div>
-                      <div className="min-w-0 rounded-xl bg-surface dark:bg-[#202027] p-2 sm:p-2.5">
+                      <div className="min-w-0 rounded-xl bg-surface border border-border/60 p-2 sm:p-2.5">
                         <span className="block text-[10px] font-bold text-tertiary truncate">DSR 40% 한도</span>
-                        <strong className="mt-0.5 block text-[12px] sm:text-[13px] font-black text-emerald-700 dark:text-emerald-300 truncate">
+                        <strong className="mt-0.5 block text-[12px] sm:text-[13px] font-black text-primary truncate">
                           {(
                             (loanResults.isPolicy
                               ? loanResults.commercialDsr40Limit
@@ -1384,11 +1385,11 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                           억원
                         </strong>
                       </div>
-                      <div className="min-w-0 rounded-xl bg-surface dark:bg-[#202027] p-2 sm:p-2.5">
+                      <div className="min-w-0 rounded-xl bg-surface border border-border/60 p-2 sm:p-2.5">
                         <span className="block text-[10px] font-bold text-tertiary truncate">
                           월 상환액 ({loanResults.finalRate.toFixed(2)}%)
                         </span>
-                        <strong className="mt-0.5 block text-[12px] sm:text-[13px] font-black text-blue-600 dark:text-blue-400 truncate">
+                        <strong className="mt-0.5 block text-[12px] sm:text-[13px] font-black text-primary truncate">
                           {(repaymentDetails.monthlyPayment / 10000).toFixed(1)}만원
                         </strong>
                       </div>
@@ -1402,7 +1403,7 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                   type="button"
                   onClick={handleNextStep}
                   disabled={!hasSimulationTarget}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:pointer-events-none text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1"
+                  className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white disabled:opacity-40 disabled:pointer-events-none text-white dark:text-slate-900 py-3.5 rounded-xl text-[14px] font-black shadow-sm active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1"
                 >
                   <span>다음 단계 (가구 요건)</span>
                 </button>
@@ -1419,9 +1420,9 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                       }, 1200);
                     }}
                     disabled={isCalculating || !hasSimulationTarget}
-                    className="w-full bg-slate-900/95 dark:bg-blue-950/20 hover:bg-slate-800 dark:hover:bg-blue-950/45 disabled:opacity-40 text-blue-600 dark:text-blue-400 border border-blue-600/40 py-3 rounded-xl text-[13.5px] font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    className="w-full bg-[#eff1f5] hover:bg-slate-200/80 dark:bg-[#1e2532] dark:hover:bg-[#252c3d] disabled:opacity-40 text-primary border border-border py-3 rounded-xl text-[13.5px] font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <Sparkles size={14} className="fill-blue-600/30 text-blue-600 dark:text-blue-400" />
+                    <Sparkles size={14} className="text-primary" />
                     <span>{isCalculating ? '퀴즈 기반 자동 진단 중...' : '퀴즈 결과로 바로 진단하기 (원클릭)'}</span>
                   </button>
                 )}
@@ -1437,8 +1438,8 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                   2. 귀하의 현재 가구 상황을 선택해 주세요
                 </label>
                 {hasQuizAnswers && (
-                  <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                    <Sparkles size={11} className="fill-emerald-500/30 text-emerald-500" />
+                  <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-secondary bg-[#eff1f5] dark:bg-[#1e2532] px-2 py-0.5 rounded-md">
+                    <Sparkles size={11} className="text-secondary" />
                     <span>퀴즈 답변 반영됨</span>
                   </span>
                 )}
@@ -1451,13 +1452,13 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                     onClick={() => setHouseholdType(type.id)}
                     className={`w-full text-left p-4 rounded-2xl border text-secondary transition-all cursor-pointer flex flex-col gap-1.5 ${
                       householdType === type.id
-                        ? 'border-blue-600 bg-blue-50/40 dark:bg-blue-950/10 shadow-sm'
+                        ? 'ring-2 ring-slate-900/20 dark:ring-white/25 border-slate-900/30 dark:border-white/30 bg-[#eff1f5] dark:bg-[#1e2532] shadow-sm'
                         : 'border-border/30 bg-body/60 hover:bg-body'
                     }`}
                   >
                     <span className="text-[13.5px] font-black text-primary flex items-center justify-between w-full">
                       <span>{type.label}</span>
-                      {householdType === type.id && <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]"><Check size={12} strokeWidth={3} /></span>}
+                      {householdType === type.id && <span className="w-5 h-5 rounded-full bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 flex items-center justify-center text-[10px]"><Check size={12} strokeWidth={3} /></span>}
                     </span>
                     <span className="text-[11.5px] text-tertiary font-medium">{type.desc}</span>
                   </button>
@@ -1474,7 +1475,7 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                 </button>
                 <button
                   onClick={handleNextStep}
-                  className="flex-[2] bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl text-[13px] font-black shadow-sm transition-all cursor-pointer border-none"
+                  className="flex-[2] bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 py-3.5 rounded-xl text-[13px] font-black shadow-sm transition-all cursor-pointer border-none"
                 >
                   <span>다음 단계 (소득/자산)</span>
                 </button>
@@ -1490,27 +1491,27 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                   3. 부부 소득 및 순자산을 입력해 주세요
                 </label>
                 {hasQuizAnswers && (
-                  <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                    <Sparkles size={11} className="fill-emerald-500/30 text-emerald-500" />
+                  <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-secondary bg-[#eff1f5] dark:bg-[#1e2532] px-2 py-0.5 rounded-md">
+                    <Sparkles size={11} className="text-secondary" />
                     <span>퀴즈 답변 반영됨</span>
                   </span>
                 )}
               </div>
 
       {/* Income slider + input */}
-              <div className="space-y-2 bg-slate-50/70 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-800">
+              <div className="space-y-2 bg-elevated p-4 rounded-2xl border border-border">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex flex-col">
                     <span className="text-[12.5px] font-extrabold text-primary">부부합산 연소득 (세전)</span>
                     {hasQuizAnswers && (
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-black flex items-center gap-0.5 mt-0.5">
-                        <Sparkles size={9} className="fill-emerald-500/30 text-emerald-500" /> 설문 기반 자동 입력됨
+                      <span className="text-[10px] text-secondary font-black flex items-center gap-0.5 mt-0.5">
+                        <Sparkles size={9} className="text-secondary" /> 설문 기반 자동 입력됨
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2.5 py-1 rounded-lg">
-                      <Calculator size={11} className="text-emerald-500" />
+                    <span className="inline-flex items-center gap-1 text-[11px] font-black text-primary bg-[#eff1f5] dark:bg-[#1e2532] px-2.5 py-1 rounded-lg tabular-nums">
+                      <Calculator size={11} className="text-secondary" />
                       <span>{formatEokMan(parseInt(annualIncome.replace(/,/g, ''), 10) || 0)}/년</span>
                     </span>
                     <div className="relative w-32">
@@ -1521,7 +1522,7 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                         placeholder="7,500"
                         value={annualIncomeInputValue}
                         onChange={handleAnnualIncomeChange}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-blue-600 rounded-xl py-1.5 pl-2.5 pr-12 text-right text-[13px] font-black text-primary outline-none transition-all tabular-nums"
+                        className="w-full bg-surface border border-border focus:border-slate-900 dark:focus:border-slate-100 rounded-xl py-1.5 pl-2.5 pr-12 text-right text-[13px] font-black text-primary outline-none transition-all tabular-nums"
                       />
                       <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10.5px] font-bold text-tertiary pointer-events-none">만원/년</span>
                     </div>
@@ -1538,13 +1539,13 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                     step="500"
                     value={Math.min(25000, Math.max(2000, parseInt(annualIncome.replace(/,/g, ''), 10) || 7500))}
                     onChange={(e) => setAnnualIncome(e.target.value)}
-                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-slate-900 dark:accent-slate-100"
                   />
                   <div className="flex justify-between text-[10px] text-tertiary font-bold mt-1.5 px-0.5">
                     <button type="button" onClick={() => setAnnualIncome('2000')} className="hover:text-primary cursor-pointer">2,000만</button>
-                    <button type="button" onClick={() => setAnnualIncome('6000')} className="hover:text-emerald-600 cursor-pointer">6,000만(일반)</button>
-                    <button type="button" onClick={() => setAnnualIncome('8500')} className="hover:text-emerald-600 cursor-pointer">8,500만(신혼)</button>
-                    <button type="button" onClick={() => setAnnualIncome('20000')} className="hover:text-emerald-600 cursor-pointer">2억(신생아)</button>
+                    <button type="button" onClick={() => setAnnualIncome('6000')} className="hover:text-primary cursor-pointer">6,000만(일반)</button>
+                    <button type="button" onClick={() => setAnnualIncome('8500')} className="hover:text-primary cursor-pointer">8,500만(신혼)</button>
+                    <button type="button" onClick={() => setAnnualIncome('20000')} className="hover:text-primary cursor-pointer">2억(신생아)</button>
                     <button type="button" onClick={() => setAnnualIncome('25000')} className="hover:text-primary cursor-pointer">2.5억</button>
                   </div>
                 </div>
@@ -1555,19 +1556,19 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
               </div>
 
               {/* Net asset slider + input */}
-              <div className="space-y-2 bg-slate-50/70 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-800">
+              <div className="space-y-2 bg-elevated p-4 rounded-2xl border border-border">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex flex-col">
                     <span className="text-[12.5px] font-extrabold text-primary">가구보유 순자산 규모 (총자산 - 대출채무)</span>
                     {hasQuizAnswers && (
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-black flex items-center gap-0.5 mt-0.5">
-                        <Sparkles size={9} className="fill-emerald-500/30 text-emerald-500" /> 설문 기반 자동 입력됨
+                      <span className="text-[10px] text-secondary font-black flex items-center gap-0.5 mt-0.5">
+                        <Sparkles size={9} className="text-secondary" /> 설문 기반 자동 입력됨
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2.5 py-1 rounded-lg">
-                      <Calculator size={11} className="text-emerald-500" />
+                    <span className="inline-flex items-center gap-1 text-[11px] font-black text-primary bg-[#eff1f5] dark:bg-[#1e2532] px-2.5 py-1 rounded-lg tabular-nums">
+                      <Calculator size={11} className="text-secondary" />
                       <span>{formatEokMan(Math.round((parseFloat(netAssets.replace(/,/g, '')) || 0) * 10000))}</span>
                     </span>
                     <div className="relative w-28">
@@ -1577,7 +1578,7 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                         placeholder="3.5"
                         value={netAssetsInputValue}
                         onChange={handleNetAssetsChange}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-blue-600 rounded-xl py-1.5 pl-2.5 pr-9 text-right text-[13px] font-black text-primary outline-none transition-all tabular-nums"
+                        className="w-full bg-surface border border-border focus:border-slate-900 dark:focus:border-slate-100 rounded-xl py-1.5 pl-2.5 pr-9 text-right text-[13px] font-black text-primary outline-none transition-all tabular-nums"
                       />
                       <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10.5px] font-bold text-tertiary pointer-events-none">억원</span>
                     </div>
@@ -1594,12 +1595,12 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                     step="0.1"
                     value={Math.min(15, Math.max(0, parseFloat(netAssets.replace(/,/g, '')) || 3.5))}
                     onChange={(e) => setNetAssets(parseFloat(e.target.value).toFixed(1))}
-                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-slate-900 dark:accent-slate-100"
                   />
                   <div className="flex justify-between text-[10px] text-tertiary font-bold mt-1.5 px-0.5">
                     <button type="button" onClick={() => setNetAssets('0.5')} className="hover:text-primary cursor-pointer">5천만</button>
                     <button type="button" onClick={() => setNetAssets('2.5')} className="hover:text-primary cursor-pointer">2.5억</button>
-                    <button type="button" onClick={() => setNetAssets('4.6')} className="hover:text-emerald-600 cursor-pointer">4.69억(디딤돌한도)</button>
+                    <button type="button" onClick={() => setNetAssets('4.6')} className="hover:text-primary cursor-pointer">4.69억(디딤돌한도)</button>
                     <button type="button" onClick={() => setNetAssets('8.0')} className="hover:text-primary cursor-pointer">8억</button>
                     <button type="button" onClick={() => setNetAssets('15.0')} className="hover:text-primary cursor-pointer">15억+</button>
                   </div>
@@ -1614,8 +1615,8 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                 <div className="flex items-center justify-between">
                   <span className="text-[12px] font-bold text-secondary">미성년 자녀 수 (자녀 수에 따른 금리 우대)</span>
                   {hasQuizAnswers && (
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-black flex items-center gap-0.5">
-                      <Sparkles size={9} className="fill-emerald-500/30 text-emerald-500" /> 설문 기반 자동 입력됨
+                    <span className="text-[10px] text-secondary font-black flex items-center gap-0.5">
+                      <Sparkles size={9} className="text-secondary" /> 설문 기반 자동 입력됨
                     </span>
                   )}
                 </div>
@@ -1626,7 +1627,7 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                       onClick={() => setChildrenCount(count)}
                       className={`py-2 rounded-xl text-[12.5px] font-extrabold border transition-all cursor-pointer ${
                         childrenCount === count
-                          ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/10 text-primary'
+                          ? 'ring-2 ring-slate-900/20 dark:ring-white/25 border-slate-900/30 dark:border-white/30 bg-[#eff1f5] dark:bg-[#1e2532] text-primary'
                           : 'border-border/30 bg-body/60 hover:bg-body text-tertiary'
                       }`}
                     >
@@ -1647,7 +1648,7 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                 <button
                   onClick={handleStartSimulate}
                   disabled={isCalculating || !annualIncome}
-                  className="flex-[2] bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl text-[13.5px] font-black shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  className="flex-[2] bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 py-3.5 rounded-xl text-[13.5px] font-black shadow-sm active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 disabled:opacity-50"
                 >
                   {isCalculating ? (
                     <>
@@ -1670,14 +1671,10 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
               {/* Left Column (6 cols): Verdict & Capital Breakdown */}
               <div className="md:col-span-6 space-y-3.5">
                 {/* Product Badge & Alternatives Card */}
-                <div className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl flex flex-col gap-2.5 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
-                  <div className="flex flex-wrap items-center justify-between gap-1.5">
-                    <span className="text-[10.5px] font-black text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                      최적 정책금융 상품 매칭 완료
-                    </span>
+                <div className="bg-elevated border border-border p-4 rounded-2xl flex flex-col gap-2.5 relative overflow-hidden">
+                  <div className="flex flex-wrap items-center justify-end gap-1.5">
                     <span
-                      className="text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-slate-200/75 dark:bg-slate-800 px-2 py-0.5 rounded-md tabular-nums"
+                      className="text-[10px] font-bold text-secondary bg-[#eff1f5] dark:bg-[#1e2532] px-2 py-0.5 rounded-md tabular-nums"
                       data-testid="mortgage-macro-rate-badge"
                     >
                       국고채 {loanResults.macroMeta.riskFreeRate.toFixed(2)}% · COFIX {loanResults.macroMeta.fundingCost.toFixed(2)}% 연동
@@ -1689,12 +1686,12 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                     onClick={() => setSelectedCandidateName(loanResults.bestProduct)}
                     className={`w-full text-left rounded-xl p-3 transition-all cursor-pointer border ${
                       loanResults.activeProduct === loanResults.bestProduct
-                        ? 'bg-white dark:bg-slate-900 border-blue-600 shadow-sm'
-                        : 'bg-white/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 hover:border-slate-300'
+                        ? 'bg-surface border-slate-900 dark:border-slate-100 ring-1 ring-slate-900/15 dark:ring-white/20 shadow-sm'
+                        : 'bg-surface/70 border-border hover:border-slate-400'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="inline-flex items-center text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                      <span className="inline-flex items-center text-[10px] font-extrabold text-primary bg-[#eff1f5] dark:bg-[#1e2532] px-2 py-0.5 rounded-md">
                         {loanResults.matchBadge}
                       </span>
                       <span className="text-[10px] font-bold text-tertiary shrink-0">
@@ -1702,18 +1699,18 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                       </span>
                     </div>
                     <h3 className="text-[15px] font-black text-primary break-keep tracking-tight leading-snug">
-                      추천: <span className="text-blue-600 dark:text-blue-400">{loanResults.bestProduct}</span>
+                      추천: <span className="text-primary">{loanResults.bestProduct}</span>
                     </h3>
-                    <div className="grid grid-cols-2 gap-3 mt-2.5 pt-2.5 border-t border-slate-200/70 dark:border-slate-800">
+                    <div className="grid grid-cols-2 gap-3 mt-2.5 pt-2.5 border-t border-border">
                       <div>
                         <span className="text-[10.5px] text-tertiary font-bold block">대출 가능 한도 (LTV·DSR)</span>
                         <span className="text-[15px] font-black text-primary mt-0.5 block tabular-nums tracking-tight">
                           {(loanResults.maxLoanAmount / 10000).toFixed(1)}억원
                         </span>
                       </div>
-                      <div className="pl-3 border-l border-slate-200/70 dark:border-slate-800">
+                      <div className="pl-3 border-l border-border">
                         <span className="text-[10.5px] text-tertiary font-bold block">적용 금리 (시장연동)</span>
-                        <span className="text-[15px] font-black text-blue-600 dark:text-blue-400 mt-0.5 block tabular-nums tracking-tight">
+                        <span className="text-[15px] font-black text-primary mt-0.5 block tabular-nums tracking-tight">
                           {loanResults.finalRate.toFixed(2)}% <span className="text-[10px] font-bold text-tertiary">({loanResults.rateTypeLabel})</span>
                         </span>
                       </div>
@@ -1721,7 +1718,7 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                   </button>
 
                   {loanResults.alternatives && loanResults.alternatives.length > 0 && (
-                    <div className="pt-2 border-t border-slate-200/70 dark:border-slate-800 space-y-2" data-testid="mortgage-alternatives-list">
+                    <div className="pt-2 border-t border-border space-y-2" data-testid="mortgage-alternatives-list">
                       <div className="flex items-center justify-between px-0.5">
                         <span className="text-[10.5px] font-extrabold text-secondary">
                           차순위 대안 상품 비교 (시장·DSR 연동)
@@ -1740,16 +1737,16 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                               onClick={() => setSelectedCandidateName(alt.name)}
                               className={`w-full text-left flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl border transition-all cursor-pointer ${
                                 isSelected
-                                  ? 'bg-white dark:bg-slate-900 border-blue-600 shadow-sm'
-                                  : 'bg-white/75 dark:bg-slate-900/60 border-slate-200/70 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                                  ? 'bg-surface border-slate-900 dark:border-slate-100 ring-1 ring-slate-900/15 dark:ring-white/20 shadow-sm'
+                                  : 'bg-surface/75 border-border hover:border-slate-400'
                               }`}
                             >
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-1.5">
                                   <span className={`text-[9.5px] font-black px-1.5 py-0.5 rounded shrink-0 ${
                                     isSelected
-                                      ? 'bg-blue-600 text-white'
-                                      : 'text-slate-600 dark:text-slate-300 bg-slate-200/80 dark:bg-slate-800'
+                                      ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                                      : 'text-secondary bg-[#eff1f5] dark:bg-[#1e2532]'
                                   }`}>
                                     {alt.rankLabel}
                                   </span>
@@ -1761,11 +1758,11 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                                   {alt.summary}
                                 </span>
                               </div>
-                              <div className="text-right shrink-0 pl-2.5 border-l border-slate-200/70 dark:border-slate-800">
+                              <div className="text-right shrink-0 pl-2.5 border-l border-border">
                                 <span className="text-[11.5px] font-black text-primary block tabular-nums">
                                   한도 {(alt.maxLoanAmount / 10000).toFixed(1)}억
                                 </span>
-                                <span className="text-[11px] font-extrabold text-blue-600 dark:text-blue-400 block tabular-nums">
+                                <span className="text-[11px] font-extrabold text-secondary block tabular-nums">
                                   금리 {alt.finalRate.toFixed(2)}%
                                 </span>
                               </div>
@@ -1778,13 +1775,13 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                 </div>
 
                 {/* Capital breakdown detail card */}
-                <div className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl space-y-2.5">
+                <div className="bg-elevated border border-border p-4 rounded-2xl space-y-2.5">
                   <h4 className="text-[12.5px] font-extrabold text-primary flex items-center gap-1.5">
-                    <Calculator size={14} className="text-blue-600 dark:text-blue-400" /> 총 매수 자금 조달 내역
+                    <Calculator size={14} className="text-secondary" /> 총 매수 자금 조달 내역
                   </h4>
 
-                  <div className="grid grid-cols-2 gap-2 text-[12px] font-bold text-secondary bg-white dark:bg-slate-900/70 p-3.5 rounded-xl border border-slate-200/60 dark:border-slate-800">
-                    <div className="flex justify-between items-center col-span-2 border-b border-slate-200/60 dark:border-slate-800 pb-2 mb-0.5">
+                  <div className="grid grid-cols-2 gap-2 text-[12px] font-bold text-secondary bg-surface p-3.5 rounded-xl border border-border/60">
+                    <div className="flex justify-between items-center col-span-2 border-b border-border/60 pb-2 mb-0.5">
                       <span className="text-tertiary">
                         {selectedApt ? '대상 단지 매매가' : '선택 예산 기준 시뮬레이션 (단지 미선택)'}
                       </span>
@@ -1792,15 +1789,15 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                     </div>
                     <div className="flex justify-between items-center col-span-2">
                       <span className="text-tertiary">1순위 매칭 대출액</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 tabular-nums">-{(loanResults.maxLoanAmount / 10000).toFixed(1)}억원</span>
+                      <span className="text-brand-blue tabular-nums">-{(loanResults.maxLoanAmount / 10000).toFixed(1)}억원</span>
                     </div>
                     <div className="flex justify-between items-center col-span-2">
                       <span className="text-tertiary">취득세 및 부대비용</span>
-                      <span className="text-red-500 tabular-nums">+{(loanResults.fees.totalFees / 10000).toFixed(2)}억원</span>
+                      <span className="text-brand-red tabular-nums">+{(loanResults.fees.totalFees / 10000).toFixed(2)}억원</span>
                     </div>
-                    <div className="flex justify-between items-center col-span-2 border-t border-slate-200/60 dark:border-slate-800 pt-2 mt-0.5 font-black text-[13px]">
+                    <div className="flex justify-between items-center col-span-2 border-t border-border/60 pt-2 mt-0.5 font-black text-[13px]">
                       <span className="text-primary">필요 자기자본 (실제 내 돈)</span>
-                      <span className="text-blue-600 dark:text-blue-400 tabular-nums">{(loanResults.ownCapitalRequired / 10000).toFixed(2)}억원</span>
+                      <span className="text-primary tabular-nums">{(loanResults.ownCapitalRequired / 10000).toFixed(2)}억원</span>
                     </div>
                   </div>
 
@@ -1813,16 +1810,16 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
               {/* Right Column (6 cols): Repayment Simulation & AdSlot */}
               <div className="md:col-span-6 space-y-3.5">
                 {/* Repayment Selector & Chart Card */}
-                <div className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl space-y-3">
+                <div className="bg-elevated border border-border p-4 rounded-2xl space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="text-[12.5px] font-extrabold text-primary">월 고정 상환액 시뮬레이션</h4>
-                    <div className="flex bg-white dark:bg-slate-900 rounded-lg p-0.5 border border-slate-200/70 dark:border-slate-800">
+                    <div className="flex bg-surface rounded-lg p-0.5 border border-border">
                       {[10, 20, 30, 40].map(y => (
                         <button
                           key={y}
                           onClick={() => setMaturityYears(y)}
                           className={`px-2 sm:px-2.5 py-1 text-[11px] font-extrabold rounded-md transition-all cursor-pointer tabular-nums ${
-                            maturityYears === y ? 'bg-blue-600 text-white shadow-sm' : 'text-tertiary hover:text-secondary'
+                            maturityYears === y ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-sm' : 'text-tertiary hover:text-primary'
                           }`}
                         >
                           {y}년
@@ -1831,14 +1828,14 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                     </div>
                   </div>
 
-                  <div className="bg-white dark:bg-slate-900/70 px-4 py-3 rounded-xl border border-slate-200/60 dark:border-slate-800 flex items-center justify-between gap-3">
+                  <div className="bg-surface px-4 py-3 rounded-xl border border-border/60 flex items-center justify-between gap-3">
                     <div>
                       <span className="text-[10.5px] text-tertiary font-bold block">매월 원리금 상환액</span>
                       <span className="text-[16.5px] font-black text-primary block mt-0.5 tabular-nums tracking-tight">
                         {(repaymentDetails.monthlyPayment / 10000).toFixed(1)}만원
                       </span>
                     </div>
-                    <div className="text-right pl-3 border-l border-slate-200/70 dark:border-slate-800">
+                    <div className="text-right pl-3 border-l border-border">
                       <span className="text-[10.5px] text-tertiary font-bold block">상환 방식</span>
                       <span className="text-[12px] font-extrabold text-secondary block mt-0.5">
                         원리금균등분할상환
@@ -1847,12 +1844,12 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                   </div>
 
                   {/* Recharts Area Chart with non-overlapping Legend header */}
-                  <div className="w-full bg-white dark:bg-slate-900/70 rounded-xl border border-slate-200/60 dark:border-slate-800 p-3">
+                  <div className="w-full bg-surface rounded-xl border border-border/60 p-3">
                     <div className="flex items-center justify-between mb-2 px-0.5">
                       <span className="text-[10px] font-bold text-tertiary">연차별 잔액 · 누적이자 추이</span>
                       <div className="flex items-center gap-3 text-[10px] font-bold text-tertiary">
-                        <span className="flex items-center gap-1"><span className="w-2 h-2 bg-blue-600 rounded-sm" />남은 대출 원금</span>
-                        <span className="flex items-center gap-1"><span className="w-2 h-2 bg-red-500/75 rounded-sm" />납부 누적이자</span>
+                        <span className="flex items-center gap-1"><span className="w-2 h-2 bg-brand-blue rounded-sm" />남은 대출 원금</span>
+                        <span className="flex items-center gap-1"><span className="w-2 h-2 bg-brand-red rounded-sm" />납부 누적이자</span>
                       </div>
                     </div>
                     <div className="w-full h-36">
@@ -1864,12 +1861,12 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                           >
                             <defs>
                               <linearGradient id="colorPrincipal" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2}/>
-                                <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0}/>
+                                <stop offset="5%" stopColor="#2f6bff" stopOpacity={0.2}/>
+                                <stop offset="95%" stopColor="#2f6bff" stopOpacity={0.0}/>
                               </linearGradient>
                               <linearGradient id="colorInterest" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#f04452" stopOpacity={0.15}/>
-                                <stop offset="95%" stopColor="#f04452" stopOpacity={0.0}/>
+                                <stop offset="5%" stopColor="#ff3b5c" stopOpacity={0.15}/>
+                                <stop offset="95%" stopColor="#ff3b5c" stopOpacity={0.0}/>
                               </linearGradient>
                             </defs>
                             <XAxis dataKey="year" tickLine={false} axisLine={false} tick={{ fontSize: 9, fontWeight: 'bold', fill: '#888' }} />
@@ -1902,8 +1899,8 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
                               formatter={(value: any, name: any) => [formatEokMan(Number(value) || 0), name]}
                               isAnimationActive={false}
                             />
-                            <Area type="monotone" dataKey="남은 대출 원금" stroke="#2563eb" fillOpacity={1} fill="url(#colorPrincipal)" isAnimationActive={false} />
-                            <Area type="monotone" dataKey="납부한 누적 이자" stroke="#f04452" fillOpacity={1} fill="url(#colorInterest)" isAnimationActive={false} />
+                            <Area type="monotone" dataKey="남은 대출 원금" stroke="#2f6bff" fillOpacity={1} fill="url(#colorPrincipal)" isAnimationActive={false} />
+                            <Area type="monotone" dataKey="납부한 누적 이자" stroke="#ff3b5c" fillOpacity={1} fill="url(#colorInterest)" isAnimationActive={false} />
                           </AreaChart>
                         </ResponsiveContainer>
                       ) : (
@@ -1932,9 +1929,9 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
 
         </div>
 
-        {/* Docked Footer Action Bar for Step 4 (Prevents scroll overlap) */}
+        {/* Docked Footer Action Bar for Step 4 (Prevents scroll overlap & respects iOS home bar) */}
         {step === 4 && loanResults && repaymentDetails && (
-          <footer className="shrink-0 border-t border-slate-200/80 dark:border-slate-800 px-6 py-3.5 bg-white dark:bg-slate-900 flex items-center gap-2.5">
+          <footer className="shrink-0 border-t border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+14px)] md:py-3.5 bg-white dark:bg-slate-900 flex items-center gap-2 sm:gap-2.5">
             <button
               type="button"
               onClick={() => setStep(3)}
@@ -1951,7 +1948,7 @@ ${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
             >
               {isCopied ? (
                 <>
-                  <Check size={14} className="text-emerald-500" />
+                  <Check size={14} className="text-primary" />
                   <span>복사 완료!</span>
                 </>
               ) : (

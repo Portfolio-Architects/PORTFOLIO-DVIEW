@@ -51,10 +51,10 @@ describe('TodayUpdatePillBadge Component Tests', () => {
     expect(badge).toHaveTextContent('신고가 10건');
     expect(badge).not.toHaveTextContent('07:00');
 
-    // Value Emerald tokens and tabular-nums
-    expect(badge).toHaveClass('bg-emerald-50');
-    expect(badge).toHaveClass('text-emerald-700');
-    expect(badge).toHaveClass('border-emerald-500/25');
+    // Live Spark v6.0 neutral ink tokens and tabular-nums
+    expect(badge).toHaveClass('bg-[#eff1f5]');
+    expect(badge).toHaveClass('text-primary');
+    expect(badge).toHaveClass('border-border/80');
     expect(badge).toHaveClass('tabular-nums');
     expect(badge).toHaveClass('h-[26px]');
   });
@@ -91,10 +91,10 @@ describe('TodayUpdatePillBadge Component Tests', () => {
     expect(emptyBadge).toBeInTheDocument();
     expect(emptyBadge).toHaveTextContent('최신 실거래 갱신 완료 (11월 10일)');
 
-    // Slate neutral styling
-    expect(emptyBadge).toHaveClass('bg-slate-100');
-    expect(emptyBadge).toHaveClass('text-slate-600');
-    expect(emptyBadge).toHaveClass('border-slate-200');
+    // Live Spark neutral styling
+    expect(emptyBadge).toHaveClass('bg-[#eff1f5]');
+    expect(emptyBadge).toHaveClass('text-secondary');
+    expect(emptyBadge).toHaveClass('border-border/70');
     expect(emptyBadge).toHaveClass('tabular-nums');
     expect(emptyBadge).toHaveClass('h-[26px]');
   });

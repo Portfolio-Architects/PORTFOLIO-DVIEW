@@ -5,30 +5,20 @@ import path from 'path';
 import fs from 'fs';
 import { logger } from '@/lib/services/logger';
 import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { getConfiguredCronSecret, isAuthorizedCronBearerRequest } from '@/lib/api/cronAuth';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
+import { isValidPushSubscriptionStrict } from '@/lib/push/pushSecurity';
 import {
+  getDisplayAptName,
   resolveCanonicalAptSlug,
   resolvePushSubscriptionAptAliases,
 } from '@/lib/utils/apartmentMapping';
+import { CANONICAL_DONG_APT_LIST } from '@/lib/utils/canonicalAptCatalog';
 import { getTodayYmdKST } from '@/lib/todayUpdateEvaluator';
+import { configureWebPushVapid, getVapidConfig } from '@/lib/push/vapidConfig';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-// VAPID configuration
-const vapidPublicKey =
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-  'BJfvp3-MGu6cXDWL2GGKO019MjQhLFSwk1zvAIo8QgX31bfCwfjOHHr34iJcGYnhxpJBCsPoXeG6CAXql9KR9Xg';
-const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || 'YCeNPk2VFyunF4yNgdtqThe87T4BCyrsTlPS18K9m7Q';
-const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@dview.kr';
-
-try {
-  if (vapidPublicKey && vapidPrivateKey) {
-    webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
-  }
-} catch (err) {
-  logger.error('SendTxNotificationsAPI', 'Failed to configure VAPID details', {}, err as Error);
-}
 
 export interface TransactionRecord {
   aptName: string;
@@ -68,19 +58,10 @@ export interface PushSubscriptionDoc {
 }
 
 /**
- * Validates basic push subscription structure before dispatch.
+ * Validates push subscription structure and strict Web Push host allowlist before dispatch.
  */
 export function isValidPushSubscription(sub: unknown): sub is PushSubscriptionData {
-  if (!sub || typeof sub !== 'object') return false;
-  const s = sub as { endpoint?: unknown; keys?: { p256dh?: unknown; auth?: unknown } };
-  return (
-    typeof s.endpoint === 'string' &&
-    s.endpoint.startsWith('http') &&
-    typeof s.keys?.p256dh === 'string' &&
-    Boolean(s.keys.p256dh) &&
-    typeof s.keys?.auth === 'string' &&
-    Boolean(s.keys.auth)
-  );
+  return isValidPushSubscriptionStrict(sub);
 }
 
 /**
@@ -101,6 +82,83 @@ export function selectGlobalHighlightTransactions(txs: TransactionRecord[]): Tra
   }
 
   return [...pool].sort((a, b) => (b.priceVal || 0) - (a.priceVal || 0)).slice(0, 1);
+}
+
+/**
+ * Builds a single concise Dongtan-wide daily morning summary payload strictly from real MOLIT sale records.
+ */
+export interface GlobalDailySummaryPayload {
+  title: string;
+  body: string;
+  url: string;
+  totalCount: number;
+  distinctAptsCount: number;
+  newHighCount: number;
+  topAptName: string;
+  topCanonicalSlug: string;
+}
+
+function resolveReadableAptDisplayName(aptName: string, canonicalSlug: string): string {
+  const catalogEntry = CANONICAL_DONG_APT_LIST.find(
+    (entry) => entry.txKey === canonicalSlug || entry.rawTxKey === aptName || entry.name === aptName
+  );
+  return catalogEntry?.name || getDisplayAptName(canonicalSlug) || getDisplayAptName(aptName) || aptName;
+}
+
+export function buildGlobalDailySummaryPayload(
+  targetTx: TransactionRecord[],
+  globalHighlights: TransactionRecord[]
+): GlobalDailySummaryPayload | null {
+  if (!targetTx || targetTx.length === 0 || !globalHighlights || globalHighlights.length === 0) {
+    return null;
+  }
+
+  const totalCount = targetTx.length;
+  const distinctAptsCount = new Set(targetTx.map((t) => t.aptName).filter(Boolean)).size;
+  const marketTxs = targetTx.filter((t) => t.dealType !== '직거래');
+  const effectivePool = marketTxs.length > 0 ? marketTxs : targetTx;
+  const newHighCount = effectivePool.filter((t) => Boolean(t.isNewHigh)).length;
+
+  const topTx = globalHighlights[0];
+  const topCanonicalSlug =
+    resolveCanonicalAptSlug(topTx.aptName, { txKey: topTx.txKey, dong: topTx.dong }) || topTx.aptName;
+  const topDisplayName = resolveReadableAptDisplayName(topTx.aptName, topCanonicalSlug);
+  const pyeongText = topTx.areaPyeong ? `${Math.round(topTx.areaPyeong)}평` : '';
+  const floorText = topTx.floor ? `${topTx.floor}층` : '';
+  const topDetail = [topDisplayName, pyeongText, floorText, topTx.priceEok].filter(Boolean).join(' ');
+
+  const title =
+    newHighCount > 0
+      ? `[동탄 실거래] 오늘 매매 ${totalCount}건 · 신고가 ${newHighCount}건`
+      : `[동탄 실거래] 오늘 매매 ${totalCount}건 등록`;
+
+  let body: string;
+  if (totalCount === 1) {
+    body = topTx.isNewHigh ? `신고가: ${topDetail}` : `주요 거래: ${topDetail}`;
+  } else if (newHighCount > 0) {
+    body =
+      distinctAptsCount > 1
+        ? `대표 신고가 ${topDetail} 외 ${distinctAptsCount}개 단지 ${totalCount}건`
+        : `대표 신고가 ${topDetail} 외 ${totalCount - 1}건`;
+  } else {
+    body =
+      distinctAptsCount > 1
+        ? `최고가 ${topDetail} 외 ${distinctAptsCount}개 단지 ${totalCount - 1}건`
+        : `최고가 ${topDetail} 외 ${totalCount - 1}건`;
+  }
+
+  const url = totalCount === 1 ? `/apartment/${encodeURIComponent(topCanonicalSlug)}` : '/';
+
+  return {
+    title,
+    body,
+    url,
+    totalCount,
+    distinctAptsCount,
+    newHighCount,
+    topAptName: topTx.aptName,
+    topCanonicalSlug,
+  };
 }
 
 /**
@@ -135,22 +193,11 @@ export async function GET(req: NextRequest) {
     const isDryRunEnv = process.env.DRY_RUN === '1' || process.env.DRY_RUN === 'true';
     const isDryRun = isDryRunParam || isDryRunEnv;
 
-    // 2. Authorization Verification (supports Bearer CRON_SECRET, local dev, and native Vercel Cron when CRON_SECRET is unset)
-    const authHeader = req.headers.get('authorization');
-    const configuredSecret = process.env.CRON_SECRET?.trim();
-    const cronSecret = configuredSecret || 'dview-default-cron-secret-2026';
-    const host = req.headers.get('host') || '';
-    const hostname = host.split(':')[0].trim().toLowerCase();
-    const isLocal =
-      process.env.NODE_ENV !== 'production' &&
-      (hostname === 'localhost' || hostname === '127.0.0.1');
-    const queryAuth = url.searchParams.get('auth');
-    const ua = (req.headers.get('user-agent') || '').toLowerCase();
-    const xVercelCron = (req.headers.get('x-vercel-cron') || '').toLowerCase();
-    const isVercelNativeCron = !configuredSecret && (ua.startsWith('vercel-cron/') || xVercelCron === '1' || xVercelCron === 'true');
-    const isAuthorized = isLocal || authHeader === `Bearer ${cronSecret}` || queryAuth === cronSecret || isVercelNativeCron;
-
-    if (!isAuthorized) {
+    // 2. Authorization Verification (strict fail-closed Bearer CRON_SECRET only)
+    if (!isAuthorizedCronBearerRequest(req)) {
+      if (!getConfiguredCronSecret()) {
+        logger.error('SendTxNotificationsAPI.GET', 'CRON_SECRET is not configured — failing closed');
+      }
       logger.warn('SendTxNotificationsAPI.GET', 'Unauthorized access attempt blocked');
       return apiError('UNAUTHORIZED', 'Unauthorized', 401);
     }
@@ -376,12 +423,13 @@ export async function GET(req: NextRequest) {
 
           const canonicalTxSlug =
             resolveCanonicalAptSlug(tx.aptName, { txKey: tx.txKey, dong: tx.dong }) || tx.aptName;
-          const pyeongText = tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평형 ` : '';
+          const displayAptName = resolveReadableAptDisplayName(tx.aptName, canonicalTxSlug);
+          const pyeongText = tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평 ` : '';
           const floorText = tx.floor ? `${tx.floor}층 ` : '';
-          const title = tx.isNewHigh ? '[신고가] D-VIEW 실거래가 알림' : '[D-VIEW] 실거래가 등록 알림';
+          const title = tx.isNewHigh ? '[신고가] D-VIEW 관심단지 실거래' : '[D-VIEW] 관심단지 실거래 등록';
           const body = tx.isNewHigh
-            ? `${tx.aptName} ${pyeongText}${floorText}${tx.priceEok} 신고가 등록!`
-            : `${tx.aptName} ${pyeongText}${floorText}${tx.priceEok} 실거래가 등록되었습니다.`;
+            ? `${displayAptName} ${pyeongText}${floorText}${tx.priceEok} 신고가 등록`
+            : `${displayAptName} ${pyeongText}${floorText}${tx.priceEok} 매매 실거래 등록`;
 
           const payload = JSON.stringify({
             title,
@@ -391,7 +439,7 @@ export async function GET(req: NextRequest) {
             url: `/apartment/${encodeURIComponent(canonicalTxSlug)}`,
             data: {
               url: `/apartment/${encodeURIComponent(canonicalTxSlug)}`,
-              aptName: tx.aptName,
+              aptName: displayAptName,
               txKey: tx.txKey,
             },
           });
@@ -413,8 +461,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 8.2 Build tasks for global "동탄 전체" subscribers
-    if (globalHighlights.length > 0) {
+    // 8.2 Build tasks for global "동탄 전체" subscribers (1 consolidated real-data daily summary per device)
+    const globalSummary = buildGlobalDailySummaryPayload(targetTx, globalHighlights);
+    if (globalSummary) {
       let globalSnapshot;
       try {
         globalSnapshot = await firestore
@@ -430,55 +479,51 @@ export async function GET(req: NextRequest) {
       }
 
       if (!globalSnapshot.empty) {
+        const topTx = globalHighlights[0];
         for (const doc of globalSnapshot.docs) {
           const subData = doc.data() as PushSubscriptionDoc;
           const subscription = subData.subscription;
           if (!isValidPushSubscription(subscription)) continue;
 
-          for (const tx of globalHighlights) {
-            const count = deviceSentCount.get(doc.id) || 0;
-            if (count >= MAX_NOTIFICATIONS_PER_DEVICE) break;
+          const count = deviceSentCount.get(doc.id) || 0;
+          if (count >= MAX_NOTIFICATIONS_PER_DEVICE) continue;
 
-            const deliveryKey = `${doc.id}__${tx.txKey || tx.aptName}_${tx.floor}_${tx.priceEok}`;
-            // If already notified through specific apartment subscription, skip to prevent duplicate ping
-            if (deliveredKeys.has(deliveryKey)) continue;
+          // If today only has 1 transaction in all of Dongtan and this device already received
+          // an apartment-specific notification for that exact transaction, skip duplicate summary.
+          const singleTxKey = `${doc.id}__${topTx.txKey || topTx.aptName}_${topTx.floor}_${topTx.priceEok}`;
+          if (targetTx.length === 1 && deliveredKeys.has(singleTxKey)) continue;
 
-            const canonicalTxSlug =
-              resolveCanonicalAptSlug(tx.aptName, { txKey: tx.txKey, dong: tx.dong }) || tx.aptName;
-            const pyeongText = tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평형 ` : '';
-            const floorText = tx.floor ? `${tx.floor}층 ` : '';
-            const title = tx.isNewHigh ? '[동탄 신고가] D-VIEW 실거래 알림' : '[동탄 주요거래] D-VIEW 실거래 알림';
-            const body = tx.isNewHigh
-              ? `${tx.aptName} ${pyeongText}${floorText}${tx.priceEok} 신고가 경신!`
-              : `${tx.aptName} ${pyeongText}${floorText}${tx.priceEok} 실거래 등록`;
+          const deliveryKey = `${doc.id}__global_summary_${targetDate}`;
+          if (deliveredKeys.has(deliveryKey)) continue;
 
-            const payload = JSON.stringify({
-              title,
-              body,
-              icon: '/icon-192x192.png',
-              badge: '/icon-192x192.png',
-              url: `/apartment/${encodeURIComponent(canonicalTxSlug)}`,
-              data: {
-                url: `/apartment/${encodeURIComponent(canonicalTxSlug)}`,
-                aptName: tx.aptName,
-                txKey: tx.txKey,
-              },
-            });
+          const payload = JSON.stringify({
+            title: globalSummary.title,
+            body: globalSummary.body,
+            icon: '/icon-192x192.png',
+            badge: '/icon-192x192.png',
+            url: globalSummary.url,
+            data: {
+              url: globalSummary.url,
+              aptName: '동탄 전체',
+              targetDate,
+              totalCount: globalSummary.totalCount,
+              newHighCount: globalSummary.newHighCount,
+            },
+          });
 
-            dispatchQueue.push({
-              docId: doc.id,
-              subscription,
-              payload,
-              deliveryKey,
-              recipientType: 'global',
-              aptName: tx.aptName,
-              title,
-              body,
-            });
+          dispatchQueue.push({
+            docId: doc.id,
+            subscription,
+            payload,
+            deliveryKey,
+            recipientType: 'global',
+            aptName: '동탄 전체',
+            title: globalSummary.title,
+            body: globalSummary.body,
+          });
 
-            deliveredKeys.add(deliveryKey);
-            deviceSentCount.set(doc.id, count + 1);
-          }
+          deliveredKeys.add(deliveryKey);
+          deviceSentCount.set(doc.id, count + 1);
         }
       }
     }
@@ -487,12 +532,14 @@ export async function GET(req: NextRequest) {
     let totalNotificationsSent = 0;
     let expiredCleanedCount = 0;
     const samplePayloads: Array<{ recipientType: string; aptName: string; title: string; body: string }> = [];
+    const vapidSnapshot = getVapidConfig();
 
     if (isDryRun) {
       logger.info('SendTxNotificationsAPI.GET', '[DRY_RUN] Simulated push dispatch summary', {
         targetDate,
         totalTasksQueued: dispatchQueue.length,
         uniqueDevices: deviceSentCount.size,
+        vapidConfigured: vapidSnapshot.isConfigured,
       });
 
       for (const task of dispatchQueue.slice(0, 5)) {
@@ -506,10 +553,12 @@ export async function GET(req: NextRequest) {
 
       return apiSuccess({
         dryRun: true,
+        vapidConfigured: vapidSnapshot.isConfigured,
         targetDate,
         todayYmdKST,
         txAnalyzedCount: targetTx.length,
         distinctAptsCount: Object.keys(txByApt).length,
+        newHighCount: globalSummary?.newHighCount ?? 0,
         globalHighlightsCount: globalHighlights.length,
         totalTasksQueued: dispatchQueue.length,
         simulatedSentCount: dispatchQueue.length,
@@ -521,6 +570,19 @@ export async function GET(req: NextRequest) {
         targetDate,
         sentCount: dispatchQueue.length,
       });
+    }
+
+    const vapidConfig = configureWebPushVapid(webpush);
+    if (!vapidConfig.configured) {
+      logger.error('SendTxNotificationsAPI.GET', 'VAPID keys are not configured for live dispatch', {
+        targetDate,
+        reason: vapidConfig.reason,
+      });
+      return apiError(
+        'VAPID_NOT_CONFIGURED',
+        'VAPID keys are not configured on server',
+        503
+      );
     }
 
     // Real WebPush Execution in Bounded Batches of 10

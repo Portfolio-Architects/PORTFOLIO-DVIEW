@@ -395,7 +395,7 @@ export { TimelineItemCard, TimelineItemCardProps };
     expect(getByTestId('timeline-card-price').textContent).toBe('15억 5,800만');
     expect(container.querySelector('.line-through')).toBeNull();
     const newHighPill = screen.getByText('신고가');
-    expect(newHighPill.className).toContain('bg-brand-red-light');
+    expect(newHighPill.className).toContain('dview-spark-badge');
     expect(newHighPill.className).not.toContain('animate-pulse');
   });
 });

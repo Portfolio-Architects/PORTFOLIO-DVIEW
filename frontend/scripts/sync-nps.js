@@ -1,8 +1,9 @@
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
 
-const API_KEY = process.env.PUBLIC_DATA_PORTAL_KEY || '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
+const API_KEY = (process.env.PUBLIC_DATA_PORTAL_KEY || process.env.BUILDING_API_KEY || '').trim();
 
 const BUILDING_MAPPING = [
   { key: '금강 IX', jibunIncludes: '844' },
@@ -38,6 +39,10 @@ async function getLatestUddiPath() {
 }
 
 async function syncNpsData() {
+  if (!API_KEY) {
+    console.error('❌ PUBLIC_DATA_PORTAL_KEY (또는 BUILDING_API_KEY) 환경변수가 설정되지 않았습니다.');
+    process.exit(1);
+  }
   console.log('Starting NPS Data Sync for Yeongcheon-dong...');
   
   const endpointPath = await getLatestUddiPath();

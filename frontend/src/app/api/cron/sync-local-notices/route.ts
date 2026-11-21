@@ -7,6 +7,11 @@ import { TX_SUMMARY, AptTxSummary } from '@/lib/transaction-summary';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import {
+  getConfiguredCronSecret,
+  isAuthorizedCronBearerRequest,
+  verifyCronBearerToken,
+} from '@/lib/api/cronAuth';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
@@ -347,36 +352,13 @@ const noticeItemSchema = z.object({
   content: z.string().optional(),
 });
 
-const DEFAULT_CRON_SECRET = 'dview-default-cron-secret-2026';
-const DEFAULT_BUILDING_API_KEY = '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
-
 export const authHeaderSchema = z.string().refine(
-  (val) => {
-    const secret = process.env.CRON_SECRET?.trim() || DEFAULT_CRON_SECRET;
-    return val === `Bearer ${secret}`;
-  },
+  (val) => verifyCronBearerToken(val),
   { message: 'Invalid or unconfigured authorization token' }
 );
 
 export function isAuthorizedNoticesCronRequest(request: NextRequest): boolean {
-  const authHeader = (request.headers.get('authorization') || '').trim();
-  if (authHeaderSchema.safeParse(authHeader).success) {
-    return true;
-  }
-  const headerApiKey = (request.headers.get('x-building-api-key') || '').trim();
-  const targetApiKey = (process.env.BUILDING_API_KEY?.trim() || DEFAULT_BUILDING_API_KEY);
-  if (headerApiKey && headerApiKey === targetApiKey) {
-    return true;
-  }
-  const configuredSecret = process.env.CRON_SECRET?.trim();
-  if (!configuredSecret) {
-    const ua = (request.headers.get('user-agent') || '').toLowerCase();
-    const vercelCron = (request.headers.get('x-vercel-cron') || '').toLowerCase();
-    if (ua.startsWith('vercel-cron/') || vercelCron === '1' || vercelCron === 'true') {
-      return true;
-    }
-  }
-  return false;
+  return isAuthorizedCronBearerRequest(request);
 }
 
 export async function GET(request: NextRequest) {
@@ -389,6 +371,18 @@ export async function GET(request: NextRequest) {
     if (!rateLimit.success) {
       logger.warn('SyncLocalNoticesAPI.GET', 'Rate limit exceeded');
       return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
+    }
+
+    // 1. Authorization check (strict fail-closed Bearer CRON_SECRET across all environments)
+    if (!isAuthorizedNoticesCronRequest(request)) {
+      const authHeader = request.headers.get('authorization') || '';
+      if (!getConfiguredCronSecret()) {
+        logger.error('SyncLocalNoticesAPI.GET', 'CRON_SECRET is not configured — failing closed', {});
+      }
+      logger.warn('SyncLocalNoticesAPI.GET', 'Unauthorized access attempt', {
+        authHeader: authHeader ? 'Present' : 'Missing',
+      });
+      return apiError('UNAUTHORIZED', 'Unauthorized', 401);
     }
 
     // 개발 모드에서 WAF 차단 방지 (쿨타임)
@@ -405,17 +399,6 @@ export async function GET(request: NextRequest) {
         });
       }
       lastSyncExecutionTime = now;
-    }
-
-    // 1. Authorization check
-    if (process.env.NODE_ENV !== 'development') {
-      if (!isAuthorizedNoticesCronRequest(request)) {
-        const authHeader = request.headers.get('authorization') || '';
-        logger.warn('SyncLocalNoticesAPI.GET', 'Unauthorized access attempt', {
-          authHeader: authHeader ? 'Present' : 'Missing',
-        });
-        return apiError('UNAUTHORIZED', 'Unauthorized', 401);
-      }
     }
 
     if (!db) {

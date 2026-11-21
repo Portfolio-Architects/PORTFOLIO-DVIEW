@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
-  Building2,
   MapPin,
   CheckCircle2,
   ArrowDownRight,
@@ -422,19 +421,16 @@ export default function TechnoValleyClient({
             <section
               id="technovalley-selected-jisan-hero-banner"
               aria-label={`${selectedLabel} 실거래가·핵심 건축 스펙 및 취득세 감면 요약`}
-              className="mb-6 rounded-2xl border border-emerald-500/30 bg-surface p-4 sm:p-5 shadow-sm space-y-4"
+              className="mb-6 rounded-2xl border border-border bg-surface p-4 sm:p-5 shadow-sm space-y-4"
             >
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                      <Building2 size={12} className="shrink-0" />
-                      <span>
-                        선택 센터 요약 · {effectiveSelectedJisan.buildingStatus || effectiveSelectedJisan.status || '승인'}
-                      </span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-extrabold bg-[#eff1f5] dark:bg-[#1e2532] text-primary">
+                      {effectiveSelectedJisan.buildingStatus || effectiveSelectedJisan.status || '승인'}
                     </span>
                     <span className="inline-flex items-center gap-1 text-[12px] text-secondary font-medium truncate">
-                      <MapPin size={12} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <MapPin size={12} className="text-tertiary shrink-0" />
                       <span>{addressLabel}</span>
                     </span>
                   </div>
@@ -447,14 +443,14 @@ export default function TechnoValleyClient({
                   <Link
                     href={`/technovalley/${encodeURIComponent(selectedSlug)}`}
                     prefetch={false}
-                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-slate-50 text-xs font-extrabold transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-xs font-extrabold transition-colors"
                   >
                     <span>전용 상세 리포트</span>
                     <ExternalLink size={13} className="shrink-0" />
                   </Link>
                   <a
                     href="#technovalley-selected-jisan-ssr"
-                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-200 text-xs font-extrabold transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border bg-[#eff1f5] hover:bg-slate-200/80 dark:bg-[#1e2532] dark:hover:bg-slate-700/80 text-primary text-xs font-extrabold transition-colors"
                   >
                     <span>인허가·세제 상세 스펙</span>
                     <ArrowDownRight size={14} className="shrink-0" />
@@ -462,9 +458,9 @@ export default function TechnoValleyClient({
                   <Link
                     href="/technovalley"
                     prefetch={false}
-                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 hover:border-emerald-500/40 text-primary text-xs font-bold transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary text-xs font-bold transition-colors"
                   >
-                    <LayoutGrid size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <LayoutGrid size={13} className="text-secondary shrink-0" />
                     <span>전체 56개 센터 보기</span>
                   </Link>
                 </div>
@@ -491,8 +487,8 @@ export default function TechnoValleyClient({
                 </div>
                 <div className="rounded-xl border border-border/60 bg-body px-3.5 py-2.5">
                   <dt className="text-[11px] font-semibold text-tertiary">입주 가능 업종 · 세제 감면</dt>
-                  <dd className="mt-0.5 font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
-                    <CheckCircle2 size={13} className="shrink-0" />
+                  <dd className="mt-0.5 font-bold text-primary flex items-center gap-1">
+                    <CheckCircle2 size={13} className="text-secondary shrink-0" />
                     <span className="truncate">{industryLabel} · 취득세 35% 감면</span>
                   </dd>
                 </div>
@@ -505,7 +501,7 @@ export default function TechnoValleyClient({
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 text-[11.5px] font-extrabold text-primary">
-                      <ReceiptText size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                      <ReceiptText size={13} className="text-secondary shrink-0" />
                       <span>국토교통부 상업·업무용 매매 실거래가 요약</span>
                     </span>
                     <span className="text-[11px] font-semibold text-tertiary">
@@ -529,20 +525,20 @@ export default function TechnoValleyClient({
 
                 <div
                   id="technovalley-client-jisan-tax-summary"
-                  className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.04] dark:bg-emerald-950/20 px-4 py-3 space-y-1"
+                  className="rounded-xl border border-border bg-elevated px-4 py-3 space-y-1"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center gap-1.5 text-[11.5px] font-extrabold text-emerald-800 dark:text-emerald-200">
-                      <Landmark size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="inline-flex items-center gap-1.5 text-[11.5px] font-extrabold text-primary">
+                      <Landmark size={13} className="text-secondary shrink-0" />
                       <span>취득세·재산세·법인세 감면 및 정책자금 핵심 요약</span>
                     </span>
-                    <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                    <span className="text-[11px] font-bold text-tertiary">
                       지방세특례제한법 제58조의2
                     </span>
                   </div>
                   <div className="pt-0.5 text-secondary font-medium">
                     최초 분양 중소기업 취득세 <strong className="text-primary">35% 감면</strong>(예상 절감 약{' '}
-                    <strong className="text-emerald-700 dark:text-emerald-300">
+                    <strong className="text-brand-blue">
                       {savedTaxManwon.toLocaleString('ko-KR')}만원
                     </strong>
                     ) · 재산세 <strong className="text-primary">35% 감면(5년)</strong> · 과밀억제권역 이전 법인세{' '}

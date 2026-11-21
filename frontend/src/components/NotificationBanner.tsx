@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Smartphone, X, ChevronRight } from 'lucide-react';
+import { acquireBodyScrollLock } from '@/lib/utils/bodyScrollLock';
 
 const NotificationBanner = React.memo(function NotificationBanner() {
   const [showPwaGuide, setShowPwaGuide] = useState(false);
@@ -15,15 +16,11 @@ const NotificationBanner = React.memo(function NotificationBanner() {
     return () => setMounted(false);
   }, []);
 
-  // Prevent body scroll when PWA guide is open
+  // Prevent body scroll when PWA guide is open (reference-counted across stacked modals)
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!showPwaGuide) return;
-    const originalStyle = window.getComputedStyle(document.body).overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
-    };
+    return acquireBodyScrollLock();
   }, [showPwaGuide]);
 
   // Focus and Escape key management
@@ -84,7 +81,7 @@ const NotificationBanner = React.memo(function NotificationBanner() {
         className="w-full flex items-center justify-between bg-surface border border-border dark:bg-slate-900/60 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm hover:opacity-95 transition-all text-primary dark:text-white"
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-blue-600/10 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-[#eff1f5] dark:bg-[#1e2532] flex items-center justify-center text-primary shrink-0">
             <Smartphone className="w-5 h-5" />
           </div>
           <div className="flex flex-col text-left min-w-0">
@@ -95,9 +92,9 @@ const NotificationBanner = React.memo(function NotificationBanner() {
         <ChevronRight className="w-5 h-5 text-tertiary shrink-0" />
       </button>
 
-      {/* PWA Guide Modal Overlay */}
+      {/* PWA Guide Modal Overlay (Elevated above MobileDock z-[10000] & MobileStickyAnchorAd z-[9990]) */}
       {showPwaGuide && mounted && createPortal(
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+        <div data-scroll-interactive="true" className="fixed inset-0 z-[10020] flex items-end sm:items-center justify-center p-0 sm:p-4 overscroll-none">
           {/* Sibling Backdrop Button */}
           <button 
             type="button"
@@ -112,30 +109,34 @@ const NotificationBanner = React.memo(function NotificationBanner() {
             aria-labelledby="pwa-guide-title"
             aria-describedby="pwa-guide-desc"
             onKeyDown={handleKeyDown}
-            className="bg-surface border border-border rounded-3xl w-full max-w-md p-6 relative text-primary dark:bg-[#1e293b] dark:border-slate-700 dark:text-white shadow-2xl animate-in zoom-in duration-200"
+            className="bg-surface border border-border rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[90dvh] overflow-y-auto overscroll-contain p-5 sm:p-6 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] sm:pb-6 relative text-primary dark:bg-[#1e293b] dark:border-slate-700 dark:text-white shadow-2xl animate-in slide-in-from-bottom-6 sm:zoom-in duration-200"
           >
+            <div className="sm:hidden w-full -mt-1 mb-3 flex justify-center" aria-hidden="true">
+              <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+            </div>
             <button 
               ref={closeButtonRef}
+              type="button"
               onClick={() => setShowPwaGuide(false)}
-              className="absolute top-4 right-4 text-tertiary hover:text-primary dark:text-slate-400 dark:hover:text-white transition-colors"
+              className="absolute top-3.5 right-3.5 w-9 h-9 inline-flex items-center justify-center rounded-full text-tertiary hover:text-primary hover:bg-body dark:text-slate-400 dark:hover:text-white transition-colors touch-manipulation"
               aria-label="안내 창 닫기"
             >
               <X className="w-5 h-5" />
             </button>
             
             <div className="flex items-center gap-2 mb-4">
-              <Smartphone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <Smartphone className="w-5 h-5 text-primary" />
               <h4 id="pwa-guide-title" className="text-[16px] font-black">홈 화면에 D-VIEW 추가하기</h4>
             </div>
 
             <div id="pwa-guide-desc" className="flex flex-col gap-4 text-[13px] leading-relaxed text-secondary dark:text-slate-300">
               <div className="p-3 bg-body/50 border border-border rounded-xl dark:bg-slate-900/50 dark:border-slate-800">
-                <span className="font-extrabold text-toss-blue block mb-1">iOS (Safari) 환경</span>
+                <span className="font-extrabold text-primary block mb-1">iOS (Safari) 환경</span>
                 <p>1. Safari 브라우저 하단의 <strong>공유(보내기)</strong> 버튼을 클릭합니다.<br />2. 메뉴를 내린 뒤 <strong>'홈 화면에 추가'</strong>를 누릅니다.</p>
               </div>
 
               <div className="p-3 bg-body/50 border border-border rounded-xl dark:bg-slate-900/50 dark:border-slate-800">
-                <span className="font-extrabold text-toss-blue block mb-1">Android (Chrome/Samsung) 환경</span>
+                <span className="font-extrabold text-primary block mb-1">Android (Chrome/Samsung) 환경</span>
                 <p>1. Chrome 우측 상단 <strong>메뉴(점 3개)</strong>를 클릭합니다.<br />2. <strong>'홈 화면에 추가'</strong> 또는 <strong>'앱 설치'</strong>를 선택합니다.</p>
               </div>
             </div>

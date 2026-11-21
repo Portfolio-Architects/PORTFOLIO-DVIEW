@@ -6,6 +6,9 @@ import ExploreClient from './ExploreClient';
 import ExploreCatalogRows, {
   type CompactExploreCatalogRow,
 } from '@/components/explore/ExploreCatalogRows';
+import BudgetTierChallengeWidget from '@/components/engagement/BudgetTierChallengeWidget';
+import { extractVerifiedComplexCatalog } from '@/lib/finance/budgetTierEngine';
+import { isAdSenseApprovalMode } from '@/lib/services/apartmentPageService';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketStatsSubtitle';
 import { getExploreSchema, safeJsonLd } from '@/lib/utils/structuredData';
@@ -86,6 +89,7 @@ function ExploreSkeleton() {
             subtitleStrong={<MarketStatsStrong />}
             subtitleLight={<MarketStatsLight />}
             isTitleDiv={true}
+            hideMobileStickyBar
           />
           <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 flex-1 min-h-0 flex flex-col animate-pulse">
             <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 min-h-[540px] p-4 sm:p-6 gap-6">
@@ -198,16 +202,35 @@ async function ExploreDataLoader() {
     ];
   });
 
+  const approvalMode = isAdSenseApprovalMode();
+  const budgetCatalog = extractVerifiedComplexCatalog(txSummary);
+
   return (
     <>
       <ExploreClient initialDashboardData={toSlimExploreInitialData(initialData)} />
+      {/* Site-Wide Budget Tier Reality Check (Compact Engagement Strip) */}
+      <section
+        id="explore-budget-tier-strip"
+        aria-label="내 현금·연봉 기준 동탄 현실 티어 빠른 진단"
+        className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-2 pb-4"
+      >
+        <BudgetTierChallengeWidget
+          catalog={budgetCatalog}
+          surface="explore_bottom"
+          variant="compact"
+        />
+      </section>
       {/* SSR SEO Semantic HTML Block (Collapsed Layer 2 Accordion for Clean UX & Crawlers) */}
       <section
         id="explore-ssr-semantic-catalog"
         aria-label="동탄 전역 아파트 실거래가 및 입지 가치 비교 카탈로그"
         className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-2 pb-10 tabular-nums"
       >
-        <details className={getSeoAccordionClass()}>
+        <details
+          open={approvalMode}
+          data-editorial-open={approvalMode ? 'true' : undefined}
+          className={getSeoAccordionClass()}
+        >
           <summary className={getSeoAccordionSummaryClass()}>
             <span>전체 단지 실거래 요약 · 권역별 시세 더보기</span>
             <DviewIcon name="chevron-down" size={16} className={getSeoAccordionChevronClass()} />
@@ -221,8 +244,8 @@ async function ExploreDataLoader() {
                 동탄 1·2신도시 전체 {apartmentsList.length}개 단지의 준공연월, 세대수, 평균 매매·전세 실거래가 및 전세가율 요약표입니다.
               </p>
             </header>
-            <div className="rounded-xl bg-body dark:bg-[#202027]/70 p-3 sm:p-4">
-              <div className="dview-explore-tbl max-h-72 overflow-x-auto overflow-y-auto [&_table]:w-full [&_table]:min-w-[640px] [&_table]:border-collapse [&_table]:text-left [&_table]:text-xs [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10 [&_thead]:bg-body dark:[&_thead]:bg-[#202027] [&_tbody]:divide-y [&_tbody]:divide-slate-200/60 dark:[&_tbody]:divide-slate-800/70">
+            <div className="rounded-xl bg-surface dark:bg-[#151a23] p-3 sm:p-4">
+              <div className="dview-explore-tbl max-h-72 overflow-x-auto overflow-y-auto [&_table]:w-full [&_table]:min-w-[640px] [&_table]:border-collapse [&_table]:text-left [&_table]:text-xs [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10 [&_thead]:bg-surface dark:[&_thead]:bg-[#151a23] [&_tbody]:divide-y [&_tbody]:divide-slate-200/60 dark:[&_tbody]:divide-slate-800/70">
                 <table>
                   <caption className="sr-only">동탄 전역 184개 아파트 실거래가 및 전세가율 비교 표</caption>
                   <thead>
@@ -250,9 +273,9 @@ async function ExploreDataLoader() {
                     <Link
                       href={`/zone/${zone.id}`}
                       prefetch={false}
-                      className="group flex items-center justify-between gap-2 rounded-xl bg-body dark:bg-[#202027]/70 hover:bg-slate-100/80 dark:hover:bg-[#2c2c35] px-3 py-2 text-xs transition-colors"
+                      className="group flex items-center justify-between gap-2 rounded-xl bg-surface dark:bg-[#151a23] hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] px-3 py-2 text-xs transition-colors"
                     >
-                      <span className="font-bold text-primary group-hover:text-emerald-700 dark:group-hover:text-emerald-400 truncate">
+                      <span className="font-bold text-primary group-hover:text-primary truncate">
                         {zone.name} 아파트 시세 리포트
                       </span>
                       <span className="text-[11px] text-tertiary shrink-0">{zone.dongLabel}</span>

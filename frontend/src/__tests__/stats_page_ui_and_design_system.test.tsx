@@ -259,7 +259,7 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
         />
       );
 
-      const lines = container.querySelectorAll('line[stroke="#3182f6"]');
+      const lines = container.querySelectorAll('line[stroke="#2f6bff"]');
       expect(lines.length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText(/y = -3[89][0-9]x \+ 3,[45][0-9]{2}/)).toBeInTheDocument();
     });
@@ -358,20 +358,20 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
       // dataHeight in 800x480 is 328px (dataTop=84, dataBottom=412); vertical data span must use >88% of dataHeight
       expect(maxCy - minCy).toBeGreaterThan(290);
 
-      // Both semi-log decay curve (#059669) and linear OLS (#3182f6) render by default
-      expect(svg.querySelectorAll('path[stroke="#059669"]').length).toBeGreaterThanOrEqual(1);
-      expect(svg.querySelectorAll('line[stroke="#3182f6"]').length).toBeGreaterThanOrEqual(1);
+      // Both semi-log decay curve (#ff3b5c) and linear OLS (#2f6bff) render by default (Live Spark v6.0)
+      expect(svg.querySelectorAll('path[stroke="#ff3b5c"]').length).toBeGreaterThanOrEqual(1);
+      expect(svg.querySelectorAll('line[stroke="#2f6bff"]').length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText('구간별 실제 감가 기울기 비교')).toBeInTheDocument();
 
       // Switch to log-only mode
       fireEvent.click(screen.getByText('로그 감가 곡선'));
-      expect(svg.querySelectorAll('path[stroke="#059669"]').length).toBeGreaterThanOrEqual(1);
-      expect(svg.querySelectorAll('line[stroke="#3182f6"]').length).toBe(0);
+      expect(svg.querySelectorAll('path[stroke="#ff3b5c"]').length).toBeGreaterThanOrEqual(1);
+      expect(svg.querySelectorAll('line[stroke="#2f6bff"]').length).toBe(0);
 
       // Switch to linear-only mode
       fireEvent.click(screen.getByText('선형 OLS'));
-      expect(svg.querySelectorAll('path[stroke="#059669"]').length).toBe(0);
-      expect(svg.querySelectorAll('line[stroke="#3182f6"]').length).toBeGreaterThanOrEqual(1);
+      expect(svg.querySelectorAll('path[stroke="#ff3b5c"]').length).toBe(0);
+      expect(svg.querySelectorAll('line[stroke="#2f6bff"]').length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -511,10 +511,10 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
       fireEvent.click(topic2Btn!);
 
       // Shows upcoming topic placeholder
-      expect(screen.getByText('Issue #1 동탄역 거리 분석 리포트 보기')).toBeInTheDocument();
+      expect(screen.getByText('동탄역 거리 분석 리포트 보기')).toBeInTheDocument();
 
       // Click button to return to Issue #1
-      fireEvent.click(screen.getByText('Issue #1 동탄역 거리 분석 리포트 보기'));
+      fireEvent.click(screen.getByText('동탄역 거리 분석 리포트 보기'));
       expect(screen.getByText('초역세권 프리미엄 격차')).toBeInTheDocument();
     });
   });

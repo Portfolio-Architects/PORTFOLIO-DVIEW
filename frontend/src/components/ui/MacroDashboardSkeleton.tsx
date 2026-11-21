@@ -27,7 +27,7 @@ export default function MacroDashboardSkeleton() {
             <div className="h-3.5 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
             <div className="h-8 w-24 bg-slate-300 dark:bg-slate-800 rounded-lg" />
             <div className="flex items-center gap-2">
-              <div className="h-3 w-12 bg-emerald-500/20 rounded" />
+              <div className="h-3 w-12 bg-slate-200 dark:bg-slate-800 rounded" />
               <div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
             </div>
           </div>

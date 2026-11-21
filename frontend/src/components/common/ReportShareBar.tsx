@@ -144,7 +144,7 @@ export default function ReportShareBar({
       className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5"
     >
       <div className="space-y-1">
-        <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
+        <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-primary">
           <MessageSquare size={14} className="shrink-0" />
           <span>단톡방 · 부동산 커뮤니티 핵심 요약 공유</span>
         </div>
@@ -158,7 +158,7 @@ export default function ReportShareBar({
           type="button"
           onClick={handleCopySummary}
           data-testid="report-share-copy-btn"
-          className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-slate-50 text-xs font-extrabold transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-extrabold transition-colors cursor-pointer"
         >
           {copied ? (
             <>
@@ -177,7 +177,7 @@ export default function ReportShareBar({
           type="button"
           onClick={handleNativeShare}
           data-testid="report-share-native-btn"
-          className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 text-slate-50 text-xs font-extrabold transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-[#eff1f5] hover:bg-slate-200/80 dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-primary text-xs font-extrabold transition-colors cursor-pointer"
         >
           <Share2 size={14} className="shrink-0" />
           <span>리포트 공유하기</span>

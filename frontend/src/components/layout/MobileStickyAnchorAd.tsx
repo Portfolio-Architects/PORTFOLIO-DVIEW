@@ -16,6 +16,7 @@ function useSafePathname(): string | null {
 export const MOBILE_ANCHOR_SLOT_ENV_KEY = 'NEXT_PUBLIC_ADSENSE_SLOT_ANCHOR';
 export const MOBILE_ANCHOR_REFRESH_SLOT_ID = 'mobile_sticky_anchor';
 export const MOBILE_ANCHOR_MEDIA_QUERY = '(max-width: 767px)';
+export const MOBILE_ANCHOR_OFFSET_CSS_VAR = '--dview-mobile-anchor-offset';
 
 export interface MobileStickyAnchorAdProps {
   refreshSlotId?: string;
@@ -162,6 +163,50 @@ export function MobileStickyAnchorAd({
     adRefreshManager.unobserve(refreshSlotId);
   }, [refreshSlotId]);
 
+  const isAnchorActivelyVisible = Boolean(
+    isMobileViewport && !isSuppressed && !isDismissed && !isKeyboardOpen
+  );
+
+  // Expose live anchor banner clearance as CSS custom property so ScrollToTop, Toasts, and Footer
+  // never collide with MobileStickyAnchorAd and immediately reclaim space when dismissed.
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const root = document.documentElement;
+    const clearOffset = () => {
+      root.style.setProperty(MOBILE_ANCHOR_OFFSET_CSS_VAR, '0px');
+      root.removeAttribute('data-mobile-anchor-visible');
+    };
+
+    if (!isAnchorActivelyVisible) {
+      clearOffset();
+      return;
+    }
+
+    const smMql =
+      typeof window.matchMedia === 'function'
+        ? window.matchMedia('(min-width: 640px)')
+        : null;
+
+    const syncOffset = () => {
+      const isSm = smMql ? Boolean(smMql.matches) : window.innerWidth >= 640;
+      root.style.setProperty(MOBILE_ANCHOR_OFFSET_CSS_VAR, isSm ? '98px' : '64px');
+      root.setAttribute('data-mobile-anchor-visible', 'true');
+    };
+
+    syncOffset();
+    window.addEventListener('resize', syncOffset, { passive: true });
+    if (smMql && typeof smMql.addEventListener === 'function') {
+      smMql.addEventListener('change', syncOffset);
+    }
+    return () => {
+      window.removeEventListener('resize', syncOffset);
+      if (smMql && typeof smMql.removeEventListener === 'function') {
+        smMql.removeEventListener('change', syncOffset);
+      }
+      clearOffset();
+    };
+  }, [isAnchorActivelyVisible]);
+
   if (isSuppressed || isDismissed || !isMobileViewport) {
     return null;
   }
@@ -173,6 +218,7 @@ export function MobileStickyAnchorAd({
       data-ad-slot-env={MOBILE_ANCHOR_SLOT_ENV_KEY}
       data-anchor-slot-id={anchorSlotId}
       data-refresh-paused={isDocumentHidden ? 'true' : 'false'}
+      data-scroll-interactive="true"
       aria-label="모바일 하단 고정 스폰서 배너"
       aria-hidden={isKeyboardOpen ? 'true' : undefined}
       className={`fixed bottom-[calc(env(safe-area-inset-bottom)+68px)] left-0 right-0 z-[9990] md:hidden px-3 pointer-events-none transition-all duration-200 ${
@@ -180,6 +226,7 @@ export function MobileStickyAnchorAd({
       } ${className}`.trim()}
     >
       <div
+        data-scroll-interactive={isKeyboardOpen ? undefined : 'true'}
         className={`relative mx-auto w-full max-w-[480px] h-[56px] min-h-[56px] max-h-[56px] sm:h-[90px] sm:min-h-[90px] sm:max-h-[90px] rounded-xl bg-elevated dark:bg-slate-900 shadow-lg flex flex-col justify-center overflow-hidden ${
           isKeyboardOpen ? 'pointer-events-none' : 'pointer-events-auto'
         }`}
@@ -189,7 +236,7 @@ export function MobileStickyAnchorAd({
           onClick={handleDismiss}
           data-testid="mobile-sticky-anchor-close"
           aria-label="하단 고정 광고 닫기"
-          className="absolute top-1 right-1 z-20 inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-900/60 text-slate-100 hover:bg-slate-900/80 transition-colors cursor-pointer"
+          className="absolute top-1 right-1 z-20 inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-900/65 text-slate-100 hover:bg-slate-900/85 active:scale-95 transition-all cursor-pointer touch-manipulation"
         >
           <X className="w-3.5 h-3.5" aria-hidden="true" />
         </button>

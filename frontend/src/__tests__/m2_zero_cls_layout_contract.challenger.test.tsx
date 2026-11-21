@@ -273,6 +273,7 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
 
       // Lower grids also stack in 1 column when isSplitMode={true}
       expect(guidesGrid.className).toContain('grid-cols-1');
+      expect(guidesGrid.className).not.toContain('md:grid-cols-2');
       expect(guidesGrid.className).not.toContain('md:grid-cols-3');
       expect(guidesGrid.className).not.toContain('xl:grid-cols-3');
       expect(zone4Grid.className).toContain('grid-cols-1');
@@ -301,7 +302,7 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       expect(heroLeftCol.className).toContain('lg:col-span-6');
       expect(heroRightCol.className).toContain('lg:col-span-6');
       expect(screen.queryByTestId('high-cpc-finance-section')).not.toBeInTheDocument();
-      expect(guidesGrid.className).toContain('md:grid-cols-3');
+      expect(guidesGrid.className).toContain('md:grid-cols-2');
       expect(zone4Grid.className).toContain('lg:grid-cols-12');
     });
   });

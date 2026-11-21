@@ -162,6 +162,12 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     expect(financeAdSlot2).toBeInTheDocument();
     const guidesGrid = screen.getByTestId('curated-guides-grid');
     expect(guidesGrid).toBeInTheDocument();
+    expect(guidesGrid.className).toContain('md:grid-cols-2');
+    expect(guidesGrid.children).toHaveLength(4);
+    expect(screen.getByTestId('guide-card-dongtan-1-vs-2-comparison')).toBeInTheDocument();
+    expect(screen.getByTestId('guide-card-dongtan-budget-tier-ranking')).toBeInTheDocument();
+    expect(screen.getByTestId('guide-card-dongtan-lake-vs-station-comparison')).toBeInTheDocument();
+    expect(screen.getByTestId('guide-card-dongtan-school-zone-top-apartments')).toBeInTheDocument();
     const retentionGrid = screen.getByTestId('zone4-retention-community-grid');
     expect(retentionGrid).toBeInTheDocument();
 
@@ -285,6 +291,7 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     expect(heroGrid.className).not.toContain('lg:grid-cols-12');
     expect(heroGrid.className).not.toContain('2xl:grid-cols-12');
     expect(guidesGrid.className).toContain('grid-cols-1');
+    expect(guidesGrid.className).not.toContain('md:grid-cols-2');
     expect(guidesGrid.className).not.toContain('md:grid-cols-3');
     expect(guidesGrid.className).not.toContain('xl:grid-cols-3');
     expect(retentionGrid.className).toContain('grid-cols-1');
@@ -543,5 +550,47 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     expect(retentionGrid.className).toContain('grid-cols-1');
     expect(retentionGrid.className).not.toContain('lg:grid-cols-12');
     expect(retentionGrid.children).toHaveLength(4);
+  });
+
+  it('defaults Zone 3 real-transaction chart to Dongtan-wide with single timeframe toggle (no duplicate granularity bar)', () => {
+    render(
+      <SettingsProvider>
+        <AuthProvider>
+          <MacroDashboardClient
+            sheetApartments={mockSheetApartments}
+            txSummaryData={mockTxSummaryData}
+            macroTrendData={[
+              { name: '26.09', '동탄 아파트 전체': 8.03, '동탄 아파트 전세 평균': 4.61, saleCount: 241, rentCount: 404 },
+              { name: '26.10', '동탄 아파트 전체': 8.59, '동탄 아파트 전세 평균': 4.93, saleCount: 347, rentCount: 559 },
+              { name: '26.11', '동탄 아파트 전체': 9.02, '동탄 아파트 전세 평균': 4.83, saleCount: 230, rentCount: 248 },
+            ]}
+            publicRentalSet={new Set()}
+            fieldReportsMap={new Map()}
+            favoriteCounts={{}}
+            recentTransactions={mockRecentTransactions}
+          />
+        </AuthProvider>
+      </SettingsProvider>
+    );
+
+    // Defaults to Dongtan-wide real transaction trend (not 동탄역 롯데캐슬)
+    expect(screen.getByText('동탄 전체 아파트 실거래 시세 추이')).toBeInTheDocument();
+    expect(screen.queryByText('동탄역 롯데캐슬 시세 추이')).not.toBeInTheDocument();
+
+    // No separate daily/weekly/monthly toggle bar (auto-resolved via single timeframe selector)
+    expect(screen.queryByTestId('chart-granularity-toggle')).not.toBeInTheDocument();
+
+    // Displays total transaction counts for visible period (241 + 347 + 230 = 818)
+    expect(screen.getByTestId('chart-period-tx-summary')).toHaveTextContent('818건');
+
+    // Single timeframe selector transitions cleanly (3M/6M/1Y -> weekly, 3Y/5Y/ALL -> monthly)
+    fireEvent.click(screen.getByRole('button', { name: '1Y' }));
+    expect(screen.getByRole('button', { name: '1Y' })).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(screen.getByRole('button', { name: '3M' }));
+    expect(screen.getByRole('button', { name: '3M' })).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(screen.getByRole('button', { name: '3Y' }));
+    expect(screen.getByRole('button', { name: '3Y' })).toHaveAttribute('aria-pressed', 'true');
   });
 });

@@ -139,12 +139,12 @@ export interface DongtanZoneMeta {
 }
 
 export const ZONE_TIER_COLORS: Record<'lake' | 'north' | 'newtown' | 'dongtan1' | 'sibeom' | 'gbcx', string> = {
-  lake: '#059669',     // 동탄호수권: Emerald 600
-  north: '#2563eb',    // 북동탄: Trust Blue 600
-  newtown: '#34d399',  // 신주거: Emerald 400
-  dongtan1: '#475569', // 동탄1신도시: Slate 600
-  sibeom: '#60a5fa',   // 시범단지·청계권: Light Blue 400
-  gbcx: '#1e3a8a',     // 동탄역권: Deep Navy Blue 900
+  lake: '#14181f',     // 동탄호수권: Deep Ink
+  north: '#2f6bff',    // 북동탄: Electric Cobalt
+  newtown: '#64748b',  // 신주거: Slate 500
+  dongtan1: '#94a3b8', // 동탄1신도시: Slate 400
+  sibeom: '#60a5fa',   // 시범단지·청계권: Soft Cobalt
+  gbcx: '#ff3b5c',     // 동탄역권: Hot Spark
 };
 
 export const DONGTAN_ZONES: DongtanZoneMeta[] = [
@@ -259,26 +259,26 @@ export interface AptDonutSectionProps {
 }
 
 export const ENERGY_COLORS: Record<'high' | 'rising' | 'flat' | 'falling', string> = {
-  high: '#f04452',    // 신고가: Brand Red (국내 부동산 상승=적색 관례)
-  rising: '#f87171',  // 상승거래: Soft Red
-  flat: '#059669',    // 보합: Emerald
-  falling: '#2563eb', // 하락거래: Trust Blue
+  high: '#ff3b5c',    // 신고가: Hot Spark Coral-Crimson (Jackpot Gradient Ring)
+  rising: '#fda4af',  // 상승거래: Soft Coral Step-Down
+  flat: '#cbd5e1',    // 보합: Cool Neutral Slate (Zero Green Noise)
+  falling: '#2f6bff', // 하락·급매: Electric Cobalt
 };
 
 export const PRICE_TIER_COLORS: Record<'under6' | 'under9' | 'under15' | 'over15', string> = {
-  under6: '#059669',   // 6억 이하: Emerald (엔트리·안정)
-  under9: '#2563eb',   // 6억 ~ 9억: Trust Blue (주력 볼륨)
-  under15: '#60a5fa',  // 9억 ~ 15억: Light Blue (상급지 확장)
-  over15: '#334155',   // 15억 초과: Deep Slate (하이엔드 희소)
+  under6: '#94a3b8',   // 6억 이하: Cool Slate 400
+  under9: '#2f6bff',   // 6억 ~ 9억: Electric Cobalt (주력 볼륨)
+  under15: '#60a5fa',  // 9억 ~ 15억: Soft Cobalt
+  over15: '#14181f',   // 15억 초과: Deep Ink (하이엔드 희소)
 };
 
 export const POLICY_COLORS = PRICE_TIER_COLORS;
 
 export const PYEONG_TIER_COLORS: Record<'small' | 'medium' | 'large' | 'xlarge', string> = {
-  small: '#059669',   // 소형 (60㎡ 이하): Emerald
-  medium: '#2563eb',  // 중소형 (60~85㎡): Trust Blue
-  large: '#60a5fa',   // 중대형 (85~102㎡): Light Blue
-  xlarge: '#334155',  // 대형 (102㎡ 초과): Deep Slate
+  small: '#94a3b8',   // 소형 (60㎡ 이하): Cool Slate 400
+  medium: '#2f6bff',  // 중소형 (60~85㎡): Electric Cobalt
+  large: '#60a5fa',   // 중대형 (85~102㎡): Soft Cobalt
+  xlarge: '#14181f',  // 대형 (102㎡ 초과): Deep Ink
 };
 
 export const PYEONG_COLORS = PYEONG_TIER_COLORS;
@@ -307,6 +307,12 @@ const DonutPieCanvas = React.memo(function DonutPieCanvas({
       initialDimension={{ width: 208, height: 208 }}
     >
       <PieChart>
+        <defs>
+          <linearGradient id="dview-spark-heat" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="var(--spark-hot-from, #ff3b5c)" />
+            <stop offset="100%" stopColor="var(--spark-hot-to, #ff6b4a)" />
+          </linearGradient>
+        </defs>
         {effectiveTotalCount === 0 ? (
           <Pie
             data={[{ value: 1 }]}
@@ -340,7 +346,7 @@ const DonutPieCanvas = React.memo(function DonutPieCanvas({
             {pieRenderData.map((entry) => (
               <Cell
                 key={entry.name}
-                fill={entry.color}
+                fill={entry.category === 'high' ? 'url(#dview-spark-heat)' : entry.color}
                 opacity={1}
                 stroke="transparent"
                 strokeWidth={0}
@@ -1325,12 +1331,12 @@ export const AptDonutSection = React.memo(function AptDonutSection({
       <div className={`flex flex-wrap xl:flex-nowrap items-center justify-between gap-y-2 gap-x-1.5 sm:gap-x-2.5 ${isNavigator ? 'mb-2 sm:mb-2.5' : 'mb-2.5 sm:mb-3'}`}>
         {/* Element 1: Title Group (Indicator dot + Section Title + Count Badge) */}
         <div className="flex items-center gap-1.5 sm:gap-2 order-1 shrink-0 flex-wrap">
-          <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shrink-0" />
+          <span className="w-2.5 h-2.5 rounded-full bg-primary shrink-0" />
           <h3 className="text-[14px] sm:text-[15px] font-black text-primary tracking-tight whitespace-nowrap">
             {isNavigator ? (mode === 'zone' ? '권역별 거래·평균가' : '실거래 체결 온도') : '실거래 비중'}
           </h3>
           {mode !== 'energy' && effectiveTotalCount > 0 && (
-            <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10.5px] sm:text-[11.5px] font-extrabold text-secondary shrink-0 tabular-nums whitespace-nowrap">
+            <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-[10.5px] sm:text-[11.5px] font-extrabold text-secondary shrink-0 tabular-nums whitespace-nowrap">
               총 {effectiveTotalCount.toLocaleString()}건
             </span>
           )}
@@ -1341,7 +1347,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               onClick={() => onClearSelectedDate?.()}
               title="선택된 등재일 필터 해제"
               aria-label={`${selectedDateLabel} 등재일 필터 해제`}
-              className="px-2 h-[22px] leading-none rounded-full bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-600 dark:text-blue-400 text-[10.5px] sm:text-[11px] font-extrabold shrink-0 tabular-nums whitespace-nowrap inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
+              className="px-2 h-[22px] leading-none rounded-full bg-[#eff1f5] dark:bg-[#1e2532] hover:bg-slate-200 dark:hover:bg-[#252c3d] text-primary text-[10.5px] sm:text-[11px] font-extrabold shrink-0 tabular-nums whitespace-nowrap inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
             >
               <span className="leading-none">{selectedDateLabel} 등재</span>
               {onClearSelectedDate && <span className="leading-none" aria-hidden="true">×</span>}
@@ -1485,8 +1491,8 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                   <span
                     className={`text-[24px] sm:text-[22px] 2xl:text-[25px] font-black leading-tight mt-0.5 tabular-nums whitespace-nowrap ${
                       energyMetrics.bullishPct >= 50
-                        ? 'text-red-600 dark:text-red-400'
-                        : 'text-blue-600 dark:text-blue-400'
+                        ? 'text-brand-red'
+                        : 'text-brand-blue'
                     }`}
                   >
                     {isPeriodLoading ? (
@@ -1540,7 +1546,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                     )}
                   </span>
                   {isNavigator && overallAvgPriceLabel && (
-                    <span className="inline-flex items-center justify-center h-[20px] xl:h-[21px] text-[9.5px] xl:text-[10px] 2xl:text-[10.5px] leading-none font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 rounded-full mt-0.5 tabular-nums whitespace-nowrap max-w-[116px] sm:max-w-[136px] lg:max-w-[110px] xl:max-w-[140px]">
+                    <span className="inline-flex items-center justify-center h-[20px] xl:h-[21px] text-[9.5px] xl:text-[10px] 2xl:text-[10.5px] leading-none font-extrabold text-secondary bg-[#eff1f5] dark:bg-[#1e2532] px-2 rounded-full mt-0.5 tabular-nums whitespace-nowrap max-w-[116px] sm:max-w-[136px] lg:max-w-[110px] xl:max-w-[140px]">
                       <span className="truncate leading-none translate-y-[0.5px]">
                         전체 {overallAvgPriceLabel}
                       </span>
@@ -1611,9 +1617,9 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                   isNavigator ? 'px-2.5 py-2 xl:px-3 xl:py-2.5 gap-1.5' : 'px-2.5 py-1.5 sm:px-3 sm:py-2 gap-1.5'
                 } rounded-xl transition-all duration-200 cursor-pointer flex flex-col justify-between ${
                   isSelected
-                    ? 'bg-elevated dark:bg-slate-800/80 ring-1 ring-blue-500/25'
+                    ? 'bg-elevated dark:bg-[#1e2532] ring-1 ring-slate-900/15 dark:ring-white/20'
                     : isEffectiveHover
-                      ? 'bg-elevated/70 dark:bg-slate-800/40'
+                      ? 'bg-elevated/70 dark:bg-[#1e2532]/50'
                       : 'bg-transparent'
                 } ${isDimmed ? 'opacity-45' : 'opacity-100'}`}
               >
@@ -1636,7 +1642,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       {sector.name}
                     </span>
                     {showTopBadge && (
-                      <span className="px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 text-[9.5px] font-extrabold shrink-0 leading-tight">
+                      <span className="px-1.5 py-0.2 rounded bg-[#eff1f5] dark:bg-[#1e2532] text-primary text-[9.5px] font-extrabold shrink-0 leading-tight">
                         1위
                       </span>
                     )}
@@ -1679,7 +1685,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       size={13}
                       className={`shrink-0 transition-all duration-200 ${
                         isSelected
-                          ? 'rotate-90 text-blue-600 dark:text-blue-400'
+                          ? 'rotate-90 text-primary'
                           : 'text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 group-hover:translate-x-0.5'
                       }`}
                     />

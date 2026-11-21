@@ -93,11 +93,11 @@ const NewsCard = React.memo(function NewsCard({
             {formatDate(item.pubDate)}
           </span>
         </div>
-        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
+        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-slate-100 group-hover:text-primary transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
           {item.title}
         </h3>
       </div>
-      <div className="flex items-center text-tertiary group-hover:text-blue-600 dark:group-hover:text-blue-400 shrink-0 self-end md:self-center">
+      <div className="flex items-center text-tertiary group-hover:text-primary shrink-0 self-end md:self-center">
         <ArrowUpRight size={17} className="transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
       </div>
     </a>
@@ -122,7 +122,7 @@ const NoticeItemCard = React.memo(function NoticeItemCard({
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left group flex flex-col md:flex-row md:items-center justify-between gap-3.5 py-3.5 px-4 sm:p-5 rounded-[20px] border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-all duration-300 transform shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+      className="w-full text-left group flex flex-col md:flex-row md:items-center justify-between gap-3.5 py-3.5 px-4 sm:p-5 rounded-[20px] border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-all duration-300 transform shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30 dark:focus-visible:ring-white/30"
       aria-label={`소식: ${item.title}, 부서: ${item.dept}`}
     >
       <div className="flex flex-col gap-1.5 sm:gap-2 min-w-0 flex-1">
@@ -134,20 +134,20 @@ const NoticeItemCard = React.memo(function NoticeItemCard({
           <span className="text-[11.5px] font-extrabold text-secondary/80 dark:text-slate-400 tracking-tight">
             {item.dept}
           </span>
-          <span className="text-[11px] text-tertiary font-medium">
+          <span className="text-[11px] text-tertiary font-medium tabular-nums">
             {item.date}
           </span>
           {hasDetails && (
-            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-600/10 animate-pulse">
-              AI 분석 완료
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#eff1f5] dark:bg-[#1e2532] text-primary">
+              요약
             </span>
           )}
         </div>
-        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
+        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-slate-100 group-hover:text-primary transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
           {item.title}
         </h3>
       </div>
-      <div className="flex items-center text-tertiary group-hover:text-blue-600 dark:group-hover:text-blue-400 shrink-0 self-end md:self-center">
+      <div className="flex items-center text-tertiary group-hover:text-primary shrink-0 self-end md:self-center">
         <ArrowUpRight size={17} className="transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
       </div>
     </button>
@@ -263,31 +263,31 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
         return {
           label: '고시공고',
           icon: FileText,
-          bgClass: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30',
+          bgClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary border border-border/70',
         };
       case 'rail':
         return {
           label: '교통/철도',
           icon: Train,
-          bgClass: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30',
+          bgClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary border border-border/70',
         };
       case 'dong':
         return {
           label: '동네행정',
           icon: MapPin,
-          bgClass: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30',
+          bgClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary border border-border/60',
         };
       case 'culture':
         return {
           label: '문화/축제',
           icon: Sparkles,
-          bgClass: 'bg-red-500/10 text-red-500 dark:bg-red-500/20 dark:text-red-400 border border-red-500/20 dark:border-red-500/30',
+          bgClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary border border-border/60',
         };
       default:
         return {
           label: '시정소식',
           icon: Megaphone,
-          bgClass: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30',
+          bgClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary border border-border/60',
         };
     }
   };
@@ -296,15 +296,15 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
   const getNewsCategoryDetails = (category: string) => {
     switch (category) {
       case 'POLICY':
-        return { label: '부동산 정책', bgClass: 'bg-red-500/10 text-red-500 dark:bg-red-500/20 dark:text-red-400 border border-red-500/20 dark:border-red-500/30' };
+        return { label: '부동산 정책', bgClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary border border-border/70' };
       case 'INFRASTRUCTURE':
-        return { label: '교통/개발', bgClass: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30' };
+        return { label: '교통/개발', bgClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary border border-border/70' };
       case 'COMMERCIAL':
-        return { label: '상권/기업', bgClass: 'bg-slate-500/10 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400 border border-slate-500/20 dark:border-slate-500/30' };
+        return { label: '상권/기업', bgClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary border border-border/60' };
       case 'COMMUNITY':
-        return { label: '학군/주거', bgClass: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30' };
+        return { label: '학군/주거', bgClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary border border-border/60' };
       default:
-        return { label: '시장 동향', bgClass: 'bg-slate-500/10 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400 border border-slate-500/20 dark:border-slate-500/30' };
+        return { label: '시장 동향', bgClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary border border-border/60' };
     }
   };
 
@@ -312,7 +312,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
     <React.Fragment>
       <PullToRefresh onRefresh={handleRefresh}>
       {/* Main Header — Logo + Nav integrated */}
-      <header className="hidden md:block shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-xl border-b border-border sticky top-0 z-50" role="banner">
+      <header className="hidden md:block shrink-0 bg-surface/95 backdrop-blur-xl border-b border-border sticky top-0 z-50" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between h-[80px] gap-4 md:gap-0">
             
@@ -414,7 +414,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                 <>
                   {/* News Sub-Tabs */}
                   <div className="flex justify-center mb-6 mt-1 animate-in fade-in slide-in-from-top-1 duration-300">
-                    <div className="flex bg-body/60 p-1 rounded-full border border-border/40 shadow-sm backdrop-blur-md">
+                    <div className="flex bg-[#eff1f5] dark:bg-[#1e2532] p-1 rounded-full border border-border/50 shadow-sm">
                       <button
                         onClick={() => {
                           setActiveNewsSubTab('industry');
@@ -422,7 +422,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                         }}
                         className={`px-5 py-1.5 rounded-full text-[12px] font-extrabold transition-all duration-300 active:scale-[0.98] ${
                           activeNewsSubTab === 'industry'
-                            ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
+                            ? 'bg-surface dark:bg-elevated text-primary shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/10'
                             : 'text-tertiary hover:text-secondary'
                         }`}
                       >
@@ -435,7 +435,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                         }}
                         className={`px-5 py-1.5 rounded-full text-[12px] font-extrabold transition-all duration-300 active:scale-[0.98] ${
                           activeNewsSubTab === 'realestate'
-                            ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
+                            ? 'bg-surface dark:bg-elevated text-primary shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/10'
                             : 'text-tertiary hover:text-secondary'
                         }`}
                       >
@@ -588,10 +588,12 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
           <div className="flex items-start justify-between p-6 border-b border-border/60">
             <div className="flex flex-col gap-1.5 min-w-0 pr-4">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-blue-600/10 text-blue-600 dark:text-blue-400">
-                  D-VIEW AI 데이터 랩
-                </span>
-                <span className="text-[11.5px] text-tertiary font-bold">
+                {selectedNotice.dept && (
+                  <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-primary">
+                    {selectedNotice.dept}
+                  </span>
+                )}
+                <span className="text-[11.5px] text-tertiary font-bold tabular-nums">
                   {selectedNotice.date}
                 </span>
               </div>
@@ -601,7 +603,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
             </div>
             <button
               onClick={() => setSelectedNotice(null)}
-              className="p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-secondary transition-colors"
+              className="p-1.5 rounded-xl hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-secondary transition-colors"
             >
               <X size={20} />
             </button>
@@ -615,7 +617,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950/20 text-blue-500 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-primary flex items-center justify-center mb-4">
                   <FileText size={24} />
                 </div>
                 <h3 className="text-[15px] font-extrabold text-primary mb-2">AI 분석 요약 준비 중</h3>
@@ -626,7 +628,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                   href={selectedNotice.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-[#04635e] dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-[13px] font-extrabold rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[13px] font-extrabold rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
                 >
                   <ExternalLink size={14} />
                   원문 고시 바로보기
@@ -636,19 +638,19 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
           </div>
 
           {/* Modal Footer */}
-          <div className="p-5 border-t border-border/60 flex items-center justify-between gap-3 bg-slate-50/40 dark:bg-slate-900/10">
+          <div className="p-5 border-t border-border/60 flex items-center justify-between gap-3 bg-elevated/60">
             <a
               href={selectedNotice.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-blue-600 dark:text-blue-400 hover:underline"
+              className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-primary hover:underline"
             >
               <ExternalLink size={15} />
               화성시 원문 고시 보기
             </a>
             <button
               onClick={() => setSelectedNotice(null)}
-              className="px-5 py-2 rounded-xl text-[13px] font-extrabold bg-[#cbd5e1] dark:bg-[#475569] hover:bg-[#b0b8c1] dark:hover:bg-[#334155] text-primary transition-colors"
+              className="px-5 py-2 rounded-xl text-[13px] font-extrabold bg-[#eff1f5] dark:bg-[#1e2532] hover:bg-slate-200 dark:hover:bg-slate-700 text-primary transition-colors"
             >
               닫기
             </button>

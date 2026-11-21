@@ -207,18 +207,18 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
 
     const editorial = container.querySelector('#home-ssr-market-editorial');
     expect(editorial).not.toBeNull();
-    expect(editorial?.querySelector('section#notification')).not.toBeNull();
 
     // Verify zero broken 404 hrefs in HomePage
     for (const brokenHref of ['/map', '/compare', '/calculator', '/complex-ranking', '/subscription']) {
       expect(editorial?.querySelector(`a[href="${brokenHref}"]`)).toBeNull();
     }
 
-    // Verify canonical replacements exist
+    // Verify canonical replacements exist across HomePage without duplicate footer nav bars
     expect(editorial?.querySelector('a[href="/explore"]')).not.toBeNull();
-    expect(editorial?.querySelector('a[href="/guide"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/guide"]')).not.toBeNull();
     expect(editorial?.querySelector('a[href="/guide/stress-dsr-valuation-guide"]')).not.toBeNull();
-    expect(editorial?.querySelector('a[href="/#notification"]')).not.toBeNull();
+    expect(editorial?.querySelector('a[href="/privacy"]')).toBeNull();
+    expect(editorial?.querySelector('a[href="/terms"]')).toBeNull();
 
     // Verify next.config.ts redirect rules
     const configPath = path.resolve(process.cwd(), 'next.config.ts');
@@ -234,11 +234,11 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
     expect(redirects).toEqual(
       expect.arrayContaining([
         { source: '/report', destination: '/guide', permanent: true },
-        { source: '/map', destination: '/explore', permanent: false },
-        { source: '/compare', destination: '/guide', permanent: false },
-        { source: '/calculator', destination: '/guide/stress-dsr-valuation-guide', permanent: false },
-        { source: '/complex-ranking', destination: '/explore', permanent: false },
-        { source: '/subscription', destination: '/', permanent: false },
+        { source: '/map', destination: '/explore', permanent: true },
+        { source: '/compare', destination: '/guide', permanent: true },
+        { source: '/calculator', destination: '/guide/stress-dsr-valuation-guide', permanent: true },
+        { source: '/complex-ranking', destination: '/explore', permanent: true },
+        { source: '/subscription', destination: '/', permanent: true },
       ])
     );
   });
@@ -313,14 +313,11 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
   });
 
   describe('AdSense Approval P1 Quality Enhancement Empirical Verification', () => {
-    it('P1-1. E-E-A-T 20 Guides Anchor Placement on HomePage (/), LoungeHeader, ApartmentPage (/apartment/[aptName]), and Sitemap', async () => {
-      // 1) HomePage upper lab <-> lower 4-column guide grid interlinking
+    it('P1-1. E-E-A-T 25 Guides Anchor Placement on HomePage (/), LoungeHeader, ApartmentPage (/apartment/[aptName]), and Sitemap', async () => {
+      // 1) HomePage featured guide hub + full 25-guide archive directory
       const homeJsx = await HomePage();
       const { container: homeContainer, unmount: unmountHome } = render(homeJsx);
-      const interlinkCard = homeContainer.querySelector('#home-lab-to-guide-interlink');
-      expect(interlinkCard).not.toBeNull();
-      expect(interlinkCard?.querySelector('a[href="#home-guide-4col-grid"]')).not.toBeNull();
-      expect(interlinkCard?.querySelector('a[href="/guide"]')).not.toBeNull();
+      expect(homeContainer.querySelector('#home-engagement-editorial-hub a[href="/guide"]')).not.toBeNull();
       const guideGrid = homeContainer.querySelector('#home-guide-4col-grid');
       expect(guideGrid).not.toBeNull();
       expect(guideGrid?.querySelector('a[href="#apt-market-energy-donut"]')).not.toBeNull();
@@ -509,25 +506,22 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
       }
     });
 
-    it('curates sitemap.xml to 81 elite URLs (9 core + 25 guides + 7 zones + 40 verified flagship apartments) in approval mode and restores 183 URLs when disabled', async () => {
+    it('curates sitemap.xml to 34 Editorial Fortress URLs (9 core + 25 guides, 0 programmatic templates) in approval mode and restores 183 URLs when disabled', async () => {
       const sitemapFn = (await import('@/app/sitemap')).default;
       const { ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT } = await import('@/lib/services/apartmentPageService');
 
       process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE = 'true';
       const approvalRoutes = await sitemapFn({ id: 0 });
-      expect(ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT).toBe(40);
-      expect(approvalRoutes.length).toBe(81);
-      // Zero /technovalley/[slug] detail pages in approval mode (/technovalley hub remains)
+      expect(ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT).toBe(0);
+      expect(approvalRoutes.length).toBe(34);
+      // Zero /technovalley/[slug], /zone/[id], or /apartment/[aptName] programmatic templates in approval mode
       expect(approvalRoutes.some((r) => r.url === 'https://dongtanview.com/technovalley')).toBe(true);
       expect(approvalRoutes.some((r) => r.url.startsWith('https://dongtanview.com/technovalley/'))).toBe(false);
+      expect(approvalRoutes.some((r) => r.url.startsWith('https://dongtanview.com/zone/'))).toBe(false);
       const aptRoutes = approvalRoutes.filter((r) => r.url.startsWith('https://dongtanview.com/apartment/'));
-      expect(aptRoutes.length).toBe(40);
-      // Zero-sale rental apartment is excluded from approval sitemap
-      expect(
-        aptRoutes.some((r) => decodeURIComponent(r.url).includes('화성동탄상록리슈빌아파트영구임대'))
-      ).toBe(false);
-      // Flagship benchmark apartment is included
-      expect(aptRoutes.some((r) => decodeURIComponent(r.url).includes('동탄역롯데캐슬'))).toBe(true);
+      expect(aptRoutes.length).toBe(0);
+      const guideRoutes = approvalRoutes.filter((r) => r.url.startsWith('https://dongtanview.com/guide/'));
+      expect(guideRoutes.length).toBe(25);
 
       process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE = 'false';
       const fullRoutes = await sitemapFn({ id: 0 });
@@ -536,18 +530,28 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
       expect(
         fullRoutes.some((r) => decodeURIComponent(r.url).includes('화성동탄상록리슈빌아파트영구임대'))
       ).toBe(false);
+      expect(
+        fullRoutes.some((r) => decodeURIComponent(r.url).includes('동탄역롯데캐슬'))
+      ).toBe(true);
     });
 
-    it('emits robots noindex,follow on zero-sale/non-elite apartments and Jisan detail pages in approval mode while keeping flagship apartments and hubs indexed', async () => {
+    it('emits robots noindex,follow on all apartments, zones, and Jisan detail pages in approval mode while restoring verified apartments when disabled', async () => {
       const {
         buildApartmentSeoMetadata,
         buildTechnoValleySeoMetadata,
         getTechnoValleyJisanList,
       } = await import('@/lib/services/apartmentPageService');
+      const { generateMetadata: generateZoneMeta } = await import('@/app/zone/[id]/layout');
 
       process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE = 'true';
-      const flagshipMeta = await buildApartmentSeoMetadata('동탄역롯데캐슬');
-      expect(flagshipMeta.robots).toEqual({ index: true, follow: true });
+      const flagshipApprovalMeta = await buildApartmentSeoMetadata('동탄역롯데캐슬');
+      expect(flagshipApprovalMeta.robots).toEqual({ index: false, follow: true });
+
+      const zoneApprovalMeta = await generateZoneMeta({
+        children: null,
+        params: Promise.resolve({ id: 'gbcx' }),
+      });
+      expect(zoneApprovalMeta.robots).toEqual({ index: false, follow: true });
 
       const rentalMeta = await buildApartmentSeoMetadata('화성동탄상록리슈빌아파트영구임대');
       expect(rentalMeta.robots).toEqual({ index: false, follow: true });
@@ -558,6 +562,10 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
 
       const detailMeta = buildTechnoValleySeoMetadata(jisanList, jisanList[0]?.name);
       expect(detailMeta.robots).toEqual({ index: false, follow: true });
+
+      process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE = 'false';
+      const flagshipStandardMeta = await buildApartmentSeoMetadata('동탄역롯데캐슬');
+      expect(flagshipStandardMeta.robots).toEqual({ index: true, follow: true });
     });
 
     it('eliminates fake 9억 sale mortgage widget & broken Korean josa on zero-sale rental apartments while keeping editorial accordions open by default', async () => {

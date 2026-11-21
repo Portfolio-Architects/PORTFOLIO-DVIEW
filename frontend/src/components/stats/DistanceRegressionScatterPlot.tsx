@@ -481,13 +481,13 @@ export function DistanceRegressionScatterPlot({
     margin.bottom,
   ]);
 
-  // Point color by distance tier (Ad Money v5.0 semantic palette)
+  // Point color by distance tier (Ad Money v6.0 Live Spark calibrated palette)
   const getPointColor = (distMeters: number) => {
-    if (distMeters < 500) return '#2563eb'; // Toss Deep Blue (초역세권)
-    if (distMeters < 1000) return '#3182f6'; // Toss Action Blue (역세권)
-    if (distMeters < 2000) return '#059669'; // Value Emerald (준역세권)
-    if (distMeters < 3000) return '#475569'; // Slate-600 (근접생활권)
-    return '#94a3b8'; // Slate-400 (외곽권)
+    if (distMeters < 500) return '#2f6bff'; // Electric Cobalt (초역세권)
+    if (distMeters < 1000) return '#60a5fa'; // Cobalt Light (역세권)
+    if (distMeters < 2000) return '#475569'; // Cool Slate 600 (준역세권)
+    if (distMeters < 3000) return '#64748b'; // Cool Slate 500 (근접생활권)
+    return '#94a3b8'; // Slate 400 (외곽권)
   };
 
   const handlePointHover = (e: React.MouseEvent, record: ApartmentStatRecord) => {
@@ -512,24 +512,24 @@ export function DistanceRegressionScatterPlot({
   return (
     <section
       aria-label="동탄역 거리 대 평당가 OLS 선형회귀 산점도"
-      className={`w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-4 sm:p-6 border border-[#f2f4f6] dark:border-[#202027] flex flex-col justify-between gap-4 ${className}`}
+      className={`w-full rounded-2xl bg-elevated p-4 sm:p-6 border border-border flex flex-col justify-between gap-4 ${className}`}
     >
       {/* Top Section Header, Trendline Switcher & Legend */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
         <div>
           <div className="flex items-center flex-wrap gap-2">
-            <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-[#eff1f5] dark:bg-[#1e2532] flex items-center justify-center text-primary shrink-0">
               <TrendingDown className="w-4 h-4" />
             </div>
             <h3 className="text-sm sm:text-base font-black text-primary tracking-tight">
               동탄역 거리 vs 평당가 회귀분석 (역세권 로그 감가 · 선형 OLS)
             </h3>
             {logRegression.isValid && (
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 tabular-nums">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black bg-brand-red-light text-brand-red tabular-nums">
                 로그 R² = {(logRegression.rSquared * 100).toFixed(1)}%
               </span>
             )}
-            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 tabular-nums">
+            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black bg-brand-blue-light text-brand-blue tabular-nums">
               선형 R² = {(regression.rSquared * 100).toFixed(1)}%
             </span>
           </div>
@@ -544,48 +544,48 @@ export function DistanceRegressionScatterPlot({
             <button
               type="button"
               onClick={() => setTrendMode('both')}
-              className={getToggleBtnClass(trendMode === 'both', { size: 'sm', tone: 'emerald' })}
+              className={getToggleBtnClass(trendMode === 'both', { size: 'sm', tone: 'neutral' })}
             >
               로그+선형 비교
             </button>
             <button
               type="button"
               onClick={() => setTrendMode('log')}
-              className={getToggleBtnClass(trendMode === 'log', { size: 'sm', tone: 'emerald' })}
+              className={getToggleBtnClass(trendMode === 'log', { size: 'sm', tone: 'neutral' })}
             >
               로그 감가 곡선
             </button>
             <button
               type="button"
               onClick={() => setTrendMode('linear')}
-              className={getToggleBtnClass(trendMode === 'linear', { size: 'sm', tone: 'blue' })}
+              className={getToggleBtnClass(trendMode === 'linear', { size: 'sm', tone: 'neutral' })}
             >
               선형 OLS
             </button>
           </div>
 
           {/* Crisp Pill Legend */}
-          <div className="flex items-center flex-wrap gap-2 text-[11px] font-bold text-secondary bg-white dark:bg-[#202027] px-3 py-1.5 rounded-xl border border-[#f2f4f6] dark:border-[#2c2c35]">
+          <div className="flex items-center flex-wrap gap-2 text-[11px] font-bold text-secondary bg-surface px-3 py-1.5 rounded-xl border border-border">
             <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#3182f6] ring-2 ring-blue-500/20" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#2f6bff] ring-2 ring-brand-blue/20" />
               <span className="text-primary font-extrabold">&lt;1km</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#059669] ring-2 ring-emerald-500/20" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#475569] ring-2 ring-slate-500/20" />
               <span className="text-primary font-extrabold">1~2km</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#64748b]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#94a3b8]" />
               <span>2km+</span>
             </div>
-            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <span className="text-border">|</span>
             <div className="flex items-center gap-1.5">
-              <span className="w-4 h-[2.5px] rounded-full bg-[#059669]" />
-              <span className="text-emerald-600 dark:text-emerald-400 font-black">로그 곡선</span>
+              <span className="w-4 h-[2.5px] rounded-full bg-[#ff3b5c]" />
+              <span className="text-brand-red font-black">로그 곡선</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-4 h-0.5 border-b-2 border-dashed border-[#3182f6]" />
-              <span className="text-blue-600 dark:text-blue-400 font-black">OLS 직선</span>
+              <span className="w-4 h-0.5 border-b-2 border-dashed border-[#2f6bff]" />
+              <span className="text-brand-blue font-black">OLS 직선</span>
             </div>
           </div>
         </div>
@@ -594,26 +594,26 @@ export function DistanceRegressionScatterPlot({
       {/* 2-Column Balanced Layout on Wide Desktop: ~2:1 Banked Scatter Plot (8 cols) + Slope Decay Briefing (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Left 8 Cols: High-Contrast Financial Terminal Chart Canvas */}
-        <div className="lg:col-span-8 w-full rounded-xl bg-white dark:bg-[#111115] border border-[#f2f4f6] dark:border-[#22222a] p-3 sm:p-4 flex flex-col gap-2">
+        <div className="lg:col-span-8 w-full rounded-xl bg-surface border border-border p-3 sm:p-4 flex flex-col gap-2">
           {/* Top Formula & Statistical HUD Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#f2f4f6] dark:border-[#1e1e26]">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-border">
             <div className="flex items-center gap-2 text-[11px] sm:text-[12px] font-extrabold text-secondary">
-              <Activity className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+              <Activity className="w-3.5 h-3.5 text-primary shrink-0" />
               <span>Y축: 평당가 ({yMin.toLocaleString()}~{yMax.toLocaleString()}만)</span>
-              <span className="text-slate-300 dark:text-slate-700">·</span>
+              <span className="text-border">·</span>
               <span>X축: 동탄역 거리 (0~5km)</span>
             </div>
 
             <div className="flex items-center flex-wrap gap-1.5">
               {logRegression.isValid && (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-red-light text-[11px] font-black text-brand-red tabular-nums">
                   <span>
                     y = {Math.round(logRegression.b1)}ln(x) + {Math.round(logRegression.b0).toLocaleString()} (R² = {logRegression.rSquared.toFixed(2)})
                   </span>
                 </div>
               )}
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f9fafb] dark:bg-[#1a1a22] border border-[#f2f4f6] dark:border-[#2a2a35] text-[11px] font-black text-primary tabular-nums">
-                <TrendingUp className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-elevated border border-border text-[11px] font-black text-primary tabular-nums">
+                <TrendingUp className="w-3.5 h-3.5 text-brand-blue" />
                 <span>
                   y = {Math.round(slope)}x + {Math.round(intercept).toLocaleString()} (R² = {regression.rSquared.toFixed(2)})
                 </span>
@@ -634,12 +634,12 @@ export function DistanceRegressionScatterPlot({
             >
               <defs>
                 <linearGradient id="zoneStationCoreGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3182f6" stopOpacity="0.075" />
-                  <stop offset="100%" stopColor="#3182f6" stopOpacity="0.015" />
+                  <stop offset="0%" stopColor="#2f6bff" stopOpacity="0.07" />
+                  <stop offset="100%" stopColor="#2f6bff" stopOpacity="0.012" />
                 </linearGradient>
                 <linearGradient id="zoneSubStationGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#059669" stopOpacity="0.05" />
-                  <stop offset="100%" stopColor="#059669" stopOpacity="0.008" />
+                  <stop offset="0%" stopColor="#64748b" stopOpacity="0.045" />
+                  <stop offset="100%" stopColor="#64748b" stopOpacity="0.008" />
                 </linearGradient>
                 <clipPath id="scatterPlotClip">
                   <rect
@@ -673,13 +673,13 @@ export function DistanceRegressionScatterPlot({
                 {showLogCurve && logCorridorPoints ? (
                   <polygon
                     points={logCorridorPoints}
-                    fill="#059669"
-                    fillOpacity="0.065"
+                    fill="#ff3b5c"
+                    fillOpacity="0.06"
                   />
                 ) : (
                   <polygon
                     points={bandPolygonPoints}
-                    fill="#3182f6"
+                    fill="#2f6bff"
                     fillOpacity="0.06"
                   />
                 )}
@@ -710,7 +710,7 @@ export function DistanceRegressionScatterPlot({
                 x={(margin.left + xZone1km) / 2}
                 y={margin.top + 17}
                 textAnchor="middle"
-                className="fill-blue-600/85 dark:fill-blue-400/85 text-[10px] font-extrabold"
+                className="fill-[#2f6bff] dark:fill-[#60a5fa] text-[10px] font-extrabold"
               >
                 {isCompactZoneHeader ? '<1km' : '역세권 코어 (<1km)'}
               </text>
@@ -718,7 +718,7 @@ export function DistanceRegressionScatterPlot({
                 x={(xZone1km + xZone2km) / 2}
                 y={margin.top + 17}
                 textAnchor="middle"
-                className="fill-emerald-600/85 dark:fill-emerald-400/85 text-[10px] font-extrabold"
+                className="fill-slate-600 dark:fill-slate-300 text-[10px] font-extrabold"
               >
                 {isCompactZoneHeader ? '1~2km' : '준역세권 (1~2km)'}
               </text>
@@ -787,7 +787,7 @@ export function DistanceRegressionScatterPlot({
                       stroke="currentColor"
                       className={
                         isZoneBoundary
-                          ? 'text-blue-500/30 dark:text-blue-400/25'
+                          ? 'text-brand-blue/30'
                           : 'text-slate-200/70 dark:text-[#202027]'
                       }
                       strokeWidth={isZoneBoundary ? '1.25' : '0.75'}
@@ -833,7 +833,7 @@ export function DistanceRegressionScatterPlot({
 
               {/* Regression Trendlines (Clipped cleanly to plot area) */}
               <g clipPath="url(#scatterPlotClip)">
-                {/* 1. Linear OLS Trendline (Blue Dashed) */}
+                {/* 1. Linear OLS Trendline (Electric Cobalt Dashed) */}
                 {showLinearLine && (
                   <>
                     <line
@@ -841,7 +841,7 @@ export function DistanceRegressionScatterPlot({
                       y1={lineY1}
                       x2={lineX2}
                       y2={lineY2}
-                      stroke="#3182f6"
+                      stroke="#2f6bff"
                       strokeOpacity="0.14"
                       strokeWidth="6"
                       strokeLinecap="round"
@@ -851,7 +851,7 @@ export function DistanceRegressionScatterPlot({
                       y1={lineY1}
                       x2={lineX2}
                       y2={lineY2}
-                      stroke="#3182f6"
+                      stroke="#2f6bff"
                       strokeWidth="2.25"
                       strokeDasharray="7 5"
                       strokeLinecap="round"
@@ -860,13 +860,13 @@ export function DistanceRegressionScatterPlot({
                   </>
                 )}
 
-                {/* 2. Empirical Semi-Log Station Decay Curve (Emerald Solid) */}
+                {/* 2. Empirical Semi-Log Station Decay Curve (Hot Spark Solid) */}
                 {showLogCurve && logCurvePath && (
                   <>
                     <path
                       d={logCurvePath}
                       fill="none"
-                      stroke="#059669"
+                      stroke="#ff3b5c"
                       strokeOpacity="0.16"
                       strokeWidth="7.5"
                       strokeLinecap="round"
@@ -875,7 +875,7 @@ export function DistanceRegressionScatterPlot({
                     <path
                       d={logCurvePath}
                       fill="none"
-                      stroke="#059669"
+                      stroke="#ff3b5c"
                       strokeWidth="2.75"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -892,7 +892,7 @@ export function DistanceRegressionScatterPlot({
                     y1={margin.top + zoneHeaderBandHeight}
                     x2={getX(hoveredRecord.distanceToStationMeters)}
                     y2={svgHeight - margin.bottom}
-                    stroke="#3182f6"
+                    stroke="#2f6bff"
                     strokeWidth="1.2"
                     strokeDasharray="3 3"
                   />
@@ -901,7 +901,7 @@ export function DistanceRegressionScatterPlot({
                     y1={getY(hoveredRecord.avgPricePerPyeongWon)}
                     x2={svgWidth - margin.right}
                     y2={getY(hoveredRecord.avgPricePerPyeongWon)}
-                    stroke="#3182f6"
+                    stroke="#2f6bff"
                     strokeWidth="1.2"
                     strokeDasharray="3 3"
                   />
@@ -909,7 +909,7 @@ export function DistanceRegressionScatterPlot({
                   <polygon
                     points={`${getX(hoveredRecord.distanceToStationMeters)},${getY(hoveredRecord.avgPricePerPyeongWon) - 11} ${getX(hoveredRecord.distanceToStationMeters) + 11},${getY(hoveredRecord.avgPricePerPyeongWon)} ${getX(hoveredRecord.distanceToStationMeters)},${getY(hoveredRecord.avgPricePerPyeongWon) + 11} ${getX(hoveredRecord.distanceToStationMeters) - 11},${getY(hoveredRecord.avgPricePerPyeongWon)}`}
                     fill="none"
-                    stroke="#3182f6"
+                    stroke="#2f6bff"
                     strokeWidth="1.8"
                   />
                 </g>
@@ -999,20 +999,20 @@ export function DistanceRegressionScatterPlot({
                     )}px`,
                     top: `${Math.max(12, tooltipPos.y - 180)}px`,
                   }}
-                  className="absolute z-20 pointer-events-none p-3.5 rounded-2xl bg-white/95 dark:bg-[#1e1e26]/95 backdrop-blur-md border border-blue-500/30 shadow-xl min-w-[248px] flex flex-col gap-1.5 text-[11px]"
+                  className="absolute z-20 pointer-events-none p-3.5 rounded-2xl bg-surface/95 backdrop-blur-md border border-border shadow-xl min-w-[248px] flex flex-col gap-1.5 text-[11px]"
                 >
-                  <div className="flex items-center justify-between gap-2 border-b border-[#f2f4f6] dark:border-[#2c2c35] pb-1.5 mb-0.5">
+                  <div className="flex items-center justify-between gap-2 border-b border-border pb-1.5 mb-0.5">
                     <span className="font-black text-primary text-[12px] truncate max-w-[164px]">
                       {hoveredRecord.name}
                     </span>
-                    <span className="px-1.5 py-0.5 rounded bg-[#f9fafb] dark:bg-[#2a2a35] text-[10px] font-extrabold text-secondary">
+                    <span className="px-1.5 py-0.5 rounded bg-[#eff1f5] dark:bg-[#1e2532] text-[10px] font-extrabold text-secondary">
                       {hoveredRecord.dong}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between tabular-nums">
                     <span className="text-secondary font-semibold">동탄역 직선거리</span>
-                    <span className="font-black text-blue-600 dark:text-blue-400 inline-flex items-center gap-1">
+                    <span className="font-black text-brand-blue inline-flex items-center gap-1">
                       <TrainFront className="w-3 h-3" />
                       {hoveredRecord.distanceToStationMeters.toLocaleString()}m
                     </span>
@@ -1034,7 +1034,7 @@ export function DistanceRegressionScatterPlot({
 
                   <div className="flex items-center justify-between tabular-nums">
                     <span className="text-secondary font-semibold">최근 실거래가</span>
-                    <span className="font-black text-emerald-600 dark:text-emerald-400">
+                    <span className="font-black text-primary">
                       {formatPriceEokCompact(hoveredRecord.latestPriceWon, '억원')}
                       {latestDateShort && (
                         <span className="text-[10px] font-semibold text-tertiary ml-1">
@@ -1044,15 +1044,15 @@ export function DistanceRegressionScatterPlot({
                     </span>
                   </div>
 
-                  <div className="flex flex-col gap-1 pt-1 border-t border-[#f2f4f6] dark:border-[#2c2c35] tabular-nums">
+                  <div className="flex flex-col gap-1 pt-1 border-t border-border tabular-nums">
                     {logRegression.isValid && (
                       <div className="flex items-center justify-between">
                         <span className="text-tertiary font-semibold">로그 곡선 대비</span>
                         <span
                           className={`font-black ${
                             residualLogMan >= 0
-                              ? 'text-emerald-600 dark:text-emerald-400'
-                              : 'text-blue-600 dark:text-blue-400'
+                              ? 'text-brand-red'
+                              : 'text-brand-blue'
                           }`}
                         >
                           {residualLogMan >= 0 ? `+${residualLogMan.toLocaleString()}만` : `${residualLogMan.toLocaleString()}만`}/평
@@ -1064,8 +1064,8 @@ export function DistanceRegressionScatterPlot({
                       <span
                         className={`font-extrabold ${
                           residualLinearMan >= 0
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : 'text-blue-600 dark:text-blue-400'
+                            ? 'text-brand-red'
+                            : 'text-brand-blue'
                         }`}
                       >
                         {residualLinearMan >= 0 ? `+${residualLinearMan.toLocaleString()}만` : `${residualLinearMan.toLocaleString()}만`}/평
@@ -1079,18 +1079,18 @@ export function DistanceRegressionScatterPlot({
         </div>
 
         {/* Right 4 Cols: Quantitative Phase-by-Phase Slope Decay Briefing Panel */}
-        <aside className="lg:col-span-4 w-full rounded-xl bg-white dark:bg-[#111115] border border-[#f2f4f6] dark:border-[#22222a] p-4 sm:p-5 flex flex-col justify-between gap-4">
+        <aside className="lg:col-span-4 w-full rounded-xl bg-surface border border-border p-4 sm:p-5 flex flex-col justify-between gap-4">
           <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#f2f4f6] dark:border-[#1e1e26]">
+            <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-border">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                <div className="w-6 h-6 rounded-lg bg-[#eff1f5] dark:bg-[#1e2532] flex items-center justify-center text-primary shrink-0">
                   <TrendingDown className="w-3.5 h-3.5" />
                 </div>
                 <h4 className="text-xs sm:text-sm font-black text-primary tracking-tight">
                   구간별 실제 감가 기울기 비교
                 </h4>
               </div>
-              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#1e1e26] text-[10px] font-extrabold text-secondary tabular-nums">
+              <span className="px-2 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-[10px] font-extrabold text-secondary tabular-nums">
                 상관계수 r = {(logRegression.isValid ? logRegression.pearsonR : regression.pearsonR).toFixed(2)}
               </span>
             </div>
@@ -1102,59 +1102,59 @@ export function DistanceRegressionScatterPlot({
             {/* 3-Stage Slope Intensity Cards */}
             <div className="flex flex-col gap-2.5 mt-1">
               {/* Stage 1: Core <1km */}
-              <div className="p-3 rounded-xl bg-[#f9fafb] dark:bg-[#17171c] border border-blue-500/15 flex flex-col gap-1.5">
+              <div className="p-3 rounded-xl bg-elevated border border-brand-blue/20 flex flex-col gap-1.5">
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-extrabold text-blue-600 dark:text-blue-400">
+                  <span className="font-extrabold text-brand-blue">
                     1단계 · 역세권 코어 (200m → 1km)
                   </span>
                   <span className="font-black text-primary tabular-nums">
                     1km당 -{decaySummary.dropCorePerKm.toLocaleString()}만/평
                   </span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-slate-200/70 dark:bg-slate-800 overflow-hidden">
+                <div className="w-full h-2 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] overflow-hidden">
                   <div
                     style={{
                       width: `${Math.min(100, Math.max(15, Math.round((decaySummary.dropCorePerKm / decaySummary.maxRate) * 100)))}%`,
                     }}
-                    className="h-full rounded-full bg-blue-600 dark:bg-blue-500"
+                    className="h-full rounded-full bg-[#2f6bff]"
                   />
                 </div>
                 <div className="flex items-center justify-between text-[10px] text-secondary font-semibold tabular-nums">
                   <span>기대 평당가 {decaySummary.p200m.toLocaleString()}만 → {decaySummary.p1km.toLocaleString()}만</span>
-                  <span className="text-blue-600 dark:text-blue-400 font-extrabold">
+                  <span className="text-brand-blue font-extrabold">
                     800m 만에 -{decaySummary.dropCore800m.toLocaleString()}만 급감
                   </span>
                 </div>
               </div>
 
               {/* Stage 2: Sub-station 1~2km */}
-              <div className="p-3 rounded-xl bg-[#f9fafb] dark:bg-[#17171c] border border-emerald-500/15 flex flex-col gap-1.5">
+              <div className="p-3 rounded-xl bg-elevated border border-border flex flex-col gap-1.5">
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
+                  <span className="font-extrabold text-primary">
                     2단계 · 준역세권 (1km → 2km)
                   </span>
                   <span className="font-black text-primary tabular-nums">
                     1km당 -{decaySummary.dropMid1km.toLocaleString()}만/평
                   </span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-slate-200/70 dark:bg-slate-800 overflow-hidden">
+                <div className="w-full h-2 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] overflow-hidden">
                   <div
                     style={{
                       width: `${Math.min(100, Math.max(12, Math.round((decaySummary.dropMid1km / decaySummary.maxRate) * 100)))}%`,
                     }}
-                    className="h-full rounded-full bg-emerald-600 dark:bg-emerald-500"
+                    className="h-full rounded-full bg-slate-700 dark:bg-slate-300"
                   />
                 </div>
                 <div className="flex items-center justify-between text-[10px] text-secondary font-semibold tabular-nums">
                   <span>기대 평당가 {decaySummary.p1km.toLocaleString()}만 → {decaySummary.p2km.toLocaleString()}만</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">
+                  <span className="text-secondary font-extrabold">
                     중간 감가 구간
                   </span>
                 </div>
               </div>
 
               {/* Stage 3: Outer 2~5km */}
-              <div className="p-3 rounded-xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#22222c] flex flex-col gap-1.5">
+              <div className="p-3 rounded-xl bg-elevated border border-border flex flex-col gap-1.5">
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="font-extrabold text-secondary">
                     3단계 · 외곽 주거권 (2km → 5km)
@@ -1163,7 +1163,7 @@ export function DistanceRegressionScatterPlot({
                     1km당 -{decaySummary.dropOuterPerKm.toLocaleString()}만/평
                   </span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-slate-200/70 dark:bg-slate-800 overflow-hidden">
+                <div className="w-full h-2 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] overflow-hidden">
                   <div
                     style={{
                       width: `${Math.min(100, Math.max(8, Math.round((decaySummary.dropOuterPerKm / decaySummary.maxRate) * 100)))}%`,
@@ -1180,16 +1180,16 @@ export function DistanceRegressionScatterPlot({
           </div>
 
           {/* Bottom Summary Callout: 34-Pyeong Price Gap & Model Fit Comparison */}
-          <div className="p-3.5 rounded-xl bg-blue-500/[0.06] dark:bg-blue-500/[0.09] border border-blue-500/20 flex flex-col gap-1.5">
+          <div className="p-3.5 rounded-xl bg-elevated border border-border flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-[11px] font-extrabold text-primary tabular-nums">
               <span>국민평형(34평) 환산 거리 격차</span>
-              <span className="text-blue-600 dark:text-blue-400 font-black text-xs sm:text-sm">
+              <span className="text-brand-blue font-black text-xs sm:text-sm">
                 약 -{decaySummary.diff34PyeongEok}억원
               </span>
             </div>
             <p className="text-[10px] sm:text-[11px] text-secondary font-medium leading-snug tabular-nums">
               초역세권 200m({decaySummary.p200m.toLocaleString()}만/평) 대비 3km 외곽({decaySummary.p3km.toLocaleString()}만/평) 이동 시 평당 -{decaySummary.diff200mTo3kmMan.toLocaleString()}만원 차이 · 로그 회귀 적용 시 설명력 {(regression.rSquared * 100).toFixed(1)}% →{' '}
-              <strong className="text-emerald-600 dark:text-emerald-400 font-extrabold">
+              <strong className="text-brand-red font-extrabold">
                 {(logRegression.rSquared * 100).toFixed(1)}%
               </strong>
               로 상승

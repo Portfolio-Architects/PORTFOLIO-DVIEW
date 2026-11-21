@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import net from 'net';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
+import {
+  isForbiddenIpOrHost,
+  validateProxyImageTargetUrl,
+} from '@/lib/security/urlValidator';
+
+export { isForbiddenIpOrHost, validateProxyImageTargetUrl };
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,120 +24,6 @@ const ALLOWED_IMAGE_MIME_TYPES = new Set([
   'image/heic',
   'image/heif',
 ]);
-
-const ALLOWED_IMAGE_HOST_SUFFIXES = [
-  'firebasestorage.googleapis.com',
-  'storage.googleapis.com',
-  'googleusercontent.com',
-  'maps.googleapis.com',
-  'maps.gstatic.com',
-  'kakaocdn.net',
-  'dongtanview.com',
-  'dview.kr',
-] as const;
-
-export function isForbiddenIpOrHost(rawHost: string): boolean {
-  const host = rawHost.trim().toLowerCase().replace(/^\[|\]$/g, '');
-  if (!host) return true;
-  if (
-    host === 'localhost' ||
-    host.endsWith('.localhost') ||
-    host.endsWith('.local') ||
-    host.endsWith('.internal') ||
-    host === 'metadata.google.internal'
-  ) {
-    return true;
-  }
-
-  const ipVersion = net.isIP(host);
-  if (ipVersion === 4) {
-    const parts = host.split('.').map(Number);
-    const [a, b] = parts;
-    if (
-      a === 0 ||
-      a === 10 ||
-      a === 127 ||
-      (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) ||
-      (a === 100 && b >= 64 && b <= 127) ||
-      a >= 224
-    ) {
-      return true;
-    }
-    return false;
-  }
-
-  if (ipVersion === 6) {
-    if (
-      host === '::1' ||
-      host === '::' ||
-      host.startsWith('fc') ||
-      host.startsWith('fd') ||
-      host.startsWith('fe8') ||
-      host.startsWith('fe9') ||
-      host.startsWith('fea') ||
-      host.startsWith('feb') ||
-      host.startsWith('::ffff:')
-    ) {
-      return true;
-    }
-    return false;
-  }
-
-  return false;
-}
-
-export function validateProxyImageTargetUrl(rawUrl: string): {
-  valid: boolean;
-  reason?: string;
-  normalizedUrl?: string;
-} {
-  let parsedUrl: URL;
-  try {
-    parsedUrl = new URL(rawUrl);
-  } catch {
-    return { valid: false, reason: 'Invalid URL format' };
-  }
-
-  if (parsedUrl.protocol !== 'https:') {
-    return { valid: false, reason: 'Only HTTPS image URLs are allowed' };
-  }
-
-  if (parsedUrl.username || parsedUrl.password) {
-    return { valid: false, reason: 'URL credentials are forbidden' };
-  }
-
-  if (parsedUrl.port && parsedUrl.port !== '443') {
-    return { valid: false, reason: 'Non-standard HTTPS ports are forbidden' };
-  }
-
-  const hostname = parsedUrl.hostname.toLowerCase();
-  if (isForbiddenIpOrHost(hostname)) {
-    return { valid: false, reason: 'Private, loopback, or metadata hosts are forbidden' };
-  }
-
-  const isWhitelistedDomain = ALLOWED_IMAGE_HOST_SUFFIXES.some(
-    (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
-  );
-  if (!isWhitelistedDomain) {
-    return { valid: false, reason: 'Image host is not in the allowed domain whitelist' };
-  }
-
-  const isSelfDomain =
-    hostname === 'dongtanview.com' ||
-    hostname.endsWith('.dongtanview.com') ||
-    hostname === 'dview.kr' ||
-    hostname.endsWith('.dview.kr');
-  if (
-    isSelfDomain &&
-    (parsedUrl.pathname === '/api' || parsedUrl.pathname.startsWith('/api/'))
-  ) {
-    return { valid: false, reason: 'Proxying internal API endpoints is forbidden' };
-  }
-
-  return { valid: true, normalizedUrl: parsedUrl.toString() };
-}
 
 async function readBoundedImageBytes(
   response: Response,

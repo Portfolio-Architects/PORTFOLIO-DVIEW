@@ -70,7 +70,7 @@ export default function ContactClient() {
 
         <div className="space-y-4">
           <div className="flex items-start gap-3 bg-surface p-4 rounded-xl border border-border shadow-sm">
-            <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 shrink-0">
+            <div className="p-2 rounded-lg bg-[#eff1f5] dark:bg-[#1e2532] text-primary shrink-0">
               <Mail size={16} />
             </div>
             <div>
@@ -80,7 +80,7 @@ export default function ContactClient() {
           </div>
 
           <div className="flex items-start gap-3 bg-surface p-4 rounded-xl border border-border shadow-sm">
-            <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 shrink-0">
+            <div className="p-2 rounded-lg bg-[#eff1f5] dark:bg-[#1e2532] text-primary shrink-0">
               <Clock size={16} />
             </div>
             <div>
@@ -90,7 +90,7 @@ export default function ContactClient() {
           </div>
 
           <div className="flex items-start gap-3 bg-surface p-4 rounded-xl border border-border shadow-sm">
-            <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 shrink-0">
+            <div className="p-2 rounded-lg bg-[#eff1f5] dark:bg-[#1e2532] text-primary shrink-0">
               <MessageSquare size={16} />
             </div>
             <div>
@@ -106,14 +106,14 @@ export default function ContactClient() {
       {/* 문의 작성 폼 */}
       <div className="md:col-span-2 bg-surface p-6 sm:p-8 rounded-2xl border border-border shadow-sm">
         <h3 className="text-[16px] sm:text-[18px] font-extrabold text-primary mb-6 tracking-tight flex items-center gap-2">
-          <Globe size={18} className="text-emerald-500" />
+          <Globe size={18} className="text-primary" />
           온라인 피드백 접수
         </h3>
 
         {isSuccess ? (
           <div className="flex flex-col items-center justify-center py-10 text-center animate-in fade-in duration-300">
-            <div className="w-16 h-16 bg-[#e6f4f2] dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-4 shadow-inner">
-              <Send size={28} className="ml-0.5 mt-0.5 text-blue-600 dark:text-blue-400" />
+            <div className="w-16 h-16 bg-[#eff1f5] dark:bg-[#1e2532] text-primary rounded-full flex items-center justify-center mb-4">
+              <Send size={28} className="ml-0.5 mt-0.5 text-primary" />
             </div>
             <h3 className="text-[20px] font-extrabold text-primary mb-2">피드백이 성공적으로 접수되었습니다!</h3>
             <p className="text-[14px] text-secondary leading-relaxed mb-6">
@@ -132,28 +132,28 @@ export default function ContactClient() {
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="user-name" className="block text-[12px] font-extrabold text-secondary mb-1">
-                성함 / 닉네임 <span className="text-[#ff3b30]">*</span>
+                성함 / 닉네임 <span className="text-brand-red">*</span>
               </label>
               <input
                 type="text"
                 id="user-name"
                 ref={nameRef}
                 placeholder="홍길동"
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-body focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-[13px] font-medium text-primary transition-all"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-body focus:ring-2 focus:ring-slate-400/25 focus:border-slate-500 outline-none text-[13px] font-medium text-primary transition-all"
                 required
               />
             </div>
 
             <div>
               <label htmlFor="user-email" className="block text-[12px] font-extrabold text-secondary mb-1">
-                이메일 주소 (답변 수신용) <span className="text-[#ff3b30]">*</span>
+                이메일 주소 (답변 수신용) <span className="text-brand-red">*</span>
               </label>
               <input
                 type="email"
                 id="user-email"
                 ref={emailRef}
                 placeholder="example@gmail.com"
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-body focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-[13px] font-medium text-primary transition-all"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-body focus:ring-2 focus:ring-slate-400/25 focus:border-slate-500 outline-none text-[13px] font-medium text-primary transition-all"
                 required
               />
             </div>
@@ -165,7 +165,7 @@ export default function ContactClient() {
               <select
                 id="inquiry-type"
                 ref={typeRef}
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-body focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-[13px] font-medium text-primary transition-all cursor-pointer"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-body focus:ring-2 focus:ring-slate-400/25 focus:border-slate-500 outline-none text-[13px] font-medium text-primary transition-all cursor-pointer"
               >
                 <option value="report">데이터 오류 제보 (단지 인프라 등)</option>
                 <option value="idea">서비스 기능 제안 / 건의사항</option>
@@ -176,14 +176,14 @@ export default function ContactClient() {
 
             <div>
               <label htmlFor="user-message" className="block text-[12px] font-extrabold text-secondary mb-1">
-                상세 내용 <span className="text-[#ff3b30]">*</span>
+                상세 내용 <span className="text-brand-red">*</span>
               </label>
               <textarea
                 id="user-message"
                 ref={messageRef}
                 rows={6}
                 placeholder="문의하실 내용을 구체적으로 적어주세요. 단지 정보 정정의 경우 단지 이름과 실측 정보(예: 초등학교 도보 7분 등)를 기재해 주시면 빠른 반영에 큰 도움이 됩니다."
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-body focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-[13px] font-medium text-primary transition-all resize-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-body focus:ring-2 focus:ring-slate-400/25 focus:border-slate-500 outline-none text-[13px] font-medium text-primary transition-all resize-none"
                 required
               />
             </div>
@@ -192,7 +192,7 @@ export default function ContactClient() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 rounded-xl bg-emerald-600 dark:bg-emerald-500 hover:bg-emerald-700 dark:hover:bg-emerald-600 disabled:bg-secondary/20 disabled:text-tertiary text-white font-extrabold text-[14px] transition-colors shadow-sm cursor-pointer border-none flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 disabled:bg-secondary/20 disabled:text-tertiary text-white dark:text-slate-900 font-extrabold text-[14px] transition-colors cursor-pointer border-none flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

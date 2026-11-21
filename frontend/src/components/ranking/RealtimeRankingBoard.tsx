@@ -59,7 +59,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
         <div>
           <h3 className="text-[15px] sm:text-[16px] font-black text-primary tracking-tight flex items-center gap-1.5">
             동탄 실시간 시장 랭킹 보드
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400">
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-red-light text-brand-red">
               LIVE
             </span>
           </h3>
@@ -131,17 +131,17 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
                 handleActivate();
               }
             }}
-            className="flex items-center justify-between p-3 rounded-xl border border-border/50 hover:border-blue-600/40 dark:hover:border-blue-400/40 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all cursor-pointer group"
+            className="flex items-center justify-between p-3 rounded-xl border border-border/50 hover:border-slate-900/20 dark:hover:border-white/20 hover:bg-[#eff1f5]/70 dark:hover:bg-[#1e2532]/70 transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-3 min-w-0">
               <span
-                className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black shrink-0 ${
+                className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black tabular-nums shrink-0 ${
                   item.rank === 1
-                    ? 'bg-emerald-400 text-slate-900 shadow-xs'
+                    ? 'dview-spark-badge shadow-xs'
                     : item.rank === 2
-                    ? 'bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-100'
+                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
                     : item.rank === 3
-                    ? 'bg-emerald-100 text-emerald-800 dark:bg-slate-800/60 dark:text-emerald-200'
+                    ? 'bg-[#eff1f5] text-primary dark:bg-[#1e2532] dark:text-primary'
                     : 'text-tertiary font-bold'
                 }`}
               >
@@ -149,17 +149,17 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
               </span>
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[12.5px] font-extrabold text-primary truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <span className="text-[12.5px] font-extrabold text-primary truncate group-hover:text-primary transition-colors">
                     {item.displayAptName || item.apartmentName}
                   </span>
                   {(item.badge || item.badgeText) && (
                     <span
-                      className={`px-1.5 py-0.2 rounded text-[9px] font-black shrink-0 ${
+                      className={`px-1.5 py-0.5 rounded text-[9px] font-black shrink-0 ${
                         item.badgeType === 'high'
-                          ? 'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-300 border border-red-200/50'
+                          ? 'dview-spark-badge'
                           : item.badgeType === 'gap'
-                          ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200/50'
-                          : 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/50'
+                          ? 'bg-brand-blue-light text-brand-blue'
+                          : 'bg-brand-red-light text-brand-red'
                       }`}
                     >
                       {item.badge || item.badgeText}
@@ -173,7 +173,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
             </div>
 
             <div className="flex items-center gap-2 shrink-0 pl-2">
-              <span className="text-[13px] font-black text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <span className="text-[13px] font-black tabular-nums text-primary transition-colors">
                 {item.metricValue || item.primaryValue}
               </span>
             </div>

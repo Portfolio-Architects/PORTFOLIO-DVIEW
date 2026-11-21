@@ -68,58 +68,58 @@ export function DistanceBandComparisonChart({
   const values = distanceTiers.map((t) => getMetricValue(t, currentMetric));
   const maxValue = Math.max(...values, 1);
 
-  // Distinct color accents for distance tiers (Ad Money v5.2 strict palette)
+  // Distinct color accents for distance tiers (Ad Money v6.0 Live Spark palette)
   const tierColors: Record<
     string,
     { bar: string; track: string; badge: string; text: string; pill: string }
   > = {
     '<500m': {
-      bar: 'bg-blue-600 dark:bg-blue-500 shadow-[0_4px_14px_rgba(37,99,235,0.28)]',
-      track: 'bg-blue-500/[0.06] dark:bg-blue-500/[0.08] border border-blue-500/15',
-      badge: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20',
-      text: 'text-blue-600 dark:text-blue-400',
-      pill: 'bg-blue-600 text-white',
+      bar: 'bg-[#2f6bff] shadow-[0_4px_14px_rgba(47,107,255,0.28)]',
+      track: 'bg-brand-blue-light/60 border border-brand-blue/15',
+      badge: 'bg-brand-blue-light text-brand-blue',
+      text: 'text-brand-blue',
+      pill: 'bg-[#2f6bff] text-white',
     },
     '500m-1km': {
-      bar: 'bg-blue-500 dark:bg-blue-600 shadow-[0_4px_12px_rgba(59,130,246,0.20)]',
-      track: 'bg-blue-500/[0.04] dark:bg-blue-500/[0.06] border border-blue-500/10',
-      badge: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20',
-      text: 'text-blue-600 dark:text-blue-400',
-      pill: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
+      bar: 'bg-[#2f6bff]/80 dark:bg-[#60a5fa]/85 shadow-[0_4px_12px_rgba(47,107,255,0.18)]',
+      track: 'bg-brand-blue-light/35 border border-brand-blue/10',
+      badge: 'bg-brand-blue-light text-brand-blue',
+      text: 'text-primary',
+      pill: 'bg-brand-blue-light text-brand-blue',
     },
     '1km-2km': {
-      bar: 'bg-emerald-600 dark:bg-emerald-500 shadow-[0_4px_12px_rgba(5,150,105,0.22)]',
-      track: 'bg-emerald-500/[0.05] dark:bg-emerald-500/[0.07] border border-emerald-500/12',
-      badge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
-      text: 'text-emerald-600 dark:text-emerald-400',
-      pill: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+      bar: 'bg-slate-700 dark:bg-slate-300',
+      track: 'bg-[#eff1f5]/70 dark:bg-[#1e2532]/70 border border-border',
+      badge: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary',
+      text: 'text-primary',
+      pill: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary',
     },
     '2km-3km': {
       bar: 'bg-slate-500 dark:bg-slate-400',
-      track: 'bg-slate-200/40 dark:bg-slate-800/40 border border-slate-300/40 dark:border-slate-700/40',
-      badge: 'bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
-      text: 'text-slate-700 dark:text-slate-300',
-      pill: 'bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300',
+      track: 'bg-[#eff1f5]/50 dark:bg-[#1e2532]/50 border border-border',
+      badge: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary',
+      text: 'text-secondary',
+      pill: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary',
     },
     '3km+': {
       bar: 'bg-slate-400 dark:bg-slate-500',
-      track: 'bg-slate-200/35 dark:bg-slate-800/35 border border-slate-300/30 dark:border-slate-700/30',
-      badge: 'bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
-      text: 'text-slate-600 dark:text-slate-400',
-      pill: 'bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
+      track: 'bg-[#eff1f5]/40 dark:bg-[#1e2532]/40 border border-border',
+      badge: 'bg-[#eff1f5] dark:bg-[#1e2532] text-tertiary',
+      text: 'text-secondary',
+      pill: 'bg-[#eff1f5] dark:bg-[#1e2532] text-tertiary',
     },
   };
 
   return (
     <section
       aria-label="동탄역 거리 구간별 아파트 시세 비교 차트"
-      className={`w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-4 sm:p-6 border border-[#f2f4f6] dark:border-[#202027] min-h-[380px] sm:min-h-[420px] flex flex-col justify-between ${className}`}
+      className={`w-full rounded-2xl bg-elevated p-4 sm:p-6 border border-border min-h-[380px] sm:min-h-[420px] flex flex-col justify-between ${className}`}
     >
       {/* Header & Metric Toggles */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
+            <div className="w-6 h-6 rounded-lg bg-[#eff1f5] dark:bg-[#1e2532] flex items-center justify-center text-primary">
               <TrainFront className="w-3.5 h-3.5" />
             </div>
             <h3 className="text-sm sm:text-base font-black text-primary tracking-tight">
@@ -136,21 +136,21 @@ export function DistanceBandComparisonChart({
           <button
             type="button"
             onClick={() => handleMetricToggle('pyeong')}
-            className={getToggleBtnClass(currentMetric === 'pyeong', { size: 'sm', tone: 'blue' })}
+            className={getToggleBtnClass(currentMetric === 'pyeong', { size: 'sm', tone: 'neutral' })}
           >
             평당가 비교
           </button>
           <button
             type="button"
             onClick={() => handleMetricToggle('price')}
-            className={getToggleBtnClass(currentMetric === 'price', { size: 'sm', tone: 'blue' })}
+            className={getToggleBtnClass(currentMetric === 'price', { size: 'sm', tone: 'neutral' })}
           >
             평균 매매가
           </button>
           <button
             type="button"
             onClick={() => handleMetricToggle('volume')}
-            className={getToggleBtnClass(currentMetric === 'volume', { size: 'sm', tone: 'blue' })}
+            className={getToggleBtnClass(currentMetric === 'volume', { size: 'sm', tone: 'neutral' })}
           >
             거래량·단지수
           </button>
@@ -158,9 +158,9 @@ export function DistanceBandComparisonChart({
       </div>
 
       {/* High-Contrast Inner Canvas Area (Zero-CLS Rigid Container min-h-[250px]) */}
-      <div className="w-full flex-1 min-h-[250px] rounded-xl bg-white dark:bg-[#111115] border border-[#f2f4f6] dark:border-[#22222a] p-3.5 sm:p-5 flex flex-col justify-end shadow-[inset_0_1px_2px_rgba(15,23,42,0.03)]">
+      <div className="w-full flex-1 min-h-[250px] rounded-xl bg-surface border border-border p-3.5 sm:p-5 flex flex-col justify-end shadow-[inset_0_1px_2px_rgba(15,23,42,0.03)]">
         {/* Bar Plot with Reference Gridlines */}
-        <div className="relative grid grid-cols-5 gap-2.5 sm:gap-5 items-end h-[210px] w-full border-b border-slate-200 dark:border-slate-800 pb-2">
+        <div className="relative grid grid-cols-5 gap-2.5 sm:gap-5 items-end h-[210px] w-full border-b border-border pb-2">
           {/* Subtle Horizontal Reference Gridlines */}
           <div
             aria-hidden="true"
@@ -191,8 +191,8 @@ export function DistanceBandComparisonChart({
                     <span
                       className={`mt-0.5 px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-extrabold tabular-nums ${
                         tier.premiumVsAveragePercent > 0
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                          : 'bg-slate-200/60 dark:bg-slate-800 text-secondary'
+                          ? 'bg-brand-red-light text-brand-red'
+                          : 'bg-brand-blue-light text-brand-blue'
                       }`}
                     >
                       {tier.premiumVsAveragePercent > 0
@@ -223,7 +223,7 @@ export function DistanceBandComparisonChart({
             return (
               <div
                 key={tier.tierId}
-                className="flex flex-col items-center p-1.5 sm:p-2 rounded-lg bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]"
+                className="flex flex-col items-center p-1.5 sm:p-2 rounded-lg bg-elevated border border-border"
               >
                 <span className="text-[11px] sm:text-[12px] font-extrabold text-primary leading-tight tabular-nums">
                   {tier.tierId}
@@ -241,7 +241,7 @@ export function DistanceBandComparisonChart({
       </div>
 
       {/* Chart Footer Notes */}
-      <div className="mt-3 pt-3 border-t border-[#f2f4f6] dark:border-[#202027] flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-tertiary">
+      <div className="mt-3 pt-3 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-tertiary">
         <span className="tabular-nums">
           * 동탄역 중심 WGS84 좌표(37.200092, 127.095514) 기준 Haversine 구면거리
         </span>

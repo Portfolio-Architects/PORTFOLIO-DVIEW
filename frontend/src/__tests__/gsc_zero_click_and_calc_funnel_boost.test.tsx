@@ -9,9 +9,12 @@ import AboutPage, { metadata as aboutMetadata } from '@/app/about/page';
 import GuideArticlePage, { generateMetadata as generateGuideMetadata } from '@/app/guide/[slug]/page';
 import { getMainPageSchema } from '@/lib/utils/structuredData';
 import {
+  buildApartmentSeoMetadata,
   buildTechnoValleySeoMetadata,
   buildTechnoValleyJsonLd,
   getTechnoValleyJisanList,
+  getTxSummaryData,
+  hasVerifiedApartmentSalePrice,
 } from '@/lib/services/apartmentPageService';
 import { ApartmentModalHeader } from '@/components/apartment/ApartmentModalHeader';
 import InlineMortgageDsrBridge, {
@@ -110,7 +113,15 @@ describe('/boost — ① GSC 0-Click SERP Metadata & Rich Snippets + ② Calcula
       expect(schoolFaqNode.mainEntity[0].name).toContain('동탄 학군지');
       schoolRender.unmount();
 
-      expect(String(compMeta.title).slice(0, 36)).toContain('시세 10억 vs 16억');
+      expect(String(compMeta.title).slice(0, 32)).toContain('(시세 10억 vs 16억)');
+      expect(String(schoolMeta.title).slice(0, 32)).toContain('(10~21억)');
+
+      const railMeta = await generateGuideMetadata({
+        params: Promise.resolve({ slug: 'gtx-a-tram-rail-network' }),
+      });
+      expect(String(railMeta.title)).toMatch(/^동탄 트램 1·2호선 노선도/);
+      expect(String(railMeta.title).length).toBeLessThanOrEqual(45);
+      expect(String(railMeta.title).slice(0, 32)).toContain('수혜 단지 실거래가');
 
       const budgetMeta = await generateGuideMetadata({
         params: Promise.resolve({ slug: 'dongtan-budget-tier-ranking' }),
@@ -119,12 +130,27 @@ describe('/boost — ① GSC 0-Click SERP Metadata & Rich Snippets + ② Calcula
       expect(String(budgetMeta.description)).toMatch(/^동탄 아파트 순위/);
     });
 
+    it('front-loads real MOLIT prices inside the first 32 chars and keeps <=60-char titles across all verified-sale apartments', async () => {
+      const txMap = await getTxSummaryData();
+      const verifiedKeys = Object.keys(txMap).filter((k) =>
+        hasVerifiedApartmentSalePrice(txMap[k])
+      );
+      expect(verifiedKeys.length).toBeGreaterThan(100);
+
+      for (const aptKey of verifiedKeys) {
+        const meta = await buildApartmentSeoMetadata(aptKey, undefined, 'https://dongtanview.com');
+        const title = String(meta.title || '');
+        expect(title.length).toBeLessThanOrEqual(60);
+        expect(title.slice(0, 32)).toMatch(/\d+(?:억|,\d{3}만)/);
+      }
+    });
+
     it('front-loads search intents on /, /overview, /explore, and enriches getMainPageSchema with MOLIT Dataset attribution', () => {
       for (const meta of [rootMetadata, homeMetadata, overviewMetadata]) {
         expect(String(meta.title)).toContain('동탄 아파트 시세');
         expect(String(meta.title)).toContain('집값 추이 그래프');
-        expect(String(meta.title)).toContain('1·2신도시 184개 가격 순위');
-        expect(String(meta.description)).toMatch(/^동탄 아파트 시세·집값 추이 그래프·실거래가 순위/);
+        expect(String(meta.title)).toContain('184개');
+        expect(String(meta.description)).toMatch(/^동탄.*아파트 시세·집값 추이 그래프/);
       }
 
       expect(String(exploreMetadata.description)).toMatch(/^동탄 아파트 순위/);

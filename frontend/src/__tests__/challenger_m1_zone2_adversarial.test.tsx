@@ -49,7 +49,7 @@ describe('Empirical Challenger: Zone 2 Adversarial Stress Suite', () => {
         trigger: 'hero_card',
         apt_name: '동탄역 롯데캐슬',
       });
-      expect(screen.getByText(/동탄역 롯데캐슬 신규 체결 즉시 발송/)).toBeInTheDocument();
+      expect(screen.getByText(/동탄 전체 · 동탄역 롯데캐슬 매매 요약/)).toBeInTheDocument();
     });
 
     it('Oracle 1.2: Push modal fallback to "동탄 전체" when selectedAptName is null, undefined, or empty', () => {
@@ -71,7 +71,7 @@ describe('Empirical Challenger: Zone 2 Adversarial Stress Suite', () => {
         trigger: 'hero_card',
         apt_name: '동탄 전체',
       });
-      expect(screen.getByText(/동탄 전역 신규 체결 즉시 발송/)).toBeInTheDocument();
+      expect(screen.getByText(/동탄 전체 매매 건수·신고가 요약/)).toBeInTheDocument();
 
       // Test with undefined
       rerender(

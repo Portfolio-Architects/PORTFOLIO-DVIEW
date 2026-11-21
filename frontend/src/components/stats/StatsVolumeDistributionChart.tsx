@@ -19,13 +19,13 @@ export interface StatsVolumeDistributionChartProps {
 }
 
 const TIER_COLORS: Record<string, string> = {
-  '소형 (60㎡ 이하)': '#3b82f6', // Soft Blue
-  '중소형 (60~85㎡)': '#2563eb', // Trust Blue
-  '중대형 (85~102㎡)': '#059669', // Emerald
-  '대형 (102㎡ 초과)': '#475569', // Slate
+  '소형 (60㎡ 이하)': '#60a5fa', // Cobalt Light
+  '중소형 (60~85㎡)': '#2f6bff', // Electric Cobalt
+  '중대형 (85~102㎡)': '#334155', // Deep Slate
+  '대형 (102㎡ 초과)': '#94a3b8', // Cool Slate
 };
 
-const FALLBACK_COLORS = ['#2563eb', '#3b82f6', '#059669', '#10b981', '#475569', '#64748b'];
+const FALLBACK_COLORS = ['#2f6bff', '#60a5fa', '#334155', '#64748b', '#94a3b8', '#cbd5e1'];
 
 export function StatsVolumeDistributionChart({
   distribution,
@@ -55,8 +55,8 @@ export function StatsVolumeDistributionChart({
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white flex items-center gap-2">
-            <PieChartIcon size={18} className="text-blue-600" />
+          <h3 className="font-extrabold text-base sm:text-lg text-primary flex items-center gap-2">
+            <PieChartIcon size={18} className="text-primary" />
             <span>평형대별 거래량 비중</span>
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -148,7 +148,7 @@ export function StatsVolumeDistributionChart({
                   onMouseEnter={() => setActiveIndex(idx)}
                   onMouseLeave={() => setActiveIndex(null)}
                   className={`flex items-center justify-between p-2 rounded-xl transition-colors cursor-pointer ${
-                    isSelected ? 'bg-slate-50 dark:bg-slate-800 font-bold' : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300'
+                    isSelected ? 'bg-[#eff1f5] dark:bg-[#1e2532] font-bold text-primary' : 'hover:bg-[#eff1f5]/60 dark:hover:bg-[#1e2532]/60 text-secondary'
                   }`}
                 >
                   <div className="flex items-center gap-2">

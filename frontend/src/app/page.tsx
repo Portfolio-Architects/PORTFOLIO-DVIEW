@@ -4,11 +4,17 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import DashboardClient from '@/components/DashboardClient';
+import HomeEditorialFeatureSection from '@/components/home/HomeEditorialFeatureSection';
 import { getInitialData } from '@/lib/services/dashboardData';
 import { toSlimDashboardInitialData } from '@/lib/services/slimInitialPayload';
-import { resolveCanonicalAptSlug } from '@/lib/services/apartmentPageService';
+import {
+  resolveCanonicalAptSlug,
+  isAdSenseApprovalMode,
+} from '@/lib/services/apartmentPageService';
 import { getMainPageSchema, safeJsonLd } from '@/lib/utils/structuredData';
 import { GUIDE_ARTICLES } from '@/lib/data/guides';
+import { resolveBalanceMatchups } from '@/lib/data/balanceMatchups';
+import { extractVerifiedComplexCatalog } from '@/lib/finance/budgetTierEngine';
 import { getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { ZONES, dongToZoneId, getZoneShortTagline } from '@/lib/zones';
 import {
@@ -52,11 +58,11 @@ export const revalidate = false;
 const HOME_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent('동탄 아파트 시세·실거래가·집값 추이 그래프')}&subtitle=${encodeURIComponent('동탄 1·2신도시 184개 단지 국토부 실거래가·전세가율·학군 비교 | D-VIEW')}`;
 
 export const metadata: Metadata = {
-  title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (1·2신도시 184개 가격 순위·전세가율) | D-VIEW',
+  title: '동탄 아파트 시세·집값 추이 그래프 (184개 실거래 리포트) | D-VIEW',
   description:
-    '동탄 아파트 시세·집값 추이 그래프·실거래가 순위 매일 동기화 — 동탄 1·2신도시 184개 아파트 가격·평형별 시세·전세가율·학군지 비교와 주담대 스트레스 DSR 40% 한도 계산기를 국토교통부 공식 실거래가로 바로 확인하세요.',
+    '동탄 1·2신도시 184개 아파트 시세·집값 추이 그래프·국토교통부 실거래가, 1:1 밸런스 맞대결, 내 현금·연봉 현실 티어 진단 및 25편 심층 입지 분석 리포트를 매일 동기화해 제공합니다.',
   keywords:
-    '동탄 아파트 시세, 동탄 집값, 동탄 집값 그래프, 동탄 집값 추이 그래프, 동탄 아파트 가격, 동탄 아파트 순위, 동탄 신도시 아파트 시세, 동탄 1 신도시 아파트 시세, 동탄 아파트 실거래가, 1동탄 2동탄 차이, 동탄1 동탄2 비교, 동탄 전세가율, 동탄 학군지, 동탄역 롯데캐슬, D-VIEW, 디뷰, 동뷰, 동탄뷰',
+    '동탄 아파트 시세, 동탄 아파트 실거래가, 동탄 집값 추이, 1동탄 2동탄 비교, 동탄 전세가율, 동탄 학군, 스트레스 DSR, D-VIEW, 디뷰',
   alternates: {
     canonical: 'https://dongtanview.com',
     types: {
@@ -392,6 +398,10 @@ export default async function HomePage() {
     .sort((a, b) => b.latestPrice - a.latestPrice)
     .slice(0, 10);
 
+  const approvalMode = isAdSenseApprovalMode();
+  const homeMatchups = resolveBalanceMatchups('home', txSummary);
+  const homeBudgetCatalog = extractVerifiedComplexCatalog(txSummary);
+
   return (
     <>
       <Script
@@ -404,6 +414,20 @@ export default async function HomePage() {
         <DashboardDataLoader initialTab="overview" prefetchedInitialData={initialData} />
       </Suspense>
 
+      {/* Site-Wide Engagement Hub (1:1 Balance Matchup + Budget Tier Reality Check) */}
+      <section
+        id="home-engagement-editorial-hub"
+        aria-label="동탄 실거래 참여 랩"
+        className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-2 pb-4"
+      >
+        <HomeEditorialFeatureSection
+          matchups={homeMatchups}
+          budgetCatalog={homeBudgetCatalog}
+          totalGuidesCount={GUIDE_ARTICLES.length}
+          verifiedComplexCount={homeBudgetCatalog.length}
+        />
+      </section>
+
       {/* Visible SSR Market Commentary & Editorial Hub for Search Crawlers and Users */}
       <section
         id="home-ssr-market-editorial"
@@ -411,82 +435,48 @@ export default async function HomePage() {
         className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pb-8 pt-2"
       >
         <div className="rounded-2xl bg-elevated/80 dark:bg-elevated/35 p-4 sm:p-5 space-y-4 transition-colors">
-          {/* Unified Report Hub: Contextual Interlinking Banner + Collapsed 23-Report Directory */}
-          <div className="space-y-2">
-            <div
-              id="home-lab-to-guide-interlink"
-              data-testid="home-lab-to-guide-interlink"
-              className="rounded-2xl bg-body/90 dark:bg-[#17171c] px-4 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5"
-            >
-              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-                <h3 className="text-xs sm:text-sm font-black text-primary">
-                  D-VIEW 심층 분석 리포트
-                </h3>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className={getVisualSignalPillClass('safe')}>{GUIDE_ARTICLES.length}편 아카이브</span>
-                  <span className={getVisualSignalPillClass('neutral')}>평당가 · 전세가율</span>
-                  <span className={getVisualSignalPillClass('down')}>DSR 40% 한도</span>
+          {/* Collapsible 25-Report Archive Directory (Deduplicated from top 6 featured cards) */}
+          <div id="home-guide-4col-grid" className="scroll-mt-20">
+            <details className={getSeoAccordionClass('bg-body! dark:bg-[#17171c]!')}>
+              <summary className={getSeoAccordionSummaryClass()}>
+                <span className="tabular-nums">분석 리포트 {GUIDE_ARTICLES.length}편 전체 목차 보기</span>
+                <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
+              </summary>
+              <div className={getSeoAccordionBodyClass('space-y-3')}>
+                <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#eff1f5] dark:border-[#1e2532] text-[11px] font-extrabold">
+                  <span className="text-tertiary tabular-nums">총 {GUIDE_ARTICLES.length}편 수록</span>
+                  <a
+                    href="#apt-market-energy-donut"
+                    className="text-secondary hover:text-primary transition-colors"
+                  >
+                    상단 실거래 랩으로 이동
+                  </a>
                 </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 shrink-0">
-                <a
-                  href="#home-guide-4col-grid"
-                  className="inline-flex items-center px-3 py-1.5 rounded-xl bg-elevated hover:bg-[#f2f4f6] dark:bg-body/60 dark:hover:bg-body text-primary text-[11px] font-extrabold transition-colors"
-                >
-                  목차 보기
-                </a>
-                <Link
-                  href="/guide"
-                  prefetch={false}
-                  className="inline-flex items-center px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors"
-                >
-                  분석 리포트 전체보기
-                </Link>
-              </div>
-            </div>
-
-            <div id="home-guide-4col-grid" className="scroll-mt-20">
-              <details className={getSeoAccordionClass('bg-body! dark:bg-[#17171c]!')}>
-                <summary className={getSeoAccordionSummaryClass()}>
-                  <span className="tabular-nums">분석 리포트 {GUIDE_ARTICLES.length}편 전체 목차 보기</span>
-                  <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
-                </summary>
-                <div className={getSeoAccordionBodyClass('space-y-3')}>
-                  <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#f2f4f6] dark:border-[#202027] text-[11px] font-extrabold">
-                    <span className="text-tertiary tabular-nums">총 {GUIDE_ARTICLES.length}편 수록</span>
-                    <a
-                      href="#apt-market-energy-donut"
-                      className="text-secondary hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {GUIDE_ARTICLES.map((article) => (
+                    <Link
+                      key={article.slug}
+                      href={`/guide/${article.slug}`}
+                      prefetch={false}
+                      className="group rounded-2xl bg-[#f7f8fa] hover:bg-[#eff1f5] dark:bg-[#151a23] dark:hover:bg-[#1e2532] p-3 flex flex-col justify-between gap-1.5 transition-colors"
                     >
-                      상단 실거래 랩으로 이동
-                    </a>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {GUIDE_ARTICLES.map((article) => (
-                      <Link
-                        key={article.slug}
-                        href={`/guide/${article.slug}`}
-                        prefetch={false}
-                        className="group rounded-2xl bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] p-3 flex flex-col justify-between gap-1.5 transition-colors"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 text-[10px] font-extrabold">
-                            {article.category}
-                          </span>
-                          <span className="inline-flex items-center gap-1 text-[10px] tabular-nums text-tertiary group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                            <span>{article.readingTime}</span>
-                            <ChevronRight size={12} aria-hidden="true" />
-                          </span>
-                        </div>
-                        <h4 className="text-xs font-bold text-primary group-hover:text-emerald-700 dark:group-hover:text-emerald-400 leading-snug transition-colors">
-                          {article.title}
-                        </h4>
-                      </Link>
-                    ))}
-                  </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="px-2 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-secondary text-[10px] font-extrabold">
+                          {article.category}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[10px] tabular-nums text-tertiary group-hover:text-primary transition-colors">
+                          <span>{article.readingTime}</span>
+                          <ChevronRight size={12} aria-hidden="true" />
+                        </span>
+                      </div>
+                      <h4 className="text-xs font-bold text-primary group-hover:underline leading-snug transition-colors">
+                        {article.title}
+                      </h4>
+                    </Link>
+                  ))}
                 </div>
-              </details>
-            </div>
+              </div>
+            </details>
           </div>
 
           {/* 7 Investment Zones Direct Crawl & Real-Data Navigation Grid */}
@@ -506,11 +496,11 @@ export default async function HomePage() {
                     key={zone.id}
                     href={`/zone/${zone.id}`}
                     prefetch={false}
-                    className="group rounded-2xl bg-body/90 hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] p-3.5 flex flex-col justify-between gap-2 transition-colors"
+                    className="group rounded-2xl bg-body/90 hover:bg-[#eff1f5] dark:bg-[#151a23] dark:hover:bg-[#1e2532] p-3.5 flex flex-col justify-between gap-2 transition-colors"
                   >
                     <div className="space-y-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400">
+                        <span className="text-[11px] font-extrabold text-secondary">
                           {zone.dongLabel}
                         </span>
                         {withLatestCount > 0 && (
@@ -519,7 +509,7 @@ export default async function HomePage() {
                           </span>
                         )}
                       </div>
-                      <h4 className="text-[13.5px] font-black text-primary group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-snug">
+                      <h4 className="text-[13.5px] font-black text-primary group-hover:underline transition-colors leading-snug">
                         {zone.name}
                       </h4>
                       <p className="text-[11.5px] text-secondary leading-snug">
@@ -527,7 +517,7 @@ export default async function HomePage() {
                       </p>
                     </div>
                     {avgLatestPrice > 0 && (
-                      <div className="pt-1.5 border-t border-[#f2f4f6] dark:border-[#202027] flex items-baseline justify-between gap-2">
+                      <div className="pt-1.5 border-t border-[#eff1f5] dark:border-[#1e2532] flex items-baseline justify-between gap-2">
                         <span className="text-[10.5px] font-semibold text-tertiary">
                           최근 실거래 평균
                         </span>
@@ -555,7 +545,7 @@ export default async function HomePage() {
                 <Link
                   href="/explore"
                   prefetch={false}
-                  className="text-[11.5px] font-extrabold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+                  className="text-[11.5px] font-extrabold text-primary hover:underline inline-flex items-center gap-1"
                 >
                   <span>전체 단지 탐색</span>
                 </Link>
@@ -570,21 +560,21 @@ export default async function HomePage() {
                       key={apt.name}
                       href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`}
                       prefetch={false}
-                      className="group min-w-0 overflow-hidden rounded-2xl bg-body/90 hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] p-3 sm:p-3.5 flex flex-col justify-between gap-2 transition-colors"
+                      className="group min-w-0 overflow-hidden rounded-2xl bg-body/90 hover:bg-[#eff1f5] dark:bg-[#151a23] dark:hover:bg-[#1e2532] p-3 sm:p-3.5 flex flex-col justify-between gap-2 transition-colors"
                     >
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center justify-between gap-1 text-[11px] font-bold text-tertiary leading-tight">
-                          <span className="tabular-nums font-black text-emerald-700 dark:text-emerald-400">
+                          <span className={`tabular-nums font-black ${idx === 0 ? 'text-brand-red' : 'text-secondary'}`}>
                             #{idx + 1}
                           </span>
                           <span className="shrink-0">{apt.dong}</span>
                         </div>
-                        <div className="text-[13px] font-bold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-snug break-keep [overflow-wrap:anywhere] min-w-0 transition-colors">
+                        <div className="text-[13px] font-bold text-primary group-hover:underline leading-snug break-keep [overflow-wrap:anywhere] min-w-0 transition-colors">
                           {apt.displayName}
                         </div>
                       </div>
-                      <div className="pt-1.5 border-t border-[#f2f4f6] dark:border-[#202027] flex flex-col gap-0.5">
-                        <div className="text-[13.5px] tabular-nums font-black text-emerald-700 dark:text-emerald-400 leading-tight">
+                      <div className="pt-1.5 border-t border-[#eff1f5] dark:border-[#1e2532] flex flex-col gap-0.5">
+                        <div className="text-[13.5px] tabular-nums font-black text-primary leading-tight">
                           {formatCompactPrice(apt.latestPrice)}
                         </div>
                         {metaLine && (
@@ -607,17 +597,18 @@ export default async function HomePage() {
             </h3>
 
             {/* Layer 2 Progressive SEO Accordion: Valuation Methodology & Market Commentary */}
-            <details className={getSeoAccordionClass('bg-body! dark:bg-[#17171c]!')}>
+            <details
+              open={approvalMode}
+              data-editorial-open={approvalMode ? 'true' : undefined}
+              className={getSeoAccordionClass('bg-body! dark:bg-[#151a23]!')}
+            >
               <summary className={getSeoAccordionSummaryClass()}>
                 <span>밸류에이션 방법론 · 산출 기준 더보기</span>
                 <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
               </summary>
               <div className={getSeoAccordionBodyClass('space-y-4')}>
-                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-border/40 pb-4">
+                <div className="border-b border-border/40 pb-4">
                   <div className="space-y-1.5 max-w-3xl">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-xs font-extrabold">
-                      <span>D-VIEW 부동산 데이터 랩스 공식 분석 브리핑</span>
-                    </div>
                     <h2 className="text-base sm:text-lg font-black text-primary tracking-tight">
                       동탄 아파트 시세·집값 추이 그래프 밸류에이션 방법론 및 권역별 심층 리포트
                     </h2>
@@ -625,18 +616,11 @@ export default async function HomePage() {
                       D-VIEW(디뷰 · 동뷰 · 동탄뷰)는 국토교통부 실거래가 공개시스템의 100% 검증된 매매·전월세 신고 데이터를 매일 동기화하여, 동탄 1·2신도시 184개 아파트 시세·평형별 집값 추이 그래프·전세가율과 56개 동탄테크노밸리 지식산업센터의 내재 가치를 정량 분석합니다.
                     </p>
                   </div>
-                  <Link
-                    href="/guide"
-                    prefetch={false}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white text-xs font-extrabold transition-colors shrink-0 self-start lg:self-auto cursor-pointer"
-                  >
-                    <span>전체 심층 리포트 열람</span>
-                  </Link>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <article className="rounded-xl bg-elevated dark:bg-body/40 p-3.5 space-y-1.5">
-                    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs sm:text-sm">
+                    <div className="flex items-center gap-2 text-primary font-extrabold text-xs sm:text-sm">
                       <h3>실거주 PER 및 전세가율 하방 경직성</h3>
                     </div>
                     <p className="text-xs text-secondary leading-relaxed">
@@ -645,7 +629,7 @@ export default async function HomePage() {
                   </article>
 
                   <article className="rounded-xl bg-elevated dark:bg-body/40 p-3.5 space-y-1.5">
-                    <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-extrabold text-xs sm:text-sm">
+                    <div className="flex items-center gap-2 text-primary font-extrabold text-xs sm:text-sm">
                       <h3>스트레스 DSR 40% 한도 및 주담대 감응도</h3>
                     </div>
                     <p className="text-xs text-secondary leading-relaxed">
@@ -654,7 +638,7 @@ export default async function HomePage() {
                   </article>
 
                   <article className="rounded-xl bg-elevated dark:bg-body/40 p-3.5 space-y-1.5">
-                    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs sm:text-sm">
+                    <div className="flex items-center gap-2 text-primary font-extrabold text-xs sm:text-sm">
                       <h3>광역 교통망(GTX-A·트램·동인선) 입지 점수</h3>
                     </div>
                     <p className="text-xs text-secondary leading-relaxed">
@@ -668,7 +652,7 @@ export default async function HomePage() {
             {/* Layer 2 Progressive SEO Accordion: Latest 15 MOLIT Real Transactions (Collapsed by Default) */}
             <details
               id="home-ssr-recent-tx-accordion"
-              className={getSeoAccordionClass('bg-body! dark:bg-[#17171c]!')}
+              className={getSeoAccordionClass('bg-body! dark:bg-[#151a23]!')}
             >
               <summary className={getSeoAccordionSummaryClass()}>
                 <span>최근 실거래 등록 내역 더보기</span>
@@ -682,7 +666,7 @@ export default async function HomePage() {
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
-                      <caption className="text-left text-xs font-extrabold text-blue-700 dark:text-blue-400 pb-2 tabular-nums">
+                      <caption className="text-left text-xs font-extrabold text-primary pb-2 tabular-nums">
                         최근 실거래 등록 내역 (최신 15건)
                       </caption>
                       <thead className="border-b border-slate-200/70 dark:border-slate-800 font-bold text-slate-900 dark:text-slate-100">
@@ -711,7 +695,7 @@ export default async function HomePage() {
                                   <Link
                                     href={`/apartment/${encodeURIComponent(canonicalTxSlug)}`}
                                     prefetch={false}
-                                    className="hover:text-blue-600 dark:hover:text-blue-400 underline decoration-slate-300 dark:decoration-slate-700 underline-offset-2"
+                                    className="hover:underline underline-offset-2"
                                   >
                                     {displayTxAptName}
                                   </Link>
@@ -739,82 +723,6 @@ export default async function HomePage() {
               </div>
             </details>
           </div>
-
-          {/* Real-Time Transaction Notification Anchor Section */}
-          <section
-            id="notification"
-            aria-label="동탄 아파트 실거래가 동기화 및 알림 구독 안내"
-            className="scroll-mt-20 rounded-2xl bg-body/90 dark:bg-[#17171c] px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
-          >
-            <div className="space-y-0.5">
-              <h3 className="text-xs sm:text-sm font-extrabold text-primary">
-                실거래 동기화 · 관심단지 알림
-              </h3>
-              <p className="text-[11px] sm:text-xs text-secondary tabular-nums">
-                184단지 국토부 실거래 일일 반영 · 관심단지 변동 확인
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              <Link
-                href="/explore"
-                prefetch={false}
-                className="inline-flex items-center px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors"
-              >
-                관심 단지 탐색하기
-              </Link>
-              <Link
-                href="/contact"
-                prefetch={false}
-                className="inline-flex items-center px-3 py-1.5 rounded-xl bg-elevated hover:bg-[#f2f4f6] dark:bg-body/60 dark:hover:bg-body text-primary text-[11px] font-bold transition-colors"
-              >
-                데이터·알림 문의
-              </Link>
-            </div>
-          </section>
-
-          {/* Core Hub Quick Links (Deduplicated) */}
-          <nav
-            aria-label="D-VIEW 핵심 분석 허브 바로가기"
-            className="flex flex-col gap-1.5 pt-3 border-t border-[#f2f4f6] dark:border-[#202027] text-[11px] font-bold text-secondary"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1">
-                <span className="text-[10.5px] font-black text-tertiary uppercase tracking-wider">주요 서비스:</span>
-                <Link href="/explore" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors tabular-nums">
-                  단지 탐색 (184개)
-                </Link>
-                <Link href="/guide/stress-dsr-valuation-guide" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  대출·세금 계산기
-                </Link>
-                <Link href="/stats" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  시장 통계 지표
-                </Link>
-                <Link href="/lounge" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  입주민 라운지
-                </Link>
-                <Link href="/#notification" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  실거래 알림 구독
-                </Link>
-                <Link href="/technovalley" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors tabular-nums">
-                  동탄테크노밸리 지식산업센터 56곳
-                </Link>
-                <Link href="/news" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  부동산·교통 정책 브리핑
-                </Link>
-              </div>
-              <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 text-tertiary">
-                <Link href="/about" prefetch={false} className="hover:text-primary transition-colors">
-                  D-VIEW 분석 방법론 소개
-                </Link>
-                <Link href="/privacy" prefetch={false} className="hover:text-primary transition-colors">
-                  개인정보처리방침
-                </Link>
-                <Link href="/terms" prefetch={false} className="hover:text-primary transition-colors">
-                  이용약관
-                </Link>
-              </div>
-            </div>
-          </nav>
         </div>
       </section>
     </>

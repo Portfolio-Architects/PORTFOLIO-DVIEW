@@ -10,9 +10,23 @@ import {
 } from '@/hooks/useFavorites';
 import { logger } from '@/lib/services/logger';
 import { trackEvent } from '@/lib/utils/analytics';
-import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
+import { getDisplayAptName, resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
+import { CANONICAL_DONG_APT_LIST } from '@/lib/utils/canonicalAptCatalog';
 import { acquireBodyScrollLock, isAppleTouchDevice } from '@/lib/utils/bodyScrollLock';
-import { X, BellRing, Sparkles, ShieldCheck, AlertTriangle, Smartphone, ExternalLink, Copy } from 'lucide-react';
+import {
+  X,
+  BellRing,
+  BellOff,
+  ShieldCheck,
+  AlertTriangle,
+  Smartphone,
+  ExternalLink,
+  Copy,
+  Check,
+  Send,
+} from 'lucide-react';
+
+export type NotificationScope = 'all_plus_complex' | 'all_only' | 'complex_only';
 
 export interface PushInAppEnvironment {
   isInApp: boolean;
@@ -122,6 +136,20 @@ interface PushSubscriptionModalProps {
   guideSlug?: string;
 }
 
+const GLOBAL_SCOPE_NAME = '동탄 전체';
+
+function resolveReadableAptLabel(rawName: string): string {
+  const trimmed = (rawName || '').trim();
+  if (!trimmed || trimmed === GLOBAL_SCOPE_NAME || trimmed === '동탄 전역') {
+    return GLOBAL_SCOPE_NAME;
+  }
+  const canonical = resolveCanonicalAptSlug(trimmed) || trimmed;
+  const catalogEntry = CANONICAL_DONG_APT_LIST.find(
+    (entry) => entry.txKey === canonical || entry.rawTxKey === trimmed || entry.name === trimmed
+  );
+  return catalogEntry?.name || getDisplayAptName(trimmed) || trimmed;
+}
+
 const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
   isOpen,
   onClose,
@@ -131,7 +159,16 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
   guideSlug,
 }: PushSubscriptionModalProps) {
   const { user } = useAuth();
-  const { subscribeToPush, showToast, isPushSupported, isIOS, isStandalone, triggerCustomA2HSModal } = usePWA();
+  const {
+    subscribeToPush,
+    unsubscribeFromPush,
+    pushSubscription,
+    showToast,
+    isPushSupported,
+    isIOS,
+    isStandalone,
+    triggerCustomA2HSModal,
+  } = usePWA();
   const inAppEnv = detectPushInAppEnvironment(
     typeof navigator !== 'undefined' ? navigator.userAgent : '',
     typeof navigator !== 'undefined' ? navigator.maxTouchPoints : 0
@@ -139,8 +176,23 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
   const isIosBrowserNeedsA2hs = Boolean(
     !inAppEnv.isInApp && isIOS && !isPushSupported && !isStandalone
   );
-  const [submitting, setSubmitting] = React.useState(false);
-  const [errorState, setErrorState] = React.useState<'denied' | 'unsupported' | 'failed' | null>(null);
+
+  const normalizedPropApt = (aptName || '').trim();
+  const isSpecificApt = Boolean(
+    normalizedPropApt &&
+      normalizedPropApt !== GLOBAL_SCOPE_NAME &&
+      normalizedPropApt !== '동탄 전역'
+  );
+
+  const [selectedScope, setSelectedScope] = useState<NotificationScope>(
+    isSpecificApt ? 'all_plus_complex' : 'all_only'
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const [unsubscribing, setUnsubscribing] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
+  const [testFeedback, setTestFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [subscribedApts, setSubscribedApts] = useState<string[]>([]);
+  const [errorState, setErrorState] = useState<'denied' | 'unsupported' | 'config' | 'failed' | null>(null);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [mounted, setMounted] = useState(false);
   const mountedRef = useRef(true);
@@ -160,8 +212,44 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
     if (!isOpen) return;
     setErrorState(null);
     setCopiedUrl(false);
+    setTestFeedback(null);
+    setSelectedScope(isSpecificApt ? 'all_plus_complex' : 'all_only');
     return acquireBodyScrollLock();
-  }, [isOpen]);
+  }, [isOpen, isSpecificApt, aptName]);
+
+  // Fetch currently subscribed targets for this device when already subscribed
+  useEffect(() => {
+    if (!isOpen || !pushSubscription?.endpoint || typeof fetch !== 'function') {
+      setSubscribedApts([]);
+      return;
+    }
+
+    let cancelled = false;
+    const loadSubscribedApts = async () => {
+      try {
+        const res = await fetch(
+          `/api/push/subscribe?endpoint=${encodeURIComponent(pushSubscription.endpoint)}`
+        );
+        if (!res || !res.ok) return;
+        const json = await res.json();
+        const rawList = Array.isArray(json?.data?.apts)
+          ? json.data.apts
+          : Array.isArray(json?.apts)
+            ? json.apts
+            : [];
+        if (!cancelled && mountedRef.current) {
+          setSubscribedApts(rawList.filter((item: unknown): item is string => typeof item === 'string' && item.trim().length > 0));
+        }
+      } catch {
+        // Non-blocking: device remains manageable via 1-Click unsubscribe even if lookup fails
+      }
+    };
+
+    void loadSubscribedApts();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, pushSubscription?.endpoint]);
 
   // Focus and Escape key management
   useEffect(() => {
@@ -188,15 +276,16 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
   if (!isOpen || !mounted) return null;
 
   const trimmedCanonical = canonicalSlug?.trim() || '';
-  const subscriptionTarget = trimmedCanonical || aptName;
+  const subscriptionTarget = isSpecificApt ? trimmedCanonical || normalizedPropApt : GLOBAL_SCOPE_NAME;
   const resolvedCanonicalApt =
     trimmedCanonical ||
-    (aptName && aptName !== '동탄 전체' && aptName !== '동탄 전역'
-      ? resolveCanonicalAptSlug(aptName, { dong }) || aptName
-      : '동탄 전체');
+    (isSpecificApt
+      ? resolveCanonicalAptSlug(normalizedPropApt, { dong }) || normalizedPropApt
+      : GLOBAL_SCOPE_NAME);
+  const displayComplexName = isSpecificApt ? normalizedPropApt : GLOBAL_SCOPE_NAME;
 
   const extraHandoffList =
-    resolvedCanonicalApt && resolvedCanonicalApt !== '동탄 전체'
+    isSpecificApt && resolvedCanonicalApt && resolvedCanonicalApt !== GLOBAL_SCOPE_NAME
       ? [resolvedCanonicalApt]
       : undefined;
   const currentHref = typeof window !== 'undefined' ? window.location.href : '';
@@ -207,7 +296,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
   );
 
   const handleInAppOpenExternal = () => {
-    const autoSavedWatchlist = ensureGuestFavoriteSaved(resolvedCanonicalApt);
+    const autoSavedWatchlist = isSpecificApt ? ensureGuestFavoriteSaved(resolvedCanonicalApt) : false;
     const liveHref = typeof window !== 'undefined' ? window.location.href : currentHref;
     const freshExternalTargetUrl =
       buildInAppExternalBrowserUrl(liveHref, inAppEnv, extraHandoffList) ||
@@ -224,7 +313,9 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
       ...(guideSlug ? { guide_slug: guideSlug } : {}),
     });
     showToast(
-      `${aptName} 관심단지 저장 완료 · ${inAppEnv.isIOS ? 'Safari' : 'Chrome'}에서 평일 07시 알림을 켜주세요`
+      isSpecificApt
+        ? `${displayComplexName} 관심단지 저장 완료 · ${inAppEnv.isIOS ? 'Safari' : 'Chrome'}에서 매일 오전 7시대 알림을 켜주세요`
+        : `${inAppEnv.isIOS ? 'Safari' : 'Chrome'}에서 동탄 전체 실거래 알림을 켜주세요`
     );
     if (
       freshExternalTargetUrl &&
@@ -240,11 +331,13 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
   };
 
   const handleInAppCopyUrl = async () => {
-    const autoSavedWatchlist = ensureGuestFavoriteSaved(resolvedCanonicalApt);
+    const autoSavedWatchlist = isSpecificApt ? ensureGuestFavoriteSaved(resolvedCanonicalApt) : false;
     const baseUrl =
       typeof window !== 'undefined' && window.location.href
         ? window.location.href
-        : `https://dongtanview.com/apartment/${encodeURIComponent(resolvedCanonicalApt)}`;
+        : isSpecificApt
+          ? `https://dongtanview.com/apartment/${encodeURIComponent(resolvedCanonicalApt)}`
+          : 'https://dongtanview.com';
     const targetUrl = buildGuestFavoritesHandoffUrl(baseUrl, extraHandoffList) || baseUrl;
 
     trackEvent('inapp_external_browser_bridge', {
@@ -291,7 +384,9 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
       setCopiedUrl(true);
     }
     showToast(
-      `${aptName} 관심단지 저장 및 주소 복사 완료 · ${inAppEnv.isIOS ? 'Safari' : 'Chrome'} 주소창에 붙여넣어 주세요`
+      isSpecificApt
+        ? `${displayComplexName} 관심단지 저장 및 주소 복사 완료 · ${inAppEnv.isIOS ? 'Safari' : 'Chrome'} 주소창에 붙여넣어 주세요`
+        : `주소 복사 완료 · ${inAppEnv.isIOS ? 'Safari' : 'Chrome'} 주소창에 붙여넣어 주세요`
     );
   };
 
@@ -299,21 +394,46 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
     if (submitting) return;
     setSubmitting(true);
     setErrorState(null);
+    setTestFeedback(null);
     try {
-      const success = await subscribeToPush(user?.uid ?? null, subscriptionTarget);
+      const effectiveScope: NotificationScope = isSpecificApt ? selectedScope : 'all_only';
+      let success = false;
+
+      if (effectiveScope === 'all_plus_complex' && isSpecificApt) {
+        success = await subscribeToPush(user?.uid ?? null, subscriptionTarget, {
+          extraAptNames: [GLOBAL_SCOPE_NAME],
+        });
+      } else if (effectiveScope === 'all_only') {
+        success = await subscribeToPush(user?.uid ?? null, GLOBAL_SCOPE_NAME, {
+          includeGuestFavorites: false,
+        });
+      } else {
+        success = await subscribeToPush(user?.uid ?? null, subscriptionTarget);
+      }
+
       if (success && mountedRef.current) {
-        const autoSavedWatchlist = ensureGuestFavoriteSaved(resolvedCanonicalApt);
+        const shouldSaveFavorite = isSpecificApt && effectiveScope !== 'all_only';
+        const autoSavedWatchlist = shouldSaveFavorite ? ensureGuestFavoriteSaved(resolvedCanonicalApt) : false;
         trackEvent('push_subscribe_success', {
           surface: 'push_subscription_modal',
           trigger: 'modal_submit_cta',
-          apt_name: aptName,
-          apartment_name: resolvedCanonicalApt,
+          apt_name: effectiveScope === 'all_only' ? GLOBAL_SCOPE_NAME : aptName,
+          apartment_name: effectiveScope === 'all_only' ? GLOBAL_SCOPE_NAME : resolvedCanonicalApt,
+          notification_scope: effectiveScope,
           auto_saved_watchlist: autoSavedWatchlist,
           ...(dong ? { dong } : {}),
           ...(guideSlug ? { guide_slug: guideSlug } : {}),
         });
+
+        const scopeLabel =
+          effectiveScope === 'all_plus_complex'
+            ? `동탄 전체 + ${displayComplexName}`
+            : effectiveScope === 'all_only'
+              ? '동탄 전체 주요 실거래'
+              : displayComplexName;
+
         showToast(
-          `${aptName}의 실거래가 변동 알림 신청이 완료되었습니다.${autoSavedWatchlist ? ' (관심단지 자동 찜)' : ''}`
+          `${scopeLabel} 알림 신청이 완료되었습니다.${autoSavedWatchlist ? ' (관심단지 저장됨)' : ''}`
         );
         onClose();
       } else if (!success && mountedRef.current) {
@@ -331,6 +451,8 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
           setErrorState('denied');
         } else if (errorMsg === 'UNSUPPORTED_BROWSER') {
           setErrorState('unsupported');
+        } else if (errorMsg === 'VAPID_NOT_CONFIGURED') {
+          setErrorState('config');
         } else {
           setErrorState('failed');
         }
@@ -338,6 +460,94 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
     } finally {
       if (mountedRef.current) {
         setSubmitting(false);
+      }
+    }
+  };
+
+  const handleUnsubscribeAll = async () => {
+    if (unsubscribing || !pushSubscription) return;
+    setUnsubscribing(true);
+    setTestFeedback(null);
+    try {
+      const ok = await unsubscribeFromPush(null);
+      if (ok && mountedRef.current) {
+        setSubscribedApts([]);
+        trackEvent('push_unsubscribe_all', {
+          surface: 'push_subscription_modal',
+          apt_name: aptName,
+        });
+      }
+    } finally {
+      if (mountedRef.current) {
+        setUnsubscribing(false);
+      }
+    }
+  };
+
+  const handleRemoveSingleTarget = async (targetApt: string) => {
+    if (unsubscribing || !pushSubscription) return;
+    setUnsubscribing(true);
+    try {
+      if (subscribedApts.length <= 1) {
+        const ok = await unsubscribeFromPush(null);
+        if (ok && mountedRef.current) {
+          setSubscribedApts([]);
+        }
+      } else {
+        const ok = await unsubscribeFromPush(targetApt);
+        if (ok && mountedRef.current) {
+          setSubscribedApts((prev) => prev.filter((item) => item !== targetApt));
+        }
+      }
+    } finally {
+      if (mountedRef.current) {
+        setUnsubscribing(false);
+      }
+    }
+  };
+
+  const handleSendTestPush = async () => {
+    if (sendingTest || !pushSubscription) return;
+    setSendingTest(true);
+    setTestFeedback(null);
+    try {
+      const subPayload =
+        typeof pushSubscription.toJSON === 'function'
+          ? pushSubscription.toJSON()
+          : {
+              endpoint: pushSubscription.endpoint,
+              keys: (pushSubscription as unknown as { keys?: { p256dh?: string; auth?: string } }).keys,
+            };
+
+      const res = await fetch('/api/push/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: subPayload }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!mountedRef.current) return;
+
+      if (res.ok && json?.success) {
+        const msg = '테스트 알림을 보냈습니다. 브라우저·기기 알림창을 확인해 주세요.';
+        setTestFeedback({ type: 'success', message: msg });
+        showToast(msg);
+      } else {
+        const errMsg =
+          json?.error ||
+          json?.message ||
+          '테스트 알림 발송에 실패했습니다. 알림을 껐다가 다시 신청해 주세요.';
+        setTestFeedback({ type: 'error', message: errMsg });
+      }
+    } catch {
+      if (mountedRef.current) {
+        setTestFeedback({
+          type: 'error',
+          message: '네트워크 오류로 테스트 알림을 보내지 못했습니다.',
+        });
+      }
+    } finally {
+      if (mountedRef.current) {
+        setSendingTest(false);
       }
     }
   };
@@ -365,74 +575,251 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
     }
   };
 
+  const scopeOptions: Array<{
+    id: NotificationScope;
+    testId: string;
+    label: string;
+    badge?: string;
+    desc: string;
+  }> = isSpecificApt
+    ? [
+        {
+          id: 'all_plus_complex',
+          testId: 'push-scope-all-plus-complex',
+          label: `동탄 전체 + ${displayComplexName}`,
+          badge: '추천',
+          desc: '동탄 주요 매매 요약과 이 단지 신규 거래를 함께 받아요',
+        },
+        {
+          id: 'all_only',
+          testId: 'push-scope-all-only',
+          label: '동탄 전체 주요 실거래만',
+          desc: '오늘 동탄 매매 건수·신고가·최고가 요약만 받아요',
+        },
+        {
+          id: 'complex_only',
+          testId: 'push-scope-complex-only',
+          label: `${displayComplexName}만 받기`,
+          desc: '이 단지에 신규 매매가 등록될 때만 받아요',
+        },
+      ]
+    : [];
+
+  const scopeDetailBullet =
+    !isSpecificApt || selectedScope === 'all_only'
+      ? '오늘 동탄 전체 매매 건수·신고가·최고가 주요 거래 요약 안내'
+      : selectedScope === 'all_plus_complex'
+        ? `동탄 전체 매매 건수·신고가 요약 + ${displayComplexName} 신규 매매 함께 안내`
+        : `${displayComplexName} 신규 매매 실거래 및 신고가 등록 안내`;
+
   return createPortal(
     <>
       {/* Backdrop */}
-      <button 
+      <button
         type="button"
+        data-scroll-interactive="true"
         className="fixed inset-0 bg-black/45 z-[11000] backdrop-blur-sm transition-opacity border-none cursor-default"
         onClick={onClose}
         aria-label="알림 구독 창 닫기"
       />
-      
+
       {/* Bottom Sheet / Popover Modal */}
-      <div 
+      <div
         ref={modalRef}
+        data-scroll-interactive="true"
         onKeyDown={handleKeyDown}
         role="dialog"
         aria-modal="true"
         aria-labelledby="push-title"
         aria-describedby="push-desc"
-        className="fixed bottom-0 left-0 right-0 z-[11001] bg-surface rounded-t-[32px] shadow-[0_-12px_40px_rgba(0,0,0,0.12)] transform transition-transform duration-300 ease-out max-w-lg mx-auto border-t border-border/40 pb-[calc(env(safe-area-inset-bottom)+24px)] animate-in slide-in-from-bottom duration-300"
+        className="fixed bottom-0 left-0 right-0 z-[11001] bg-surface rounded-t-[32px] shadow-[0_-12px_40px_rgba(0,0,0,0.12)] transform transition-transform duration-300 ease-out max-w-lg mx-auto border-t border-border/40 max-h-[90dvh] overflow-y-auto overscroll-contain pb-[calc(env(safe-area-inset-bottom,0px)+24px)] animate-in slide-in-from-bottom duration-300"
       >
         <div className="px-6 pt-6 pb-2">
           {/* Header */}
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-11 h-11 bg-emerald-50 dark:bg-emerald-950/50 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+              <div className="w-11 h-11 dview-spark-badge rounded-2xl flex items-center justify-center text-white shrink-0">
                 <BellRing size={20} strokeWidth={2.4} />
               </div>
               <div className="min-w-0">
-                <h3 id="push-title" className="text-[17px] font-black text-primary truncate">{aptName} 알림 신청</h3>
+                <h3 id="push-title" className="text-[17px] font-black text-primary truncate">
+                  {isSpecificApt ? '동탄 실거래가 알림 설정' : '동탄 전체 실거래가 알림'}
+                </h3>
                 <p id="push-desc" className="text-[12px] font-semibold text-secondary mt-0.5 tabular-nums">
-                  비로그인 1초 신청 · 평일 07:00 KST 실거래 변동 배달
+                  로그인 없이 신청 · 매일 오전 7시대 국토부 매매 요약
                 </p>
               </div>
             </div>
-            <button 
+            <button
               ref={closeButtonRef}
               onClick={onClose}
-              className="p-2 text-tertiary hover:text-secondary hover:bg-body rounded-full transition-colors cursor-pointer shrink-0"
+              className="p-2 text-tertiary hover:text-secondary hover:bg-body rounded-full transition-colors cursor-pointer shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40"
               aria-label="닫기"
             >
               <X size={20} />
             </button>
           </div>
 
-          {/* Lightweight Curation Value Props Banner */}
-          <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 text-left mb-5 relative overflow-hidden">
+          {/* Active Subscription Management Card (1-Click Unsubscribe + Live Test Push) */}
+          {pushSubscription && !inAppEnv.isInApp && (
+            <div
+              data-testid="push-active-subscription-card"
+              className="bg-[#f7f8fa] dark:bg-[#151a23] rounded-2xl p-3.5 mb-4 text-left"
+            >
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="w-5 h-5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-primary inline-flex items-center justify-center shrink-0">
+                    <Check size={12} strokeWidth={2.8} />
+                  </span>
+                  <span className="text-[12.5px] font-extrabold text-primary truncate">
+                    이 기기에서 실거래 알림을 받고 있어요
+                  </span>
+                </div>
+              </div>
+
+              {subscribedApts.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2.5">
+                  {subscribedApts.map((item) => {
+                    const chipLabel = resolveReadableAptLabel(item);
+                    return (
+                      <span
+                        key={item}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-surface dark:bg-[#1e2532] text-[11.5px] font-bold text-secondary"
+                      >
+                        <span>{chipLabel}</span>
+                        <button
+                          type="button"
+                          onClick={() => void handleRemoveSingleTarget(item)}
+                          disabled={unsubscribing}
+                          aria-label={`${chipLabel} 알림 해제`}
+                          className="text-tertiary hover:text-primary cursor-pointer p-0.5 -mr-0.5 rounded transition-colors"
+                        >
+                          <X size={11} />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  data-testid="push-send-test-btn"
+                  onClick={() => void handleSendTestPush()}
+                  disabled={sendingTest || unsubscribing}
+                  className="flex-1 h-9 px-3 rounded-[10px] bg-surface hover:bg-[#eff1f5] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-primary text-[12px] font-extrabold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <Send size={12.5} className="shrink-0" />
+                  <span>{sendingTest ? '발송 중...' : '테스트 알림 받기'}</span>
+                </button>
+                <button
+                  type="button"
+                  data-testid="push-unsubscribe-all-btn"
+                  onClick={() => void handleUnsubscribeAll()}
+                  disabled={unsubscribing || sendingTest}
+                  className="h-9 px-3.5 rounded-[10px] bg-surface hover:bg-brand-red-light dark:bg-[#1e2532] text-secondary hover:text-brand-red text-[12px] font-extrabold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                >
+                  <BellOff size={12.5} className="shrink-0" />
+                  <span>{unsubscribing ? '해제 중...' : '알림 끄기'}</span>
+                </button>
+              </div>
+
+              {testFeedback && (
+                <p
+                  data-testid="push-test-feedback"
+                  className={`mt-2 text-[11.5px] font-bold leading-snug ${
+                    testFeedback.type === 'success'
+                      ? 'text-emerald-700 dark:text-emerald-400'
+                      : 'text-brand-red'
+                  }`}
+                >
+                  {testFeedback.message}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Selectable Notification Scope (when opened from a specific apartment context) */}
+          {isSpecificApt && !inAppEnv.isInApp && (
+            <div className="mb-4" role="radiogroup" aria-label="알림 받을 범위 선택">
+              <p className="text-[11.5px] font-extrabold text-tertiary mb-2">알림 받을 범위</p>
+              <div className="space-y-1.5">
+                {scopeOptions.map((option) => {
+                  const isActive = selectedScope === option.id;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={isActive}
+                      data-testid={option.testId}
+                      onClick={() => setSelectedScope(option.id)}
+                      className={`w-full text-left px-3.5 py-2.5 rounded-2xl transition-colors cursor-pointer flex items-start gap-2.5 ${
+                        isActive
+                          ? 'bg-[#eff1f5] dark:bg-[#1e2532] ring-1 ring-inset ring-slate-900/20 dark:ring-white/25'
+                          : 'bg-[#f7f8fa] hover:bg-[#eff1f5] dark:bg-[#151a23] dark:hover:bg-[#1e2532]'
+                      }`}
+                    >
+                      <span
+                        className={`mt-0.5 w-4 h-4 rounded-full inline-flex items-center justify-center shrink-0 transition-colors ${
+                          isActive
+                            ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
+                            : 'bg-surface dark:bg-[#252c3d] ring-1 ring-inset ring-slate-300 dark:ring-slate-600'
+                        }`}
+                        aria-hidden="true"
+                      >
+                        {isActive && <Check size={10} strokeWidth={3} />}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[13px] font-extrabold leading-tight break-keep text-primary">
+                            {option.label}
+                          </span>
+                          {option.badge && (
+                            <span className="px-1.5 py-0.5 rounded-[6px] bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-extrabold">
+                              {option.badge}
+                            </span>
+                          )}
+                        </span>
+                        <span className="block text-[11.5px] font-semibold text-secondary mt-0.5 leading-snug">
+                          {option.desc}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Honest Delivery Guide Banner */}
+          <div className="bg-[#f7f8fa] dark:bg-[#151a23] rounded-2xl p-4 text-left mb-5 relative overflow-hidden">
             <div className="flex flex-wrap items-center gap-1.5 mb-2.5">
-              <span className="inline-flex items-center gap-1.5 bg-blue-50 dark:bg-blue-950/50 px-2.5 py-1 rounded-lg text-[11.5px] font-extrabold text-blue-600 dark:text-blue-400 tabular-nums">
-                <Sparkles size={12} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span>평일 07:00 실거래 브리핑</span>
+              <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#eff1f5] dark:bg-[#1e2532] text-[11.5px] font-extrabold text-primary tabular-nums">
+                매일 오전 7시대 요약
               </span>
-              <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-[11px] font-extrabold text-emerald-700 dark:text-emerald-300">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#eff1f5] dark:bg-[#1e2532] text-[11px] font-extrabold text-secondary">
                 로그인 불필요
               </span>
             </div>
-            
+
             <ul className="space-y-2 text-[12.5px] text-secondary font-semibold tabular-nums">
               <li className="flex items-start gap-2">
-                <ShieldCheck size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                <span className="leading-snug">새벽 동기화(05:38~06:38 KST) 직후 <strong>평일 07시</strong> 실거래 변동 즉시 알림</span>
+                <ShieldCheck size={15} className="text-primary shrink-0 mt-0.5" />
+                <span className="leading-snug">
+                  국토부 새벽 수집 후 <strong>매일 오전 7시대(KST)</strong> 매매 실거래 요약 발송
+                </span>
               </li>
               <li className="flex items-start gap-2">
-                <ShieldCheck size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                <span className="leading-snug">신규 매매·전세 신고가 및 인접 대장 단지 갭(Gap) 요약 동시 포함</span>
+                <ShieldCheck size={15} className="text-primary shrink-0 mt-0.5" />
+                <span className="leading-snug">{scopeDetailBullet}</span>
               </li>
               <li className="flex items-start gap-2">
-                <ShieldCheck size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                <span className="leading-snug">회원가입·개인정보 입력 없이 내 기기 관심단지에 자동 저장 및 1-Click 해제</span>
+                <ShieldCheck size={15} className="text-primary shrink-0 mt-0.5" />
+                <span className="leading-snug">
+                  회원가입 없이 바로 신청하고 이 창에서 언제든 알림 끄기 가능
+                </span>
               </li>
             </ul>
           </div>
@@ -440,9 +827,9 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
           {inAppEnv.isInApp ? (
             <div
               data-testid="push-inapp-browser-bridge"
-              className="bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200/70 dark:border-blue-800/50 rounded-2xl p-4 mb-6 text-left space-y-2"
+              className="bg-[#f7f8fa] dark:bg-[#151a23] border border-border/80 rounded-2xl p-4 mb-6 text-left space-y-2"
             >
-              <p className="text-[13px] font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1.5">
+              <p className="text-[13px] font-extrabold text-primary flex items-center gap-1.5">
                 <ExternalLink size={15} className="shrink-0" />
                 <span>
                   {inAppEnv.isIOS
@@ -452,15 +839,15 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
               </p>
               <p className="text-[12px] text-secondary font-bold leading-relaxed">
                 {inAppEnv.isIOS
-                  ? '카카오톡·네이버 등 인앱 화면에서는 홈 화면 추가와 오전 7시 웹 푸시가 제한됩니다. Safari로 열면 방금 찜한 관심단지가 그대로 이어지며 바로 설정할 수 있습니다.'
-                  : '인앱 화면에서는 앱 종료 시 오전 7시 실거래 알림 수신이 차단될 수 있습니다. Chrome으로 열면 찜한 관심단지가 그대로 이어지며 안정적으로 알림을 받을 수 있습니다.'}
+                  ? '카카오톡·네이버 등 인앱 화면에서는 홈 화면 추가와 매일 오전 7시대 웹 푸시가 제한됩니다. Safari로 열면 방금 찜한 관심단지가 그대로 이어지며 바로 설정할 수 있습니다.'
+                  : '인앱 화면에서는 앱 종료 시 매일 오전 7시대 실거래 알림 수신이 차단될 수 있습니다. Chrome으로 열면 찜한 관심단지가 그대로 이어지며 안정적으로 알림을 받을 수 있습니다.'}
               </p>
               <div className="pt-1 flex items-center justify-end">
                 <button
                   type="button"
                   data-testid="push-inapp-copy-url-btn"
                   onClick={() => void handleInAppCopyUrl()}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface hover:bg-slate-100 dark:hover:bg-slate-800 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 text-[11.5px] font-extrabold transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border text-primary text-[11.5px] font-extrabold transition-colors cursor-pointer"
                 >
                   <Copy size={12} className="shrink-0" />
                   <span>{copiedUrl ? '주소 복사됨' : '현재 페이지 URL 복사'}</span>
@@ -468,22 +855,32 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
               </div>
             </div>
           ) : errorState === 'denied' || (typeof window !== 'undefined' && typeof Notification !== 'undefined' && Notification.permission === 'denied') ? (
-            <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 mb-6 text-left">
-              <p className="text-[13px] font-extrabold text-red-600 dark:text-red-400 mb-1.5 flex items-center gap-1.5">
+            <div className="bg-brand-red-light border border-brand-red/20 rounded-2xl p-4 mb-6 text-left">
+              <p className="text-[13px] font-extrabold text-brand-red mb-1.5 flex items-center gap-1.5">
                 <AlertTriangle size={15} className="shrink-0" />
                 <span>알림 권한이 차단되어 있습니다</span>
               </p>
               <p className="text-[12px] text-secondary font-bold leading-relaxed">
                 브라우저 설정에서 알림 권한이 거부되어 실거래가 소식을 보내드릴 수 없습니다. 아래 설정 방법을 참고해 허용해 주세요.
               </p>
-              <div className="mt-3 pt-2.5 border-t border-red-200/20 dark:border-red-800/30 text-[11px] text-tertiary font-bold space-y-1">
+              <div className="mt-3 pt-2.5 border-t border-brand-red/15 text-[11px] text-tertiary font-bold space-y-1">
                 <p>• <strong>안드로이드/Chrome</strong>: 주소창 왼쪽 설정(조절기) 아이콘 클릭 -&gt; 권한 -&gt; 알림 허용</p>
                 <p>• <strong>아이폰/Safari</strong>: 설정 -&gt; 알림 -&gt; DVIEW(또는 추가된 홈앱) -&gt; 알림 허용</p>
               </div>
             </div>
+          ) : errorState === 'config' ? (
+            <div className="bg-brand-red-light border border-brand-red/20 rounded-2xl p-4 mb-6 text-left">
+              <p className="text-[13px] font-extrabold text-brand-red flex items-center gap-1.5">
+                <AlertTriangle size={15} className="shrink-0" />
+                <span>알림 서버 키가 아직 설정되지 않았습니다</span>
+              </p>
+              <p className="text-[12px] text-secondary font-bold mt-1 leading-relaxed">
+                운영 서버에 Web Push VAPID 공개키가 등록되면 바로 알림을 신청할 수 있습니다.
+              </p>
+            </div>
           ) : errorState === 'failed' ? (
-            <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 mb-6 text-left">
-              <p className="text-[13px] font-extrabold text-red-600 dark:text-red-400 flex items-center gap-1.5">
+            <div className="bg-brand-red-light border border-brand-red/20 rounded-2xl p-4 mb-6 text-left">
+              <p className="text-[13px] font-extrabold text-brand-red flex items-center gap-1.5">
                 <AlertTriangle size={15} className="shrink-0" />
                 <span>알림 등록 중 오류가 발생했습니다</span>
               </p>
@@ -494,19 +891,19 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
           ) : isIosBrowserNeedsA2hs && errorState !== 'unsupported' ? (
             <div
               data-testid="push-ios-a2hs-bridge"
-              className="bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200/70 dark:border-blue-800/50 rounded-2xl p-4 mb-6 text-left"
+              className="bg-[#f7f8fa] dark:bg-[#151a23] border border-border/80 rounded-2xl p-4 mb-6 text-left"
             >
-              <p className="text-[13px] font-extrabold text-blue-700 dark:text-blue-300 mb-1 flex items-center gap-1.5">
+              <p className="text-[13px] font-extrabold text-primary mb-1 flex items-center gap-1.5">
                 <Smartphone size={15} className="shrink-0" />
                 <span>아이폰·아이패드 Safari 홈 화면 추가 안내</span>
               </p>
               <p className="text-[12px] text-secondary font-bold leading-relaxed">
-                iOS Safari는 홈 화면에 앱 추가(1초) 완료 후 오전 7시 실거래 Web Push 알림이 활성화됩니다.
+                iOS Safari는 홈 화면에 앱 추가(1초) 완료 후 매일 오전 7시대 실거래 Web Push 알림이 활성화됩니다.
               </p>
             </div>
           ) : (!isPushSupported || errorState === 'unsupported') ? (
-            <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 mb-6 text-center">
-              <p className="text-[12px] font-bold text-red-600 dark:text-red-400">
+            <div className="bg-brand-red-light border border-brand-red/20 rounded-2xl p-4 mb-6 text-center">
+              <p className="text-[12px] font-bold text-brand-red">
                 ※ 현재 사용 중이신 브라우저는 Web Push 알림을 지원하지 않습니다. Chrome, Safari(iOS 16.4+), Edge 브라우저를 이용해 주세요.
               </p>
             </div>
@@ -516,9 +913,9 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 py-3.5 px-4 bg-body hover:bg-slate-200 dark:hover:bg-slate-800 text-secondary font-bold rounded-2xl transition-colors text-[13.5px] cursor-pointer"
+              className="flex-1 py-3.5 px-4 bg-[#f7f8fa] hover:bg-[#eff1f5] dark:bg-[#151a23] dark:hover:bg-[#1e2532] text-secondary font-bold rounded-2xl transition-colors text-[13.5px] cursor-pointer"
             >
-              취소
+              {pushSubscription ? '닫기' : '취소'}
             </button>
             {inAppEnv.isInApp ? (
               inAppEnv.canOpenExternalDirectly && externalBrowserTargetUrl ? (
@@ -527,7 +924,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
                   data-testid="push-inapp-open-external-btn"
                   data-external-href={externalBrowserTargetUrl}
                   onClick={handleInAppOpenExternal}
-                  className="flex-1 py-3.5 px-4 bg-blue-600 dark:bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 dark:hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
+                  className="flex-1 py-3.5 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-2xl hover:bg-slate-800 dark:hover:bg-slate-100 active:scale-[0.98] transition-all text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <ExternalLink size={15} className="shrink-0" />
                   <span>{inAppEnv.externalBrowserLabel}</span>
@@ -537,7 +934,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
                   type="button"
                   data-testid="push-inapp-primary-copy-btn"
                   onClick={() => void handleInAppCopyUrl()}
-                  className="flex-1 py-3.5 px-4 bg-blue-600 dark:bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 dark:hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
+                  className="flex-1 py-3.5 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-2xl hover:bg-slate-800 dark:hover:bg-slate-100 active:scale-[0.98] transition-all text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Copy size={15} className="shrink-0" />
                   <span>{copiedUrl ? '복사 완료 · 브라우저에 붙여넣기' : '링크 복사 후 외부 브라우저 열기'}</span>
@@ -548,7 +945,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
                 type="button"
                 data-testid="push-ios-a2hs-btn"
                 onClick={() => {
-                  const autoSavedWatchlist = ensureGuestFavoriteSaved(resolvedCanonicalApt);
+                  const autoSavedWatchlist = isSpecificApt ? ensureGuestFavoriteSaved(resolvedCanonicalApt) : false;
                   trackEvent('a2hs_modal_open', {
                     surface: 'push_subscription_modal',
                     trigger: 'ios_safari_push_bridge',
@@ -561,7 +958,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
                   triggerCustomA2HSModal?.();
                   onClose();
                 }}
-                className="flex-1 py-3.5 px-4 bg-blue-600 dark:bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 dark:hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
+                className="flex-1 py-3.5 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-2xl hover:bg-slate-800 dark:hover:bg-slate-100 active:scale-[0.98] transition-all text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <Smartphone size={15} className="shrink-0" />
                 <span>홈 화면 추가 후 알림 켜기</span>
@@ -570,10 +967,10 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
               <button
                 onClick={handleSubscribe}
                 disabled={!isPushSupported || submitting}
-                className="flex-1 py-3.5 px-4 bg-blue-600 dark:bg-blue-600 disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:text-slate-500 text-white font-black rounded-2xl hover:bg-blue-700 dark:hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
+                className="flex-1 py-3.5 px-4 bg-slate-900 dark:bg-white disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:text-slate-500 text-white dark:text-slate-900 font-black rounded-2xl hover:bg-slate-800 dark:hover:bg-slate-100 active:scale-[0.98] transition-all text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
               >
                 {submitting ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                 ) : (
                   '실거래가 알림 신청하기'
                 )}

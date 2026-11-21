@@ -261,7 +261,7 @@ export function useApartmentDetails(
         housingType: '',
         reqGb: r.reqGb || '',
         rnuYn: r.rnuYn || '',
-        isOutlier: !!r.isOutlier,
+        isOutlier: typeof r.isOutlier === 'boolean' ? r.isOutlier : undefined,
       };
     });
   }, [records, fileKey]);

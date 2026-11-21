@@ -432,7 +432,7 @@ describe('Dongtan 1 vs Dongtan 2 House Price Comparison & Bidirectional Guide Br
       // S3-02, S3-03, S3-04: Matchup cards avoid duplicate names, surface pyeongPriceGapText & ㎡, and drop nested emerald/blue borders
       data.rivalMatchups.forEach((m) => {
         const card = screen.getByTestId(`rival-matchup-${m.matchupId}`);
-        expect(card.className).toContain('bg-[#f9fafb]');
+        expect(card.className).toMatch(/bg-elevated|bg-\[#f9fafb\]/);
         expect(card.className).not.toContain('border-slate-');
         expect(card.innerHTML).not.toContain('border-emerald-500/20');
         expect(card.innerHTML).not.toContain('border-blue-500/20');

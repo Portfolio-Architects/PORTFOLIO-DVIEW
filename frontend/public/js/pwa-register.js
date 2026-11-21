@@ -10,13 +10,32 @@ try {
       navigator.serviceWorker.getRegistrations().then(function(registrations) {
         if (registrations && registrations.length) {
           for (var i = 0; i < registrations.length; i++) {
-            if (registrations[i] && typeof registrations[i].unregister === 'function') {
-              registrations[i].unregister().then(function(success) {
-                if (success) console.log('Successfully unregistered dev service worker');
-              }).catch(function(e) {
-                console.warn('Failed to unregister dev service worker:', e);
-              });
-            }
+            (function(reg) {
+              if (!reg || typeof reg.unregister !== 'function') return;
+              // Keep dev Service Worker registered if an active Web Push test subscription exists
+              // (sw.js already bypasses all fetch caching on localhost / port 3000 / port 5000).
+              if (reg.pushManager && typeof reg.pushManager.getSubscription === 'function') {
+                reg.pushManager.getSubscription().then(function(sub) {
+                  if (sub) {
+                    console.log('Preserving dev service worker for active push subscription');
+                    return;
+                  }
+                  reg.unregister().then(function(success) {
+                    if (success) console.log('Successfully unregistered dev service worker');
+                  }).catch(function(e) {
+                    console.warn('Failed to unregister dev service worker:', e);
+                  });
+                }).catch(function() {
+                  reg.unregister().catch(function() {});
+                });
+              } else {
+                reg.unregister().then(function(success) {
+                  if (success) console.log('Successfully unregistered dev service worker');
+                }).catch(function(e) {
+                  console.warn('Failed to unregister dev service worker:', e);
+                });
+              }
+            })(registrations[i]);
           }
         }
       }).catch(function(err) {

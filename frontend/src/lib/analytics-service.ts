@@ -153,41 +153,8 @@ export async function getPublicAnalyticsLKG(): Promise<PublicAnalyticsData> {
   }
 }
 
-function generateMockAdminAnalytics(): AdminAnalyticsData {
-  const daily: AdminAnalyticsRow[] = [];
-  const monthly: { month: string; mau: number; avgDau: number }[] = [];
-
-  // Generate last 30 days daily data
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
-    const seed = getSeed(dateStr);
-    const activeUsers = 30 + (seed % 50);
-    const pageViews = activeUsers * 3 + (seed % 100);
-    daily.push({ date: dateStr, activeUsers, pageViews });
-  }
-
-  // Generate last 6 months monthly data
-  const now = new Date();
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const seed = getSeed(monthStr);
-    const mau = 500 + (seed % 700);
-    const avgDau = Math.round(40 + (seed % 50));
-    monthly.push({ month: monthStr, mau, avgDau });
-  }
-
-  return { daily, monthly, totalViews: 12450, avgSessionDuration: '2m 15s', isMock: true };
-}
-
-function getSeed(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return Math.abs(hash);
+function createEmptyAdminAnalytics(): AdminAnalyticsData {
+  return { daily: [], monthly: [], totalViews: 0, avgSessionDuration: '0m 0s', isMock: false };
 }
 
 /**
@@ -196,7 +163,7 @@ function getSeed(str: string): number {
 async function fetchAdminAnalyticsFromGA(): Promise<AdminAnalyticsData> {
   const creds = getGACredentials();
   if (!creds) {
-    return generateMockAdminAnalytics();
+    return createEmptyAdminAnalytics();
   }
 
   const analyticsDataClient = new BetaAnalyticsDataClient({
@@ -301,11 +268,11 @@ async function fetchAdminAnalyticsFromGA(): Promise<AdminAnalyticsData> {
       return validation.data;
     } else {
       logger.error('analytics-service.fetchAdminAnalyticsFromGA', 'Fetched data validation failed', { error: String(validation.error) });
-      return generateMockAdminAnalytics();
+      return createEmptyAdminAnalytics();
     }
   } catch (err: unknown) {
-    logger.warn('analytics-service.fetchAdminAnalyticsFromGA', 'Failed to query GA4 reports, falling back to mock data', {}, err);
-    return generateMockAdminAnalytics();
+    logger.warn('analytics-service.fetchAdminAnalyticsFromGA', 'Failed to query GA4 reports; returning empty analytics without synthetic data', {}, err);
+    return createEmptyAdminAnalytics();
   }
 }
 
@@ -348,7 +315,7 @@ export async function getAdminAnalyticsLKG(): Promise<AdminAnalyticsData> {
     if (memoryAdminLKG) {
       return memoryAdminLKG; // Bypass Google API quota exhaustion under failure
     }
-    return generateMockAdminAnalytics();
+    return createEmptyAdminAnalytics();
   }
 }
 

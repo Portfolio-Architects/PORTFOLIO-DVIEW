@@ -34,19 +34,21 @@ export function useApartmentModalState({ initialActiveTab = 'sec-price-overview'
     };
   }, []);
 
-  // Close tool dropdown on click outside
+  // Close tool dropdown on click or touch outside
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
-    function handleClickOutside(event: MouseEvent) {
+    function handlePointerOutside(event: MouseEvent | TouchEvent) {
       if (toolDropdownRef.current && !toolDropdownRef.current.contains(event.target as Node)) {
         setIsToolDropdownOpen(false);
       }
     }
     if (isToolDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener('mousedown', handlePointerOutside);
+      document.addEventListener('touchstart', handlePointerOutside, { passive: true });
     }
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handlePointerOutside);
+      document.removeEventListener('touchstart', handlePointerOutside);
     };
   }, [isToolDropdownOpen]);
 

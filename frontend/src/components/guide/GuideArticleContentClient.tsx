@@ -17,6 +17,10 @@ import GuideMobileScrollDepthBar, {
 import GuideMorningAlertRetentionCard from '@/components/guide/GuideMorningAlertRetentionCard';
 import InlineMortgageDsrBridge from '@/components/finance/InlineMortgageDsrBridge';
 import TopLandingCalculatorQuickBar from '@/components/finance/TopLandingCalculatorQuickBar';
+import GuideRealDataChart from '@/components/guide/GuideRealDataChart';
+import EditorialAuthorBox from '@/components/guide/EditorialAuthorBox';
+import BudgetTierChallengeWidget from '@/components/engagement/BudgetTierChallengeWidget';
+import type { BudgetTierComplexItem } from '@/lib/finance/budgetTierEngine';
 import { DviewIcon } from '@/components/common/DviewIcon';
 import {
   renderGuideBodyContentCore,
@@ -293,12 +297,12 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
       <article className="bg-surface border border-border/80 rounded-2xl p-4 sm:p-8 lg:p-10 shadow-xs space-y-8 min-w-0 max-w-full overflow-x-clip">
         {/* Header */}
         <header className="border-b border-border/60 pb-6 sm:pb-8 space-y-4">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[12px] text-tertiary">
-            <span className="font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 text-[12px] text-tertiary">
+            <span className="font-extrabold text-primary bg-[#eff1f5] dark:bg-[#1e2532] px-2.5 py-0.5 rounded-md">
               {article.category}
             </span>
-            {topicCluster && (
-              <span className="font-bold text-blue-700 dark:text-blue-300 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">
+            {topicCluster && topicCluster.shortTitle !== article.category && (
+              <span className="font-bold text-secondary">
                 {topicCluster.shortTitle}
               </span>
             )}
@@ -311,7 +315,7 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
             {showUpdatedDateBadge && (
               <span
                 data-testid="guide-article-updated-date"
-                className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-400 tabular-nums"
+                className="inline-flex items-center gap-1 font-bold text-secondary tabular-nums"
               >
                 업데이트 <time dateTime={normalizedUpdatedDate}>{normalizedUpdatedDate}</time>
               </span>
@@ -359,7 +363,7 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
           id="guide-geo-fact-sheet"
           data-testid="guide-geo-fact-sheet"
           aria-label="국토교통부 실거래 데이터 검증 요약"
-          className="scroll-mt-40 md:scroll-mt-48 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-3.5 sm:p-4 grid grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs box-border"
+          className="scroll-mt-40 md:scroll-mt-48 rounded-2xl bg-elevated border border-border/60 p-3.5 sm:p-4 grid grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs box-border"
         >
           <div className="space-y-0.5 min-w-0">
             <span className="text-[11px] font-bold text-tertiary block truncate">
@@ -373,7 +377,7 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
             <span className="text-[11px] font-bold text-tertiary block truncate">
               실거래 가격 범위
             </span>
-            <strong className="text-sm font-black text-emerald-700 dark:text-emerald-400 tabular-nums block truncate">
+            <strong className="text-sm font-black text-primary tabular-nums block truncate">
               {minPriceStr && maxPriceStr
                 ? sameMinMaxPrice
                   ? minPriceStr
@@ -393,12 +397,18 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
             <span className="text-[11px] font-bold text-tertiary block truncate">
               공공데이터 원천
             </span>
-            <strong className="text-sm font-black text-blue-700 dark:text-blue-400 inline-flex items-center gap-1 truncate">
-              <DviewIcon name="shield-check" size={13} />
+            <strong className="text-sm font-black text-primary inline-flex items-center gap-1 truncate">
+              <DviewIcon name="shield-check" size={13} className="text-secondary" />
               <span className="truncate">국토교통부 실거래가</span>
             </strong>
           </div>
         </section>
+
+        {/* SSR Verified MOLIT Real-Data SVG Comparison Chart (25/25 Visual Media Coverage) */}
+        <GuideRealDataChart
+          articleTitle={article.title}
+          items={featuredAptRows.length >= 2 ? featuredAptRows : topRepAptCtas}
+        />
 
         {/* Above-the-Fold Flagship 1:1 Real-Transaction Matchup Bridge */}
         {showTopMatchupBridge && (
@@ -412,17 +422,17 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
         {/* Key Takeaways Callout + Above-the-Fold Representative Complex Instant CTA Bar */}
         <div
           id="guide-key-takeaways"
-          className="scroll-mt-40 md:scroll-mt-48 bg-emerald-500/[0.04] dark:bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-5 sm:p-6 space-y-4"
+          className="scroll-mt-40 md:scroll-mt-48 bg-elevated border border-border rounded-2xl p-5 sm:p-6 space-y-4"
         >
           <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
-            <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-extrabold text-[14px] min-w-0">
+            <div className="flex items-center gap-2 text-primary font-extrabold text-[14px] min-w-0">
               <span>본 리포트의 핵심 결론 및 요약 (Key Takeaways)</span>
             </div>
             <div className="flex flex-wrap items-center gap-1.5 min-w-0 max-w-full">
               <a
                 href="#guide-top-finance-bridge"
                 data-testid="guide-top-finance-jump"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-emerald-500/35 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold transition-colors max-w-full"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border text-primary text-xs font-extrabold transition-colors max-w-full"
               >
                 <DviewIcon name="calculator" size={13} />
                 <span className="truncate">주담대·취득세 계산기</span>
@@ -430,7 +440,7 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
               <a
                 href="#guide-morning-alert-retention"
                 data-testid="guide-top-morning-alert-jump"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-blue-500/30 text-blue-700 dark:text-blue-300 text-xs font-extrabold transition-colors max-w-full"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border text-primary text-xs font-extrabold transition-colors max-w-full"
               >
                 <DviewIcon name="bell-ring" size={13} />
                 <span className="truncate">오전 7시 실거래 알림</span>
@@ -439,7 +449,7 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                 href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
                 prefetch={false}
                 data-testid="guide-top-stats-comparison-cta"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-colors shadow-2xs min-w-0 max-w-full"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-xs font-extrabold transition-colors shadow-2xs min-w-0 max-w-full"
               >
                 <DviewIcon name="scale" size={13} />
                 <span className="truncate">동탄1 vs 동탄2 실시간 집값 통계 비교표 열기</span>
@@ -459,25 +469,17 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
             <div
               data-testid="guide-top-representative-apt-cta-bar"
               data-top-landing-guide={isTopLandingGuide ? 'true' : 'false'}
-              className="pt-3.5 border-t border-emerald-500/20 space-y-2.5"
+              className="pt-3.5 border-t border-border space-y-2.5"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  {isTopLandingGuide && (
-                    <span
-                      data-testid="guide-top3-landing-badge"
-                      className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[10.5px] font-extrabold"
-                    >
-                      신규 유입 TOP 3 핵심 리포트
-                    </span>
-                  )}
-                  <span className="text-xs sm:text-[13px] font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                    <DviewIcon name="building-2" size={14} className="text-emerald-600 dark:text-emerald-400" />
-                    <span>본문 핵심 대표 단지 실시간 실거래 바로가기 (상단 즉시 이동)</span>
+                  <span className="text-xs sm:text-[13px] font-extrabold text-primary flex items-center gap-1.5">
+                    <DviewIcon name="building-2" size={14} className="text-secondary" />
+                    <span>본문 대표 단지 실시간 실거래</span>
                   </span>
                 </div>
-                <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
-                  국토교통부 최신 매매·전세 실거래 검증
+                <span className="text-[11px] font-semibold text-tertiary tabular-nums">
+                  국토교통부 최신 매매·전세 실거래
                 </span>
               </div>
 
@@ -495,21 +497,21 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                     sectionTitle={`${article.title} 상단 요약 대표 단지 CTA #${idx + 1}`}
                     dataTestId="guide-top-rep-apt-cta-btn"
                     ariaLabel={`${apt.displayName} 실시간 실거래가 ${apt.latestPriceStr} 단지 상세 리포트 바로가기`}
-                    className="group rounded-xl border border-emerald-500/40 dark:border-emerald-500/45 bg-white dark:bg-slate-900 hover:bg-emerald-50/70 dark:hover:bg-emerald-950/40 hover:border-emerald-600 px-3.5 py-2.5 flex items-center justify-between gap-2 transition-all shadow-2xs"
+                    className="group rounded-xl border border-border bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] hover:border-slate-300 dark:hover:border-slate-700 px-3.5 py-2.5 flex items-center justify-between gap-2 transition-all shadow-2xs"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shrink-0 tabular-nums">
+                        <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-[#eff1f5] dark:bg-[#1e2532] text-secondary border border-border/60 shrink-0 tabular-nums">
                           대표 {idx + 1}
                         </span>
-                        <span className="text-xs sm:text-[13px] font-black text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 truncate">
+                        <span className="text-xs sm:text-[13px] font-black text-primary group-hover:text-primary truncate">
                           {apt.displayName}
                         </span>
                       </div>
-                      <div className="mt-1 flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                      <div className="mt-1 flex items-center gap-1.5 text-[11px] font-bold text-secondary tabular-nums">
                         <span>{apt.dong}</span>
                         <span>·</span>
-                        <span className="font-black text-emerald-700 dark:text-emerald-400">
+                        <span className="font-black text-primary">
                           매매 {apt.latestPriceStr}
                         </span>
                         {apt.jeonseRatio > 0 && (
@@ -520,7 +522,7 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                         )}
                       </div>
                     </div>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 group-hover:bg-emerald-700 text-white text-[11px] font-extrabold shrink-0 transition-colors">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 group-hover:bg-slate-800 text-white dark:bg-slate-100 dark:group-hover:bg-white dark:text-slate-900 text-[11px] font-extrabold shrink-0 transition-colors">
                       <span>실거래 상세</span>
                       <DviewIcon name="arrow-up-right" size={12} />
                     </span>
@@ -552,22 +554,22 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
             id="guide-top-apt-quick-jump"
             data-testid="guide-top-apt-quick-jump"
             aria-label="리포트 핵심 대장주 단지 상단 바로가기 및 라이벌 실거래 비교"
-            className="rounded-2xl border border-emerald-500/30 dark:border-emerald-500/35 bg-slate-50/90 dark:bg-slate-900/75 p-4 sm:p-6 space-y-4 shadow-2xs"
+            className="rounded-2xl border border-border bg-elevated p-4 sm:p-6 space-y-4 shadow-2xs"
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <h2 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-50 flex items-center gap-2">
-                  <DviewIcon name="building-2" size={17} className="text-emerald-600 dark:text-emerald-400" />
+                <h2 className="text-sm sm:text-base font-extrabold text-primary flex items-center gap-2">
+                  <DviewIcon name="building-2" size={17} className="text-secondary" />
                   <span>본문 핵심 대표 단지 (시범단지·호수공원·역세권 대장주) 실거래 바로가기</span>
                 </h2>
-                <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 font-medium">
+                <p className="mt-0.5 text-xs text-secondary font-medium">
                   국토교통부 실거래가·전세가율·실거주 PER이 검증된 핵심 단지 상세 리포트로 즉시 이동합니다.
                 </p>
               </div>
               {headToHeadRows.length > 0 && (
                 <a
                   href="#guide-head-to-head-comparison"
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors w-fit shrink-0"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-xs font-extrabold transition-colors w-fit shrink-0"
                 >
                   <DviewIcon name="scale" size={13} />
                   <span>1:1 라이벌 매치업({headToHeadRows.length}건) 바로보기</span>
@@ -589,10 +591,10 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
             </div>
 
             {/* All Featured Complexes Direct Canonical Quick-Jump Pills */}
-            <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800 space-y-2">
-              <div className="text-[11.5px] font-extrabold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+            <div className="pt-2 border-t border-border space-y-2">
+              <div className="text-[11.5px] font-extrabold text-secondary flex items-center gap-1.5">
                 <span>수록 단지 전체 상세 페이지 바로가기</span>
-                <span className="text-slate-400 font-semibold tabular-nums">
+                <span className="text-tertiary font-semibold tabular-nums">
                   ({featuredAptRows.length}개 단지)
                 </span>
               </div>
@@ -612,10 +614,10 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                     className="dview-g-pill"
                   >
                     <span>{apt.displayName}</span>
-                    <span className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
+                    <span className="text-[11px] font-extrabold text-primary tabular-nums">
                       {apt.latestPriceStr}
                     </span>
-                    <DviewIcon name="arrow-up-right" size={12} className="text-slate-400" />
+                    <DviewIcon name="arrow-up-right" size={12} className="text-tertiary" />
                   </GuideAptCtaLink>
                 ))}
               </div>
@@ -625,16 +627,16 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
             {headToHeadRows.length > 0 && (
               <div
                 data-testid="guide-top-rival-matchup"
-                className="rounded-xl border border-blue-500/25 dark:border-blue-500/30 bg-blue-500/[0.04] dark:bg-blue-950/20 p-3.5 space-y-2.5"
+                className="rounded-xl border border-border bg-surface/90 p-3.5 space-y-2.5"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-blue-700 dark:text-blue-300">
-                    <DviewIcon name="scale" size={13} />
+                  <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-primary">
+                    <DviewIcon name="scale" size={13} className="text-secondary" />
                     <span>핵심 라이벌 매치업 1:1 비교 하이라이트 ({headToHeadRows.length}선)</span>
                   </span>
                   <a
                     href="#guide-head-to-head-comparison"
-                    className="text-[11px] font-extrabold text-blue-700 dark:text-blue-300 hover:underline"
+                    className="text-[11px] font-extrabold text-primary hover:underline"
                   >
                     상세 스펙 대결표 이동
                   </a>
@@ -644,9 +646,9 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                     <div
                       key={`top-matchup-${idx}-${matchup.left.canonicalSlug}-${matchup.right.canonicalSlug}`}
                       data-testid="guide-top-rival-matchup-row"
-                      className="rounded-lg bg-white/80 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 px-3 py-2 flex flex-col lg:flex-row lg:items-center justify-between gap-2"
+                      className="rounded-lg bg-elevated border border-border px-3 py-2 flex flex-col lg:flex-row lg:items-center justify-between gap-2"
                     >
-                      <p className="text-xs sm:text-[12.5px] font-extrabold text-slate-900 dark:text-slate-100">
+                      <p className="text-xs sm:text-[12.5px] font-extrabold text-primary">
                         {matchup.title}
                       </p>
                       <div className="flex flex-wrap items-center gap-2 shrink-0">
@@ -659,14 +661,14 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                           guideSlug={article.slug}
                           placement="article_top"
                           sectionTitle={matchup.title}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 text-xs font-extrabold text-slate-900 dark:text-slate-100 transition-colors"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface border border-border hover:border-slate-300 dark:hover:border-slate-700 text-xs font-extrabold text-primary transition-colors"
                         >
                           <span>{matchup.left.displayName}</span>
-                          <span className="text-emerald-700 dark:text-emerald-400 tabular-nums">
+                          <span className="text-primary tabular-nums">
                             {matchup.left.latestPriceStr}
                           </span>
                         </GuideAptCtaLink>
-                        <span className="text-[11px] font-black text-slate-400">VS</span>
+                        <span className="text-[11px] font-black text-tertiary">VS</span>
                         <GuideAptCtaLink
                           href={`/apartment/${encodeURIComponent(matchup.right.canonicalSlug)}`}
                           apartmentName={matchup.right.name}
@@ -676,10 +678,10 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                           guideSlug={article.slug}
                           placement="article_top"
                           sectionTitle={matchup.title}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-blue-500 text-xs font-extrabold text-slate-900 dark:text-slate-100 transition-colors"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface border border-border hover:border-slate-300 dark:hover:border-slate-700 text-xs font-extrabold text-primary transition-colors"
                         >
                           <span>{matchup.right.displayName}</span>
-                          <span className="text-blue-700 dark:text-blue-400 tabular-nums">
+                          <span className="text-primary tabular-nums">
                             {matchup.right.latestPriceStr}
                           </span>
                         </GuideAptCtaLink>
@@ -693,17 +695,12 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
             {/* Top Conversion Boost Slot */}
             <div
               data-testid="guide-top-conversion-boost-slot"
-              className="rounded-xl border border-emerald-500/25 dark:border-emerald-500/30 bg-emerald-500/[0.04] dark:bg-emerald-950/20 p-3.5 space-y-2.5"
+              className="rounded-xl border border-border bg-surface/90 p-3.5 space-y-2.5"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[10.5px] font-extrabold">
-                    상단 고전환 슬롯
-                  </span>
-                  <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100">
-                    신규 유입 TOP 3 핵심 허브 및 15분 체류 검증 대장 단지 바로가기
-                  </span>
-                </div>
+                <span className="text-xs sm:text-[13px] font-extrabold text-primary">
+                  함께 많이 찾는 핵심 가이드 · 대표 단지
+                </span>
                 <GuideAptCtaLink
                   href={
                     lakeEduTownPreview?.href ||
@@ -715,16 +712,16 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                   dong={lakeEduTownPreview?.dong || '산척동'}
                   guideSlug={article.slug}
                   placement="article_top"
-                  sectionTitle="상단 고전환 슬롯 동탄더샵레이크에듀타운 바로가기"
+                  sectionTitle="대표 단지 동탄더샵레이크에듀타운 바로가기"
                   dataTestId="guide-top-lake-edutown-spotlight"
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors max-w-full min-w-0"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[11px] font-extrabold transition-colors max-w-full min-w-0"
                 >
                   <span className="tabular-nums truncate">
-                    {`동탄더샵레이크에듀타운 (평균 15분 체류${
+                    {`동탄더샵레이크에듀타운${
                       lakeEduTownPreview?.latestPriceStr
-                        ? ` · ${lakeEduTownPreview.latestPriceStr}`
+                        ? ` · 최근 ${lakeEduTownPreview.latestPriceStr}`
                         : ''
-                    }) 상세보기`}
+                    } 상세보기`}
                   </span>
                   <DviewIcon name="arrow-up-right" size={12} />
                 </GuideAptCtaLink>
@@ -744,20 +741,20 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                       data-testid={`guide-top-inflow-hub-${entry.id}`}
                       className={`rounded-lg border p-2.5 flex flex-col justify-between gap-1 transition-colors ${
                         isCurrentGuide
-                          ? 'bg-emerald-500/10 border-emerald-500/40 text-slate-900 dark:text-slate-50'
-                          : 'bg-white/85 dark:bg-slate-900/75 border-slate-200/80 dark:border-slate-800 hover:border-emerald-500/50 text-slate-800 dark:text-slate-100'
+                          ? 'ring-2 ring-slate-900/20 dark:ring-white/25 bg-[#eff1f5] dark:bg-[#1e2532] border-border text-primary'
+                          : 'bg-elevated border-border hover:border-slate-300 dark:hover:border-slate-700 text-primary'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-1.5">
-                        <span className="text-[10.5px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                        <span className="text-[10.5px] font-extrabold text-secondary bg-[#eff1f5] dark:bg-[#1e2532] px-2 py-0.5 rounded-md border border-border/60">
                           {entry.badge}
                         </span>
-                        <DviewIcon name="arrow-up-right" size={12} className="text-slate-400" />
+                        <DviewIcon name="arrow-up-right" size={12} className="text-tertiary" />
                       </div>
                       <p className="text-xs font-extrabold leading-snug line-clamp-1">
                         {entry.title}
                       </p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium line-clamp-1">
+                      <p className="text-[11px] text-secondary font-medium line-clamp-1">
                         {entry.subtitle}
                       </p>
                     </Link>
@@ -803,11 +800,11 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
-                  <DviewIcon name="building-2" size={19} className="text-emerald-600 dark:text-emerald-400" />
+                <h3 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
+                  <DviewIcon name="building-2" size={19} className="text-secondary" />
                   <span>가이드 본문 언급 대표 단지 실시간 실거래가 미니 프리뷰</span>
                 </h3>
-                <p className="mt-1 text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 font-medium">
+                <p className="mt-1 text-xs sm:text-[13px] text-secondary font-medium">
                   본 가이드에서 다룬 핵심 아파트 단지(
                   {featuredAptRows
                     .slice(0, 3)
@@ -824,7 +821,7 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                       key={zone.id}
                       href={`/zone/${zone.id}`}
                       prefetch={false}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-xs font-extrabold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#eff1f5] dark:bg-[#1e2532] border border-border text-secondary hover:text-primary text-xs font-extrabold hover:bg-slate-200/70 dark:hover:bg-slate-700/70 transition-colors"
                     >
                       <span>{zone.name}</span>
                     </Link>
@@ -871,11 +868,11 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
             className="scroll-mt-40 md:scroll-mt-48 pt-6 border-t border-slate-200 dark:border-slate-800 space-y-5"
           >
             <div>
-              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
-                <DviewIcon name="scale" size={19} className="text-emerald-600 dark:text-emerald-400" />
+              <h3 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
+                <DviewIcon name="scale" size={19} className="text-secondary" />
                 <span>핵심 대표 단지 1:1 실거래 맞대결 (국토교통부 실데이터)</span>
               </h3>
-              <p className="mt-1 text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 font-medium">
+              <p className="mt-1 text-xs sm:text-[13px] text-secondary font-medium">
                 실수요자가 가장 많이 함께 비교하는 양대 대표 단지의 최근 매매 실거래가·전세가·전세가율·누적 거래량을 직접 대조합니다.
               </p>
             </div>
@@ -884,36 +881,30 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
               {headToHeadRows.map((matchup) => (
                 <div
                   key={`${matchup.left.name}-vs-${matchup.right.name}`}
-                  className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-4 sm:p-5 space-y-4"
+                  className="rounded-2xl border border-border bg-elevated p-4 sm:p-5 space-y-4"
                 >
                   <div>
-                    <h4 className="text-[15px] sm:text-base font-extrabold text-slate-900 dark:text-slate-50">
+                    <h4 className="text-[15px] sm:text-base font-extrabold text-primary">
                       {matchup.title}
                     </h4>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
+                    <p className="text-xs text-secondary mt-0.5 font-medium">
                       {matchup.subtitle}
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                     {[
-                      { side: 'LEFT', label: matchup.leftLabel, apt: matchup.left, accent: 'emerald' as const },
-                      { side: 'RIGHT', label: matchup.rightLabel, apt: matchup.right, accent: 'blue' as const },
+                      { side: 'LEFT', label: matchup.leftLabel, apt: matchup.left },
+                      { side: 'RIGHT', label: matchup.rightLabel, apt: matchup.right },
                     ].map((card) => (
                       <div
                         key={card.apt.name}
-                        className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/70 p-4 space-y-3 flex flex-col justify-between"
+                        className="rounded-xl border border-border bg-surface p-4 space-y-3 flex flex-col justify-between"
                       >
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-2">
                             <div>
-                              <span
-                                className={
-                                  card.accent === 'emerald'
-                                    ? 'inline-block text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 px-2 py-0.5 rounded-md'
-                                    : 'inline-block text-[11px] font-extrabold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800/60 px-2 py-0.5 rounded-md'
-                                }
-                              >
+                              <span className="inline-block text-[11px] font-extrabold text-primary bg-[#eff1f5] dark:bg-[#1e2532] border border-border/60 px-2 py-0.5 rounded-md">
                                 {card.label}
                               </span>
                               <GuideAptCtaLink
@@ -925,46 +916,46 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                                 guideSlug={article.slug}
                                 placement="article_bottom"
                                 sectionTitle={matchup.title}
-                                className="mt-1.5 flex items-center gap-1 text-[15px] font-black text-slate-900 dark:text-slate-50 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                                className="mt-1.5 flex items-center gap-1 text-[15px] font-black text-primary hover:underline transition-colors"
                               >
                                 <span>{card.apt.name}</span>
-                                <DviewIcon name="arrow-up-right" size={14} className="text-slate-400" />
+                                <DviewIcon name="arrow-up-right" size={14} className="text-tertiary" />
                               </GuideAptCtaLink>
                             </div>
-                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 shrink-0">
+                            <span className="text-[11px] font-bold text-tertiary shrink-0">
                               {card.apt.dong}
                             </span>
                           </div>
 
-                          <dl className="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                          <dl className="grid grid-cols-2 gap-2.5 pt-2 border-t border-border/60 text-xs">
                             <div>
-                              <dt className="text-slate-500 dark:text-slate-400 font-medium">최근 매매 실거래</dt>
-                              <dd className="mt-0.5 text-sm font-black tabular-nums text-emerald-700 dark:text-emerald-400">
+                              <dt className="text-tertiary font-medium">최근 매매 실거래</dt>
+                              <dd className="mt-0.5 text-sm font-black tabular-nums text-primary">
                                 {card.apt.latestPriceStr}
                               </dd>
                             </div>
                             <div>
-                              <dt className="text-slate-500 dark:text-slate-400 font-medium">최근 전세 실거래</dt>
-                              <dd className="mt-0.5 text-sm font-bold tabular-nums text-slate-900 dark:text-slate-100">
+                              <dt className="text-tertiary font-medium">최근 전세 실거래</dt>
+                              <dd className="mt-0.5 text-sm font-bold tabular-nums text-primary">
                                 {card.apt.latestRentStr}
                               </dd>
                             </div>
                             <div>
-                              <dt className="text-slate-500 dark:text-slate-400 font-medium">전세가율 (하방지지)</dt>
-                              <dd className="mt-0.5 font-extrabold tabular-nums text-slate-800 dark:text-slate-200">
+                              <dt className="text-tertiary font-medium">전세가율 (하방지지)</dt>
+                              <dd className="mt-0.5 font-extrabold tabular-nums text-secondary">
                                 {card.apt.jeonseRatio > 0 ? `${card.apt.jeonseRatio}%` : '정보 없음'}
                               </dd>
                             </div>
                             <div>
-                              <dt className="text-slate-500 dark:text-slate-400 font-medium">누적 실거래량</dt>
-                              <dd className="mt-0.5 font-extrabold tabular-nums text-slate-800 dark:text-slate-200">
+                              <dt className="text-tertiary font-medium">누적 실거래량</dt>
+                              <dd className="mt-0.5 font-extrabold tabular-nums text-secondary">
                                 {card.apt.txCount > 0 ? `${card.apt.txCount.toLocaleString()}건` : '정보 없음'}
                               </dd>
                             </div>
                           </dl>
                         </div>
 
-                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-end">
+                        <div className="pt-2 border-t border-border/60 flex items-center justify-end">
                           <GuideAptCtaLink
                             href={`/apartment/${encodeURIComponent(card.apt.canonicalSlug)}`}
                             apartmentName={card.apt.name}
@@ -975,11 +966,7 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                             placement="article_bottom"
                             sectionTitle={matchup.title}
                             dataTestId="guide-h2h-apt-cta-btn"
-                            className={
-                              card.accent === 'emerald'
-                                ? 'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors shadow-2xs'
-                                : 'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-colors shadow-2xs'
-                            }
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-xs font-extrabold transition-colors shadow-2xs"
                           >
                             <span>{card.apt.displayName} 실거래 상세 리포트</span>
                             <DviewIcon name="arrow-up-right" size={12} />
@@ -989,8 +976,8 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                     ))}
                   </div>
 
-                  <div className="rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-800/50 px-3.5 py-2.5 text-xs sm:text-[13px] text-slate-700 dark:text-slate-300 font-semibold leading-relaxed">
-                    <strong className="text-emerald-700 dark:text-emerald-400 font-extrabold mr-1.5">
+                  <div className="rounded-xl bg-surface border border-border px-3.5 py-2.5 text-xs sm:text-[13px] text-secondary font-semibold leading-relaxed">
+                    <strong className="text-primary font-extrabold mr-1.5">
                       데이터 판정:
                     </strong>
                     {matchup.verdict}
@@ -1006,14 +993,14 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
           <section
             id="guide-live-data-comparison"
             aria-label="리포트 연관 주요 아파트 국토교통부 실거래 비교표"
-            className="scroll-mt-40 md:scroll-mt-48 pt-6 border-t border-slate-200 dark:border-slate-800 space-y-5"
+            className="scroll-mt-40 md:scroll-mt-48 pt-6 border-t border-border space-y-5"
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
+                <h3 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
                   <span>리포트 핵심 아파트 국토교통부 최신 실거래가 비교표</span>
                 </h3>
-                <p className="mt-1 text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 font-medium">
+                <p className="mt-1 text-xs sm:text-[13px] text-secondary font-medium">
                   본 칼럼에서 다룬 대표 단지의 실제 실거래가·전세가율 현황입니다. 단지명을 클릭하면 평형별 시세와 DSR 대출 한도 리포트로 이동합니다.
                 </p>
               </div>
@@ -1024,7 +1011,7 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                       key={zone.id}
                       href={`/zone/${zone.id}`}
                       prefetch={false}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-xs font-extrabold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#eff1f5] dark:bg-[#1e2532] border border-border text-secondary hover:text-primary text-xs font-extrabold hover:bg-slate-200/70 dark:hover:bg-slate-700/70 transition-colors"
                     >
                       <span>{zone.name}</span>
                     </Link>
@@ -1034,12 +1021,12 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
             </div>
 
             {featuredAptRows.length > 0 && (
-              <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
-                <table className="w-full text-left text-[12.5px] sm:text-[13px] text-slate-600 dark:text-slate-400">
+              <div className="overflow-x-auto rounded-xl border border-border">
+                <table className="w-full text-left text-[12.5px] sm:text-[13px] text-secondary">
                   <caption className="sr-only">
                     리포트 연관 주요 아파트 단지별 행정동, 최근 실거래 매매가, 최근 전세가, 전세가율 및 누적 거래량 비교표
                   </caption>
-                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-slate-50 font-bold border-b border-slate-200 dark:border-slate-800">
+                  <thead className="bg-elevated text-primary font-bold border-b border-border">
                     <tr>
                       <th scope="col" className="p-3.5 whitespace-nowrap">단지명 (상세 리포트)</th>
                       <th scope="col" className="p-3.5 whitespace-nowrap">행정동</th>
@@ -1049,10 +1036,10 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                       <th scope="col" className="p-3.5 whitespace-nowrap">누적 거래량</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200/60 dark:divide-slate-800/60 font-medium">
+                  <tbody className="divide-y divide-border/60 font-medium">
                     {featuredAptRows.map((apt) => (
-                      <tr key={apt.name} className="hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition-colors">
-                        <th scope="row" className="p-3.5 font-extrabold text-slate-900 dark:text-slate-50 whitespace-nowrap">
+                      <tr key={apt.name} className="hover:bg-[#eff1f5]/60 dark:hover:bg-[#1e2532]/60 transition-colors">
+                        <th scope="row" className="p-3.5 font-extrabold text-primary whitespace-nowrap">
                           <GuideAptCtaLink
                             href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`}
                             apartmentName={apt.name}
@@ -1063,14 +1050,14 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                             placement="article_bottom"
                             sectionTitle="리포트 핵심 아파트 국토교통부 최신 실거래가 비교표"
                             dataTestId="guide-table-apt-cta-link"
-                            className="text-blue-700 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+                            className="text-primary hover:underline inline-flex items-center gap-1"
                           >
                             <span>{apt.name}</span>
-                            <DviewIcon name="arrow-up-right" size={12} className="opacity-75" />
+                            <DviewIcon name="arrow-up-right" size={12} className="opacity-75 text-tertiary" />
                           </GuideAptCtaLink>
                         </th>
                         <td className="p-3.5 whitespace-nowrap">{apt.dong}</td>
-                        <td className="p-3.5 tabular-nums font-extrabold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+                        <td className="p-3.5 tabular-nums font-extrabold text-primary whitespace-nowrap">
                           {apt.latestPriceStr}
                         </td>
                         <td className="p-3.5 tabular-nums whitespace-nowrap">{apt.latestRentStr}</td>
@@ -1088,6 +1075,35 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
             )}
           </section>
         )}
+
+        {/* Interactive Budget Tier Reality Check (Mounted inline on Budget & Finance Guides) */}
+        {(topicCluster?.id === 'budget-valuation-cluster' ||
+          topicCluster?.id === 'finance-tax-safety-cluster') &&
+          featuredAptRows.length > 0 && (
+            <BudgetTierChallengeWidget
+              catalog={Object.values(aptCatalog)
+                .filter((a) => a.latestPrice > 0)
+                .map((a): BudgetTierComplexItem => ({
+                  canonicalSlug: a.canonicalSlug,
+                  displayName: a.displayName,
+                  dong: a.dong,
+                  latestPriceManwon: a.latestPrice,
+                  latestPriceStr: a.latestPriceStr,
+                  latestRentManwon: a.latestRent,
+                  jeonseRatio: a.jeonseRatio > 0 ? a.jeonseRatio : null,
+                  txCount: a.txCount,
+                }))}
+              surface={`guide_${article.slug}`}
+              variant="compact"
+            />
+          )}
+
+        {/* Transparent Single-Editor E-E-A-T Author & Data Verification Box */}
+        <EditorialAuthorBox
+          authorName={article.author}
+          publishedDate={article.date}
+          updatedDate={article.updatedDate}
+        />
 
         {/* Bidirectional Bridge to /stats Dongtan 1 vs Dongtan 2 House Price Comparison */}
         <GuideStatsComparisonBridge
@@ -1113,15 +1129,15 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
-                  <DviewIcon name="layers" size={19} className="text-blue-600 dark:text-blue-400" />
+                <h3 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
+                  <DviewIcon name="layers" size={19} className="text-secondary" />
                   <span>
                     {topicCluster
                       ? `${topicCluster.title} · 필수 연계 리포트`
                       : '함께 읽으면 좋은 핵심 연계 가이드'}
                   </span>
                 </h3>
-                <p className="mt-1 text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 font-medium">
+                <p className="mt-1 text-xs sm:text-[13px] text-secondary font-medium">
                   {topicCluster
                     ? `${topicCluster.description} — 본 리포트와 함께 비교하면 단지 선택 정확도가 높아집니다.`
                     : '본 리포트의 실거래·입지 분석과 직결되는 인기 비교 가이드입니다.'}
@@ -1130,7 +1146,7 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
               <Link
                 href="/guide"
                 prefetch={false}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-extrabold transition-colors w-fit shrink-0"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#eff1f5] dark:bg-[#1e2532] hover:bg-slate-200/80 dark:hover:bg-slate-700/80 text-primary text-xs font-extrabold transition-colors w-fit shrink-0"
               >
                 <span>전체 {totalGuidesCount}개 가이드 허브</span>
                 <DviewIcon name="arrow-up-right" size={13} />
@@ -1144,27 +1160,27 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                   href={`/guide/${relGuide.slug}`}
                   prefetch={false}
                   data-testid="guide-topic-cluster-card"
-                  className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 hover:border-blue-500/50 dark:hover:border-blue-400/50 p-4 flex flex-col justify-between gap-2.5 transition-all group"
+                  className="rounded-xl border border-border bg-elevated hover:border-slate-300 dark:hover:border-slate-700 p-4 flex flex-col justify-between gap-2.5 transition-all group"
                 >
                   <div className="space-y-1.5">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-[11px] font-extrabold text-blue-700 dark:text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
+                      <span className="text-[11px] font-extrabold text-secondary bg-[#eff1f5] dark:bg-[#1e2532] px-2 py-0.5 rounded-md border border-border/60">
                         {relGuide.category}
                       </span>
                       {relGuide.isTopPopular && (
-                        <span className="text-[10.5px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                        <span className="text-[10.5px] font-extrabold dview-spark-badge px-2 py-0.5 rounded-md">
                           인기 TOP 5
                         </span>
                       )}
                     </div>
-                    <h4 className="text-[13.5px] sm:text-[14.5px] font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+                    <h4 className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-primary transition-colors line-clamp-2">
                       {relGuide.title}
                     </h4>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium line-clamp-2">
+                    <p className="text-xs text-secondary font-medium line-clamp-2">
                       {relGuide.subtitle}
                     </p>
                   </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-[11.5px] font-bold text-blue-700 dark:text-blue-400">
+                  <div className="flex items-center justify-between pt-2 border-t border-border/60 text-[11.5px] font-bold text-primary">
                     <span>심층 비교 리포트 이어서 읽기</span>
                     <DviewIcon
                       name="arrow-up-right"
@@ -1178,14 +1194,14 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
 
             {/* Cluster Flagship Apartment Direct Shortcuts */}
             {clusterFlagshipAptRows.length > 0 && (
-              <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 p-3.5 space-y-2">
+              <div className="rounded-xl border border-border bg-elevated p-3.5 space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11.5px] font-extrabold text-slate-700 dark:text-slate-300">
+                  <span className="text-[11.5px] font-extrabold text-primary">
                     {topicCluster
                       ? `${topicCluster.title} 대표 대장주 단지 실거래 바로가기`
                       : '클러스터 대표 대장주 단지 바로가기'}
                   </span>
-                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                  <span className="text-[11px] font-semibold text-tertiary">
                     국토부 84㎡ 실거래 기준
                   </span>
                 </div>
@@ -1202,14 +1218,14 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                       placement="article_bottom"
                       sectionTitle="클러스터 대표 대장주 단지 바로가기"
                       dataTestId="guide-cluster-flagship-apt-link"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/60 dark:hover:border-emerald-400/60 text-xs font-extrabold text-slate-800 dark:text-slate-100 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface border border-border hover:border-slate-300 dark:hover:border-slate-700 text-xs font-extrabold text-primary transition-colors"
                     >
-                      <DviewIcon name="building-2" size={12} className="text-emerald-600 dark:text-emerald-400" />
+                      <DviewIcon name="building-2" size={12} className="text-secondary" />
                       <span>{apt.displayName}</span>
-                      <span className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
+                      <span className="text-[11px] font-extrabold text-primary tabular-nums">
                         {apt.latestPriceStr}
                       </span>
-                      <DviewIcon name="arrow-up-right" size={12} className="text-slate-400" />
+                      <DviewIcon name="arrow-up-right" size={12} className="text-tertiary" />
                     </GuideAptCtaLink>
                   ))}
                 </div>
@@ -1217,8 +1233,8 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
             )}
 
             {/* 5-Cluster Pillar Cross-Navigation Bar */}
-            <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/40 p-3.5 space-y-2">
-              <span className="block text-[11.5px] font-extrabold text-slate-700 dark:text-slate-300">
+            <div className="rounded-xl border border-border bg-surface p-3.5 space-y-2">
+              <span className="block text-[11.5px] font-extrabold text-primary">
                 5대 핵심 토픽 클러스터 대표 가이드 ({totalGuidesCount}개 리포트 전체 연결)
               </span>
               <div className="flex flex-wrap items-center gap-2">
@@ -1232,8 +1248,8 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
                       data-testid="guide-cluster-pillar-pill"
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-extrabold transition-colors ${
                         isCurrentCluster
-                          ? 'bg-blue-500/10 border-blue-500/40 text-blue-700 dark:text-blue-300'
-                          : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-blue-500/40'
+                          ? 'bg-slate-900 border-slate-900 text-white dark:bg-slate-100 dark:border-slate-100 dark:text-slate-900'
+                          : 'bg-elevated border-border text-secondary hover:text-primary hover:border-slate-300 dark:hover:border-slate-700'
                       }`}
                     >
                       <span>{cluster.title}</span>
@@ -1251,22 +1267,22 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
           <section
             id="guide-faq-section"
             aria-label="리포트 자주 묻는 핵심 질문 FAQ"
-            className="scroll-mt-40 md:scroll-mt-48 pt-6 border-t border-slate-200 dark:border-slate-800 space-y-4"
+            className="scroll-mt-40 md:scroll-mt-48 pt-6 border-t border-border space-y-4"
           >
-            <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
-              <DviewIcon name="help-circle" size={19} className="text-blue-600 dark:text-blue-400" />
+            <h3 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
+              <DviewIcon name="help-circle" size={19} className="text-secondary" />
               <span>자주 묻는 핵심 질문 (FAQ)</span>
             </h3>
             <dl className="space-y-3">
               {article.faqs.map((faq) => (
                 <div
                   key={faq.question}
-                  className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/50 p-4 space-y-1.5"
+                  className="rounded-xl border border-border bg-elevated p-4 space-y-1.5"
                 >
-                  <dt className="text-[13.5px] sm:text-[14.5px] font-extrabold text-slate-900 dark:text-slate-100">
+                  <dt className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary">
                     Q. {faq.question}
                   </dt>
-                  <dd className="text-xs sm:text-[13.5px] text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                  <dd className="text-xs sm:text-[13.5px] text-secondary font-medium leading-relaxed">
                     {faq.answer}
                   </dd>
                 </div>
@@ -1311,38 +1327,6 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
             />
           </div>
         )}
-
-        {/* Footer Author & Recirculation Box */}
-        <div className="bg-body p-5 sm:p-6 rounded-2xl border border-border/60 flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <span className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider block">작성 주체</span>
-            <strong className="text-[15px] font-black text-primary">{article.author}</strong>
-            <p className="text-[12px] text-secondary mt-0.5">국토교통부 실거래가 및 행정 인프라 공공데이터 융합 퀀트 리서치</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
-              prefetch={false}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12.5px] font-bold transition-colors"
-            >
-              <span>동탄1 vs 동탄2 집값 통계</span>
-            </Link>
-            <Link
-              href="/explore"
-              prefetch={false}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[12.5px] font-bold transition-colors"
-            >
-              <span>단지별 실거래가 탐색</span>
-            </Link>
-            <Link
-              href="/technovalley"
-              prefetch={false}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-[12.5px] font-bold transition-colors"
-            >
-              <span>지식산업센터 세제 분석</span>
-            </Link>
-          </div>
-        </div>
       </article>
 
       {/* Read Next Other Articles */}
@@ -1357,10 +1341,10 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
               className="dview-g-rcard group"
             >
               <div>
-                <span className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 block mb-1">
+                <span className="text-[11px] font-extrabold text-secondary block mb-1">
                   {nextArt.category}
                 </span>
-                <h4 className="text-[14px] sm:text-[15px] font-bold text-primary group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-2">
+                <h4 className="text-[14px] sm:text-[15px] font-bold text-primary group-hover:text-primary transition-colors line-clamp-2">
                   {nextArt.title}
                 </h4>
                 <p className="text-[12px] text-secondary mt-1.5 line-clamp-2 font-medium">
@@ -1369,7 +1353,7 @@ export default function GuideArticleContentClient(props: GuideArticleContentClie
               </div>
               <div className="mt-4 pt-3 border-t border-border/40 text-[12px] text-tertiary flex items-center justify-between">
                 <span>약 {nextArt.readingTime}</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                <span className="text-primary font-bold inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                   <span>읽기</span>
                 </span>
               </div>

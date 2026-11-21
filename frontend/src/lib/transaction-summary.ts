@@ -65,6 +65,8 @@ export interface DongtanMacroTrendPoint {
   name: string;
   '동탄 아파트 전체': number;
   '동탄 아파트 전세 평균': number;
+  saleCount?: number;
+  rentCount?: number;
 }
 
 const rawSummary =

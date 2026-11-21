@@ -135,7 +135,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
   return (
     <section 
       id="sec-education" 
-      className="bg-transparent pt-6 border-t border-[#f2f4f6] dark:border-[#202027] flex flex-col gap-7 scroll-mt-14 overflow-hidden w-full snap-start"
+      className="bg-transparent pt-6 border-t border-border flex flex-col gap-7 scroll-mt-14 overflow-hidden w-full snap-start"
     >
       <script
         type="application/ld+json"
@@ -149,11 +149,11 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
           <button
             type="button"
             onClick={() => handleShareSection('childcare')}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 font-semibold text-[12px] rounded-lg transition-colors cursor-pointer border-none bg-transparent text-tertiary hover:text-primary hover:bg-[#f2f4f6] dark:hover:bg-[#202027]"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 font-semibold text-[12px] rounded-lg transition-colors cursor-pointer border-none bg-transparent text-tertiary hover:text-primary hover:bg-[#eff1f5] dark:hover:bg-[#1e2532]"
             title="학군/육아 분석 결과 공유하기"
           >
             {copiedStatus === 'edu-link' ? (
-              <Check size={13} strokeWidth={2.4} className="text-emerald-600 dark:text-emerald-400" />
+              <Check size={13} strokeWidth={2.4} className="text-primary" />
             ) : (
               <Share size={13} strokeWidth={2.2} />
             )}
@@ -168,16 +168,16 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
             {(() => {
               const eduScoreInfo = calculateEducationScore(report.metrics);
               const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
-                S: { bg: 'bg-blue-50 dark:bg-blue-950/30', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200/60 dark:border-blue-800/50', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-blue-600 dark:text-blue-400' },
-                A: { bg: 'bg-emerald-50 dark:bg-emerald-950/30', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200/60 dark:border-emerald-800/50', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-emerald-600 dark:text-emerald-400' },
-                B: { bg: 'bg-slate-100 dark:bg-slate-800/60', text: 'text-blue-600 dark:text-blue-400', border: 'border-slate-200/60 dark:border-slate-700/50', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-blue-600 dark:text-blue-400' },
-                C: { bg: 'bg-slate-100 dark:bg-slate-800/60', text: 'text-slate-600 dark:text-slate-400', border: 'border-slate-200/60 dark:border-slate-700/50', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-slate-600 dark:text-slate-400' }
+                S: { bg: 'bg-[#eff1f5] dark:bg-[#1e2532]', text: 'text-primary', border: 'border-slate-900/20 dark:border-white/25', descBg: 'bg-surface dark:bg-[#1e2532]', scoreText: 'text-primary' },
+                A: { bg: 'bg-[#eff1f5] dark:bg-[#1e2532]', text: 'text-primary', border: 'border-border', descBg: 'bg-surface dark:bg-[#1e2532]', scoreText: 'text-primary' },
+                B: { bg: 'bg-[#eff1f5] dark:bg-[#1e2532]', text: 'text-secondary', border: 'border-border', descBg: 'bg-surface dark:bg-[#1e2532]', scoreText: 'text-secondary' },
+                C: { bg: 'bg-[#eff1f5] dark:bg-[#1e2532]', text: 'text-tertiary', border: 'border-border', descBg: 'bg-surface dark:bg-[#1e2532]', scoreText: 'text-tertiary' }
               };
               const colors = scoreColors[eduScoreInfo.grade] || scoreColors.C;
               
               return (
                 <div>
-                  <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-center gap-6">
+                  <div className="bg-elevated rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-center gap-6">
                     <div className="flex flex-col items-center justify-center shrink-0">
                       <div className="relative w-20 h-20 flex items-center justify-center">
                         {/* Radial Progress SVG (Toss-style Score Wheel) */}
@@ -257,10 +257,10 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                     const grade = dist <= 300 ? 'excellent' : dist <= 700 ? 'good' : dist <= 1000 ? 'average' : 'far';
                     const timeColor =
                       grade === 'excellent' || grade === 'good'
-                        ? 'text-emerald-600 dark:text-emerald-400'
+                        ? 'text-primary'
                         : grade === 'average'
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-red-600 dark:text-red-400';
+                        ? 'text-secondary'
+                        : 'text-tertiary';
 
                     const perf = getSchoolPerformance(school.name);
 
@@ -277,13 +277,13 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                     }
 
                     return (
-                      <div key={school.label} className="w-[165px] shrink-0 sm:w-auto bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 flex flex-col justify-between">
+                      <div key={school.label} className="w-[165px] shrink-0 sm:w-auto bg-elevated rounded-2xl p-4 flex flex-col justify-between">
                         <div className="flex items-center justify-between gap-1.5 mb-2">
                           <span className="text-[12.5px] font-bold text-secondary truncate">
                             {school.label}
                           </span>
                           {tagText && (
-                            <span className={`text-[10.5px] font-bold shrink-0 ${timeColor}`}>
+                            <span className="text-[10.5px] font-bold shrink-0 px-1.5 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-secondary">
                               {tagText}
                             </span>
                           )}
@@ -299,12 +299,12 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                           </span>
                         </div>
 
-                        {/* Toss-style Distance Gauge Bar */}
+                        {/* Live Spark Distance Gauge Bar */}
                         <div className="mt-3 w-full bg-slate-200/70 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                           <div 
                             className={`h-full rounded-full transition-all duration-500 ease-out ${
-                              grade === 'excellent' || grade === 'good' ? 'bg-emerald-500' :
-                              grade === 'average' ? 'bg-blue-500' : 'bg-red-500'
+                              grade === 'excellent' || grade === 'good' ? 'bg-slate-900 dark:bg-slate-100' :
+                              grade === 'average' ? 'bg-slate-500' : 'bg-slate-400 dark:bg-slate-600'
                             }`}
                             style={{ width: `${percent}%` }}
                           />
@@ -330,7 +330,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
 
             {/* ─── 전문가 학군 및 통학로 분석 (Expert School/Route Review) ─── */}
             {(report.sections?.ecosystem?.schoolText || report.sections?.ecosystem?.schoolImg) && (
-              <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5">
+              <div className="bg-elevated rounded-2xl p-5">
                 <div className="mb-3">
                   <span className="text-[14px] font-bold text-primary tracking-tight">통학로 임장 메모</span>
                 </div>
@@ -347,7 +347,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                   )}
                   <div className="flex-1 w-full space-y-2">
                     {report.sections.ecosystem.schoolText && (
-                      <details className={getSeoAccordionClass('bg-surface dark:bg-[#202027]')}>
+                      <details className={getSeoAccordionClass('bg-surface dark:bg-[#1e2532]')}>
                         <summary className={getSeoAccordionSummaryClass()}>
                           <span>통학로 임장 상세 분석 더보기</span>
                           <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
@@ -371,9 +371,9 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                   <span className="text-[14px] font-bold text-secondary tracking-tight">주변 학원가 (500m)</span>
                 </div>
                 
-                <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5 flex flex-col gap-4">
+                <div className="bg-elevated rounded-2xl p-5 flex flex-col gap-4">
                   <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-surface dark:bg-[#202027] flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
+                    <div className="w-10 h-10 rounded-xl bg-surface dark:bg-[#1e2532] flex items-center justify-center shrink-0 text-primary">
                       <GraduationCap size={20} />
                     </div>
                     <div>
@@ -388,20 +388,20 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                   {(() => {
                     const academyData = Object.entries(report.metrics.academyCategories || {}).map(([cat, cnt]) => {
                       let tag = '일반학원';
-                      let color = '#2563eb'; // brand-teal
-                      let bg = 'bg-blue-600';
+                      let color = '#2f6bff';
+                      let bg = 'bg-brand-blue';
                       if (cat.includes('음악') || cat.includes('미술') || cat.includes('피아노') || cat.includes('예술') || cat.includes('그림') || cat.includes('무용') || cat.includes('서예')) {
                         tag = '예체능';
-                        color = '#3182f6'; // brand-blue
-                        bg = 'bg-brand-blue';
+                        color = '#14181f';
+                        bg = 'bg-slate-900 dark:bg-slate-200';
                       } else if (cat.includes('태권도') || cat.includes('무술') || cat.includes('체육') || cat.includes('스포츠') || cat.includes('축구') || cat.includes('레크리에이션') || cat.includes('검도') || cat.includes('유도')) {
                         tag = '체육/활동';
-                        color = '#059669'; // brand-green
-                        bg = 'bg-brand-green';
+                        color = '#64748b';
+                        bg = 'bg-slate-500';
                       } else if (cat.includes('요가') || cat.includes('필라테스') || cat.includes('헬스') || cat.includes('취미') || cat.includes('바둑') || cat.includes('컴퓨터')) {
                         tag = '건강/취미';
-                        color = '#64748b'; // slate-500
-                        bg = 'bg-slate-500';
+                        color = '#94a3b8';
+                        bg = 'bg-slate-400';
                       }
                       return { cat, cnt: cnt as number, tag, color, bg };
                     });
@@ -462,8 +462,8 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
 
                         {/* AI 진단 요약 및 아코디언 */}
                         <div className="mt-2.5 space-y-2">
-                          <div className="px-3.5 py-2.5 bg-emerald-50/40 dark:bg-emerald-950/10 border border-emerald-500/10 rounded-xl flex items-center gap-1.5 text-[12px] font-extrabold text-blue-600 dark:text-blue-400 tabular-nums">
-                            <Lightbulb size={14} className="shrink-0 text-blue-600 dark:text-blue-400" />
+                          <div className="px-3.5 py-2.5 bg-[#eff1f5] dark:bg-[#1e2532] rounded-xl flex items-center gap-1.5 text-[12px] font-extrabold text-primary tabular-nums">
+                            <Lightbulb size={14} className="shrink-0 text-secondary" />
                             <span>
                               500m 내 {totalAcademyCount}개소 ·{' '}
                               {totalAcademyCount >= 60
@@ -475,7 +475,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                                 : '인근 대형 학원가 셔틀권'}
                             </span>
                           </div>
-                          <details className={getSeoAccordionClass('bg-surface dark:bg-[#17171c]')}>
+                          <details className={getSeoAccordionClass('bg-surface dark:bg-[#1e2532]')}>
                             <summary className={getSeoAccordionSummaryClass()}>
                               <span>학원가 업종 구성 해설 더보기</span>
                               <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
@@ -492,11 +492,11 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                   })()}
                   
                   {report.metrics.academyCategories && Object.keys(report.metrics.academyCategories).length > 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 border-t border-[#f2f4f6] dark:border-[#202027] pt-3.5 mt-1">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 border-t border-border pt-3.5 mt-1">
                       {Object.entries(report.metrics.academyCategories)
                         .sort(([,a], [,b]) => (b as number) - (a as number))
                         .map(([cat, cnt]) => (
-                          <div key={cat} className="flex justify-between items-center bg-surface dark:bg-[#202027] rounded-xl px-3.5 py-2.5">
+                          <div key={cat} className="flex justify-between items-center bg-surface dark:bg-[#1e2532] rounded-xl px-3.5 py-2.5">
                             <span className="text-[12.5px] font-semibold text-secondary truncate pr-2">{cat}</span>
                             <span className="font-bold text-[13px] text-primary shrink-0 tabular-nums">{cnt as number}개</span>
                           </div>

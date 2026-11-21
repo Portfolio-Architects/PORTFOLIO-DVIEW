@@ -336,7 +336,7 @@ describe('Challenger 2 Empirical Challenge: Statistical Engine & Zero-CLS Layout
       expect(content).toContain('1000000004_stats_bottom');
 
       // Verify wrapper styles follow soft-surface rounded-2xl
-      expect(content).toContain('rounded-2xl bg-[#f9fafb] dark:bg-[#17171c]');
+      expect(content).toMatch(/rounded-2xl (?:bg-elevated|bg-\[#f9fafb\] dark:bg-\[#17171c\])/);
     });
   });
 });

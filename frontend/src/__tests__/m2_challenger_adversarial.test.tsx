@@ -477,12 +477,12 @@ describe('Milestone 2 Empirical Challenger: Adversarial Stress Test Suite', () =
         />
       );
 
-      // Today date group header must display emerald dot without redundant [오늘 신규 반영] / [오늘 등록] capsules
+      // Today date group header must display Live Spark ink dot without redundant [오늘 신규 반영] / [오늘 등록] capsules
       expect(screen.queryByTestId('timeline-group-today-badge')).not.toBeInTheDocument();
       expect(screen.queryByTestId('timeline-today-registered-badge')).not.toBeInTheDocument();
 
-      const emeraldDots = container.querySelectorAll('.bg-emerald-500.ring-4');
-      expect(emeraldDots.length).toBeGreaterThanOrEqual(1);
+      const todayDots = container.querySelectorAll('[data-testid="timeline-today-dot"].bg-primary.ring-4');
+      expect(todayDots.length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -545,8 +545,8 @@ describe('Milestone 2 Empirical Challenger: Adversarial Stress Test Suite', () =
         /\b(?:bg|text|border|ring)-(?:pink|purple|fuchsia|violet|indigo|yellow|orange|amber|rose|zinc|neutral|stone|gray|teal|cyan|sky|green)-/i;
       expect(container.innerHTML.match(prohibitedColorRegex)).toBeNull();
 
-      // Uses Value Emerald tokens
-      expect(container.innerHTML).toContain('emerald');
+      // Uses Live Spark neutral ink tokens
+      expect(container.innerHTML).toContain('text-primary');
     });
   });
 });

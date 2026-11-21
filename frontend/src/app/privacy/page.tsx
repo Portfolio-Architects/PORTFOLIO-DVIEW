@@ -97,7 +97,7 @@ export default function PrivacyPage() {
       <div className="bg-surface border-b border-border sticky top-0 z-50">
         <div className="max-w-[800px] mx-auto px-4 h-14 flex items-center justify-between">
           <h1 className="font-extrabold text-primary text-lg">개인정보처리방침</h1>
-          <Link href="/" prefetch={false} className="text-emerald-600 dark:text-emerald-400 font-bold text-sm hover:underline">
+          <Link href="/" prefetch={false} className="text-primary font-bold text-sm hover:underline">
             메인으로 돌아가기
           </Link>
         </div>
@@ -161,7 +161,7 @@ export default function PrivacyPage() {
           <ul className="list-disc pl-5 space-y-2 mt-2">
             <li><strong>쿠키(Cookie) 및 서드파티 데이터 수집:</strong> Google 및 제3자 광고 공급업체는 쿠키(Cookie)를 사용하여 이용자의 본 사이트 및 다른 웹사이트 방문 기록을 바탕으로 광고를 게재합니다.</li>
             <li><strong>맞춤설정 광고 게재 원리:</strong> Google의 광고 쿠키 사용으로 인해 Google 및 파트너사는 이용자의 본 사이트 및 인터넷 상의 다른 사이트 방문 정보를 바탕으로 관련성 높은 광고를 이용자에게 제공할 수 있습니다.</li>
-            <li><strong>맞춤설정 광고 수신 거부(Opt-out):</strong> 이용자는 언제든지 맞춤형 광고 게재를 거부할 수 있습니다. 맞춤 광고를 원치 않으실 경우 <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-emerald-400 underline font-bold">Google 광고 설정(https://adssettings.google.com)</a>을 방문하여 맞춤설정 광고를 비활성화하거나, <a href="https://www.aboutads.info" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-emerald-400 underline font-bold">www.aboutads.info</a>를 방문하여 제3자 광고 공급업체의 맞춤 광고 쿠키 사용을 전면 차단할 수 있습니다.</li>
+            <li><strong>맞춤설정 광고 수신 거부(Opt-out):</strong> 이용자는 언제든지 맞춤형 광고 게재를 거부할 수 있습니다. 맞춤 광고를 원치 않으실 경우 <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer" className="text-primary underline font-bold">Google 광고 설정(https://adssettings.google.com)</a>을 방문하여 맞춤설정 광고를 비활성화하거나, <a href="https://www.aboutads.info" target="_blank" rel="noopener noreferrer" className="text-primary underline font-bold">www.aboutads.info</a>를 방문하여 제3자 광고 공급업체의 맞춤 광고 쿠키 사용을 전면 차단할 수 있습니다.</li>
           </ul>
 
           <div className="mt-12 text-sm text-tertiary">

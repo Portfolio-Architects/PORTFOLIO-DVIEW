@@ -190,10 +190,15 @@ export async function addReview(
   try {
     let photoURL: string | undefined;
 
-    // Upload image if provided via unified storage.service
+    // Upload image if provided via unified storage.service (UID-scoped path)
     if (imageFile) {
+      const rawAuthorUid = typeof authorUid === 'string' ? authorUid.trim() : '';
+      const safeAuthorUid = rawAuthorUid.replace(/[\\/]/g, '_');
+      if (!safeAuthorUid || safeAuthorUid === '.' || safeAuthorUid === '..' || /[\u0000-\u001F\u007F]/.test(safeAuthorUid)) {
+        throw new Error('유효한 작성자 UID가 필요합니다.');
+      }
       const { uploadImage } = await import('@/lib/services/storage.service');
-      photoURL = await uploadImage(imageFile, 'user_reviews');
+      photoURL = await uploadImage(imageFile, `user_reviews/${safeAuthorUid}`);
     }
 
     await throttle(() => addDoc(collection(db, COLLECTION), {

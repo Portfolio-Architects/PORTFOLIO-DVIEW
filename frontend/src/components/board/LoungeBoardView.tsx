@@ -7,7 +7,6 @@ import {
   Navigation,
   BadgeCheck,
   Lock,
-  Sparkles,
   Flame,
   Clock,
 } from 'lucide-react';
@@ -261,9 +260,8 @@ export function LoungeBoardView() {
             <h1 className="text-xl sm:text-2xl font-black text-primary tracking-tight">
               동탄 입주민 라운지
             </h1>
-            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-full">
-              <Sparkles className="w-3 h-3" />
-              <span>익명 자유게시판</span>
+            <span className="inline-flex items-center text-[11px] font-bold text-secondary bg-[#eff1f5] dark:bg-[#1e2532] px-2 py-0.5 rounded-md">
+              익명 자유게시판
             </span>
           </div>
           <p className="text-xs sm:text-sm text-secondary mt-1">
@@ -277,7 +275,7 @@ export function LoungeBoardView() {
             type="button"
             data-testid="board-write-btn"
             onClick={() => setIsWriteModalOpen(true)}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm text-white bg-blue-600 hover:bg-blue-700 shadow-xs active:scale-95 transition-all cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 shadow-xs active:scale-95 transition-all cursor-pointer"
           >
             <PenSquare className="w-4 h-4" />
             <span>글쓰기</span>
@@ -291,7 +289,7 @@ export function LoungeBoardView() {
           <span className="text-tertiary font-bold">내 작성 프로필:</span>
           {selectedTitle ? (
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-extrabold text-primary bg-slate-200/80 dark:bg-slate-800 px-2 py-0.5 rounded-[6px]">
+              <span className="font-extrabold text-primary bg-[#eff1f5] dark:bg-[#1e2532] px-2 py-0.5 rounded-[6px]">
                 {selectedTitle}
               </span>
               {isGpsVerified && gpsVerifiedComplex === selectedTitle ? (
@@ -303,7 +301,7 @@ export function LoungeBoardView() {
                 <button
                   type="button"
                   onClick={() => setIsGpsModalOpen(true)}
-                  className="inline-flex items-center gap-1 font-bold text-emerald-600 hover:underline"
+                  className="inline-flex items-center gap-1 font-bold text-primary hover:underline"
                 >
                   <Navigation className="w-3.5 h-3.5" />
                   <span>GPS 위치 인증하기</span>
@@ -311,7 +309,7 @@ export function LoungeBoardView() {
               )}
 
               {isLocked && (
-                <span className="inline-flex items-center gap-1 font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded tabular-nums">
+                <span className="inline-flex items-center gap-1 font-bold text-secondary bg-[#eff1f5] dark:bg-[#1e2532] px-1.5 py-0.5 rounded tabular-nums">
                   <Lock className="w-3 h-3" />
                   <span>30일 고정 D-{daysRemaining}</span>
                 </span>
@@ -328,7 +326,7 @@ export function LoungeBoardView() {
           type="button"
           data-testid="author-profile-select-btn"
           onClick={() => setIsTitleModalOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold text-secondary hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors self-start sm:self-auto shrink-0"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold text-secondary hover:text-primary hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] transition-colors self-start sm:self-auto shrink-0"
         >
           <Building2 className="w-3.5 h-3.5" />
           <span>{selectedTitle ? '단지 변경/확인' : '단지 타이틀 설정'}</span>
@@ -339,7 +337,7 @@ export function LoungeBoardView() {
       <div className="flex items-center justify-between gap-3 pt-2">
         <div className="flex items-center gap-2">
           <span className="text-xs sm:text-sm font-extrabold text-primary">
-            이야기 <span className="text-blue-600 dark:text-blue-400 tabular-nums">{totalCount}</span>개
+            이야기 <span className="text-primary font-black tabular-nums">{totalCount}</span>개
           </span>
         </div>
 
@@ -352,7 +350,7 @@ export function LoungeBoardView() {
             className={getToggleBtnClass({
               active: sort === 'latest',
               size: 'md',
-              tone: 'blue',
+              tone: 'neutral',
             })}
           >
             <Clock className="w-3.5 h-3.5" />
@@ -365,7 +363,7 @@ export function LoungeBoardView() {
             className={getToggleBtnClass({
               active: sort === 'popular',
               size: 'md',
-              tone: 'blue',
+              tone: 'neutral',
             })}
           >
             <Flame className="w-3.5 h-3.5" />

@@ -195,15 +195,15 @@ describe('AptCompareModal', () => {
     // Verify highlighted rows by looking for bg-emerald-500/10 classes
     // GTX-A row (transit is gtx)
     const gtxRow = screen.getByText('GTX-A / SRT역 거리').closest('.grid');
-    expect(gtxRow).toHaveClass('bg-emerald-500/10');
+    expect(gtxRow).toHaveClass('bg-[#eff1f5]/70');
 
     // Elementary row (family is elementary)
     const elemRow = screen.getByText('초등학교 도보 통학 거리').closest('.grid');
-    expect(elemRow).toHaveClass('bg-emerald-500/10');
+    expect(elemRow).toHaveClass('bg-[#eff1f5]/70');
 
     // Park row (lifestyle is nature)
     const parkRow = screen.getByText('공원 도보 거리').closest('.grid');
-    expect(parkRow).toHaveClass('bg-emerald-500/10');
+    expect(parkRow).toHaveClass('bg-[#eff1f5]/70');
   }, 15000);
 
   it('supports multi-token / chosung search and immediate Enter key selection', async () => {

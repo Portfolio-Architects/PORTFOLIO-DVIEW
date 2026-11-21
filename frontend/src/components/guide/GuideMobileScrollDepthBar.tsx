@@ -440,12 +440,13 @@ export const GuideMobileScrollDepthBar = React.memo(function GuideMobileScrollDe
   return (
     <nav
       data-testid="guide-mobile-scroll-depth-bar"
+      data-scroll-interactive="true"
       aria-label="리포트 목차 바로가기 및 읽기 진행률"
-      className="sticky top-[48px] md:top-[84px] z-20 w-full min-h-[56px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] px-3 sm:px-3.5 py-2.5 space-y-2 transition-colors box-border min-w-0 max-w-full"
+      className="sticky top-[48px] dview-safe-sticky-top-12 md:top-[84px] z-20 w-full min-h-[56px] rounded-2xl bg-elevated border border-border/60 px-3 sm:px-3.5 py-2.5 space-y-2 transition-colors box-border min-w-0 max-w-full"
     >
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 min-w-0">
         <div className="inline-flex items-center gap-1.5 shrink-0">
-          <ListTree size={14} className="text-blue-600 dark:text-blue-400 shrink-0" />
+          <ListTree size={14} className="text-primary shrink-0" />
           <span
             data-testid="guide-toc-title-label"
             className="text-[11.5px] sm:text-xs font-extrabold text-primary whitespace-nowrap"
@@ -457,8 +458,8 @@ export const GuideMobileScrollDepthBar = React.memo(function GuideMobileScrollDe
         <span
           data-testid="guide-scroll-progress-label"
           className={getVisualSignalPillClass(
-            progressPct >= 75 ? 'safe' : progressPct >= 25 ? 'down' : 'neutral',
-            'tabular-nums shrink-0 sm:order-3'
+            'neutral',
+            'tabular-nums shrink-0 sm:order-3 text-primary'
           )}
         >
           <span>읽기 {progressPct}%</span>
@@ -467,13 +468,13 @@ export const GuideMobileScrollDepthBar = React.memo(function GuideMobileScrollDe
         {activeSectionApt && (
           <div
             data-testid="guide-sticky-retention-row"
-            className="w-full sm:w-auto sm:flex-1 sm:order-2 flex items-center justify-between sm:justify-end gap-1.5 min-w-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-[#f2f4f6] dark:border-[#202027]"
+            className="w-full sm:w-auto sm:flex-1 sm:order-2 flex items-center justify-between sm:justify-end gap-1.5 min-w-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-border"
           >
             <span
               data-testid="guide-sticky-active-apt"
               className="inline-flex items-center gap-1 text-[11px] font-bold text-secondary min-w-0 sm:max-w-[180px]"
             >
-              <Building2 size={11} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <Building2 size={11} className="text-secondary shrink-0" />
               <span className="truncate">
                 {activeSectionApt.displayName || activeSectionApt.name}
               </span>
@@ -529,10 +530,10 @@ export const GuideMobileScrollDepthBar = React.memo(function GuideMobileScrollDe
         aria-valuemax={100}
         aria-valuenow={progressPct}
         data-testid="guide-scroll-progressbar"
-        className="h-1 w-full rounded-full bg-[#f2f4f6] dark:bg-[#202027] overflow-hidden"
+        className="h-1 w-full rounded-full bg-[#eff1f5] dark:bg-[#1e2532] overflow-hidden"
       >
         <div
-          className="h-full rounded-full bg-blue-600 dark:bg-blue-500 transition-[width] duration-150 ease-out"
+          className="h-full rounded-full bg-slate-900 dark:bg-slate-100 transition-[width] duration-150 ease-out"
           style={{ width: `${progressPct}%` }}
         />
       </div>

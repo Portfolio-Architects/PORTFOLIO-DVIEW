@@ -335,7 +335,8 @@ describe('P0-2: Apartment Detail SSR Uncloaking & Guardrail B Verification', () 
     // Verify LoungeHeader has "아파트 탐색" highlighted (activeTab="explore")
     const exploreNavLink = headerBanner.querySelector('a[href="/explore"]');
     expect(exploreNavLink).not.toBeNull();
-    expect(exploreNavLink?.className).toContain('text-blue-600');
+    expect(exploreNavLink?.className).toContain('text-primary');
+    expect(exploreNavLink?.className).toContain('bg-white');
 
     // Inline Detail View invariant: headerBanner -> dashboardClient -> reportSection in natural DOM & visual order (no flex order-1/order-2 mismatch)
     expect(headerBanner.compareDocumentPosition(dashboardClient) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

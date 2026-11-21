@@ -230,7 +230,7 @@ export default function GuideAptPreviewCard({
         data-apt-slug={safeSlug}
         data-apt-dong={item.dong}
         aria-label={`${item.displayName} 실시간 실거래가 미니 프리뷰 및 단지 상세 이동`}
-        className="group dview-gcard min-h-[158px] sm:min-h-[168px] bg-slate-50/90 hover:bg-slate-100/80 dark:bg-slate-900/80 dark:hover:bg-slate-800/80"
+        className="group dview-gcard min-h-[158px] sm:min-h-[168px] bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532]"
       >
       <div className="space-y-3">
         {/* Top Metadata Row: Dong/Zone Badge & Live Indicator */}
@@ -242,21 +242,17 @@ export default function GuideAptPreviewCard({
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5 shrink-0">
-            {isHighConversionFlagship && (
+          {isHighConversionFlagship && (
+            <div className="flex flex-wrap items-center gap-1.5 shrink-0">
               <span
                 data-testid={isLakeEduTownHero ? 'guide-apt-preview-high-dwell-badge' : 'guide-apt-preview-flagship-badge'}
                 className="dview-gcard-flag"
               >
                 <DviewIcon name="shield-check" size={11} />
-                <span>{isLakeEduTownHero ? '평균 15분 체류 대장' : '고전환 핵심 대장'}</span>
+                <span>{isLakeEduTownHero ? '인기 대표 단지' : '권역 대장 단지'}</span>
               </span>
-            )}
-            <span className="dview-gcard-live">
-              <DviewIcon name="trending-up" size={11} />
-              <span>실거래 프리뷰</span>
-            </span>
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Complex Display Name + Official Key */}
@@ -299,7 +295,7 @@ export default function GuideAptPreviewCard({
 
           <div className="px-1">
             <dt className="dview-gcard-k flex items-center gap-1">
-              <DviewIcon name="shield-check" size={11} className="text-emerald-600 dark:text-emerald-400" />
+              <DviewIcon name="shield-check" size={11} className="text-secondary" />
               <span>전세가율 · 실거주 PER</span>
             </dt>
             <dd className="dview-gcard-v3">
@@ -348,7 +344,7 @@ export default function GuideAptPreviewCard({
         className="dview-gcard-ret"
       >
         <span className="text-[11px] font-bold text-secondary truncate tabular-nums">
-          로그인 없이 1초 저장 · 평일 07:00 변동 알림
+          로그인 없이 관심단지 저장 · 매일 07시대 요약 알림
         </span>
         <QuickNonLoginRetentionAction
           aptName={item.name}

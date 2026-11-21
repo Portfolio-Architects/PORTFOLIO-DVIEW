@@ -428,9 +428,9 @@ export const PersonalWatchlistBar = React.memo(function PersonalWatchlistBar({
             <button
               type="button"
               onClick={handleDeltaBadgeClick}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50/90 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200/60 dark:border-blue-800/50 text-blue-700 dark:text-blue-300 transition-colors w-fit text-left cursor-pointer group"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] hover:bg-slate-200/80 dark:hover:bg-[#252c3d] border border-border/60 text-primary transition-colors w-fit text-left cursor-pointer group"
             >
-              <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0 group-hover:rotate-12 transition-transform" />
+              <Sparkles className="w-3.5 h-3.5 text-brand-red shrink-0 group-hover:rotate-12 transition-transform" />
               <span className="text-[11.5px] sm:text-[12.5px] font-extrabold tracking-tight tabular-nums">
                 {lastVisitTs !== null
                   ? `지난 방문 이후 동탄 신규 실거래 +${totalNewCount}건 · 내 관심단지 ${favoritesNewCount}건`
@@ -453,7 +453,7 @@ export const PersonalWatchlistBar = React.memo(function PersonalWatchlistBar({
                   });
                   onOpenCompare(comparePrimary, compareSecondary);
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/50 border border-slate-200/80 dark:border-slate-700 hover:border-blue-400/60 text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-300 text-[11.5px] font-extrabold transition-colors shrink-0 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#eff1f5] dark:bg-[#1e2532] hover:bg-slate-200/80 dark:hover:bg-[#252c3d] border border-border/60 text-primary text-[11.5px] font-extrabold transition-colors shrink-0 cursor-pointer"
               >
                 <ArrowRightLeft className="w-3.5 h-3.5 shrink-0" />
                 <span>{isColdStart ? '인접 대장단지 1:1 비교' : '관심단지 1:1 비교'}</span>
@@ -474,9 +474,9 @@ export const PersonalWatchlistBar = React.memo(function PersonalWatchlistBar({
                   });
                   onOpenPushModal(targetApt);
                 }}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200/70 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-[11.5px] font-extrabold transition-colors shrink-0 cursor-pointer"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#eff1f5] dark:bg-[#1e2532] hover:bg-slate-200/80 dark:hover:bg-[#252c3d] border border-border/60 text-primary text-[11.5px] font-extrabold transition-colors shrink-0 cursor-pointer"
               >
-                <Bell className="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <Bell className="w-3.5 h-3.5 shrink-0 text-brand-red" />
                 <span>변동 알림</span>
               </button>
             )}
@@ -506,7 +506,7 @@ export const PersonalWatchlistBar = React.memo(function PersonalWatchlistBar({
                 }}
                 placeholder="단지명 빠른 검색..."
                 aria-label="단지명 검색"
-                className="w-full pl-8 pr-7 py-1.5 text-[12px] font-bold bg-slate-50 dark:bg-slate-900/60 border border-border/80 focus:border-blue-500 dark:focus:border-blue-400 rounded-xl outline-hidden text-primary placeholder:text-slate-400 transition-all"
+                className="w-full pl-8 pr-7 py-1.5 text-[12px] font-bold bg-[#f7f8fa] dark:bg-[#151a23] border border-border/80 focus:border-slate-500 dark:focus:border-slate-400 rounded-xl outline-hidden text-primary placeholder:text-slate-400 transition-all"
               />
               {searchQuery && (
                 <button
@@ -600,19 +600,19 @@ export const PersonalWatchlistBar = React.memo(function PersonalWatchlistBar({
                   key={item.name}
                   data-testid={`watchlist-card-${item.name}`}
                   onClick={() => handleComplexSelect(item.name, item.dong)}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-50/90 dark:bg-slate-900/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/40 border border-border/60 hover:border-blue-500/40 transition-all cursor-pointer shrink-0 min-w-[150px] max-w-[210px] group shadow-2xs"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[#f7f8fa] dark:bg-[#151a23] hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border/60 hover:border-slate-400/50 transition-all cursor-pointer shrink-0 min-w-[150px] max-w-[210px] group"
                 >
                   <button
                     type="button"
                     data-testid={`watchlist-fav-toggle-${item.name}`}
                     aria-label={`${item.name} 관심 단지 해제/등록`}
                     onClick={(e) => handleToggleFav(item.name, e)}
-                    className="shrink-0 p-1 rounded-md text-blue-600 hover:scale-110 transition-transform"
+                    className="shrink-0 p-1 rounded-md text-primary hover:scale-110 transition-transform"
                   >
                     <Star
                       className={`w-3.5 h-3.5 ${
                         isApartmentInFavorites(effectiveUserFavorites, item.name, nameMapping)
-                          ? 'fill-blue-500 text-blue-600'
+                          ? 'fill-slate-900 text-slate-900 dark:fill-white dark:text-white'
                           : 'text-slate-300 dark:text-slate-600'
                       }`}
                     />
@@ -620,11 +620,11 @@ export const PersonalWatchlistBar = React.memo(function PersonalWatchlistBar({
 
                   <div className="flex flex-col min-w-0 flex-1">
                     <div className="flex items-center gap-1 min-w-0">
-                      <span className="text-[12px] font-extrabold text-primary truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      <span className="text-[12px] font-extrabold text-primary truncate group-hover:underline transition-colors">
                         {getDisplayAptName(item.name)}
                       </span>
                       {isNew && (
-                        <span className="px-1 py-0.2 rounded text-[8.5px] font-black bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-300 shrink-0">
+                        <span className="px-1 py-0.2 rounded text-[8.5px] font-black bg-brand-red-light text-brand-red shrink-0">
                           NEW
                         </span>
                       )}
@@ -636,9 +636,9 @@ export const PersonalWatchlistBar = React.memo(function PersonalWatchlistBar({
                         <span
                           className={`flex items-center text-[9.5px] font-extrabold ${
                             isRising
-                              ? 'text-red-500'
+                              ? 'text-brand-red'
                               : isFalling
-                              ? 'text-blue-500'
+                              ? 'text-brand-blue'
                               : 'text-tertiary'
                           }`}
                         >
@@ -658,7 +658,7 @@ export const PersonalWatchlistBar = React.memo(function PersonalWatchlistBar({
           /* Cold-Start Onboarding Strip */
           <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-2.5 pt-0.5">
             <div className="flex items-center gap-1.5 text-[11.5px] sm:text-[12px] font-bold text-secondary">
-              <Building2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+              <Building2 className="w-3.5 h-3.5 text-primary shrink-0" />
               <span>관심 단지를 담아두면 다음 방문부터 새 실거래 변동을 브리핑해 드려요</span>
             </div>
 
@@ -672,12 +672,12 @@ export const PersonalWatchlistBar = React.memo(function PersonalWatchlistBar({
                     type="button"
                     data-testid={`watchlist-chip-${candidateName}`}
                     onClick={() => handleOnboardingChipClick(candidateName)}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 hover:bg-blue-50 dark:hover:bg-blue-950/50 border border-border/60 hover:border-blue-400/60 text-secondary hover:text-blue-600 dark:hover:text-blue-300 text-[11px] font-extrabold transition-all shrink-0 cursor-pointer group"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] hover:bg-slate-200/80 dark:hover:bg-[#252c3d] border border-border/60 text-secondary hover:text-primary text-[11px] font-extrabold transition-all shrink-0 cursor-pointer group"
                   >
-                    <Plus className="w-3 h-3 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                    <Plus className="w-3 h-3 text-slate-400 group-hover:text-primary transition-colors" />
                     <span>{getDisplayAptName(candidateName)}</span>
                     {verifiedPrice && (
-                      <span className="text-[10.5px] font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                      <span className="text-[10.5px] font-bold text-primary tabular-nums">
                         {verifiedPrice}
                       </span>
                     )}

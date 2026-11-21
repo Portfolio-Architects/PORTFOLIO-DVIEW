@@ -375,7 +375,7 @@ const ChronologicalTransactionRow = React.memo(function ChronologicalTransaction
         }
         preloadApartmentModal();
       }}
-      className="w-full px-3 sm:px-4 py-3 flex items-center gap-2.5 sm:gap-4 text-left bg-transparent hover:bg-elevated transition-colors border-b border-border last:border-b-0 cursor-pointer group outline-none focus-visible:bg-elevated focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600/30"
+      className="w-full px-3 sm:px-4 py-3 flex items-center gap-2.5 sm:gap-4 text-left bg-transparent hover:bg-elevated transition-colors border-b border-border last:border-b-0 cursor-pointer group outline-none focus-visible:bg-elevated focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-slate-400/40"
     >
       {/* Column 1: Chronological Contract Date */}
       <div className="w-[54px] sm:w-[82px] shrink-0 flex flex-col tabular-nums">
@@ -404,11 +404,11 @@ const ChronologicalTransactionRow = React.memo(function ChronologicalTransaction
               {zoneName}
             </span>
           )}
-          <span className="text-[13px] sm:text-[14px] font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+          <span className="text-[13px] sm:text-[14px] font-extrabold text-primary group-hover:underline transition-colors truncate">
             {displayName}
           </span>
           {item.isNewHigh && (
-            <span className="px-1.5 py-0.5 rounded bg-red-500/12 text-red-600 dark:text-red-400 text-[9.5px] sm:text-[10px] font-black shrink-0 whitespace-nowrap leading-none">
+            <span className="px-1.5 py-0.5 rounded dview-spark-badge text-white text-[9.5px] sm:text-[10px] font-black shrink-0 whitespace-nowrap leading-none">
               신고가
             </span>
           )}
@@ -431,13 +431,7 @@ const ChronologicalTransactionRow = React.memo(function ChronologicalTransaction
       {/* Column 3: Real Transaction Price, Per-Pyeong Price & Momentum Delta */}
       <div className="shrink-0 flex items-center gap-2 sm:gap-2.5 tabular-nums">
         <div className="flex flex-col items-end gap-0.5">
-          <span
-            className={`text-[13.5px] sm:text-[15px] font-black tracking-tight leading-tight whitespace-nowrap ${
-              item.isNewHigh
-                ? 'text-red-600 dark:text-red-400'
-                : 'text-primary'
-            }`}
-          >
+          <span className="text-[13.5px] sm:text-[15px] font-black tracking-tight leading-tight whitespace-nowrap text-primary">
             {item.priceEok || formatPriceEok(item.priceVal)}
           </span>
           <div className="flex items-center gap-1.5 text-[10.5px] sm:text-[11px] whitespace-nowrap">
@@ -450,9 +444,9 @@ const ChronologicalTransactionRow = React.memo(function ChronologicalTransaction
               <span
                 className={`font-bold ${
                   isRising
-                    ? 'text-red-600 dark:text-red-400'
+                    ? 'text-brand-red'
                     : isFalling
-                      ? 'text-blue-600 dark:text-blue-400'
+                      ? 'text-brand-blue'
                       : 'text-tertiary'
                 }`}
               >
@@ -470,7 +464,7 @@ const ChronologicalTransactionRow = React.memo(function ChronologicalTransaction
         </div>
         <ChevronRight
           size={15}
-          className="text-slate-300 dark:text-slate-600 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all shrink-0 hidden sm:block"
+          className="text-slate-300 dark:text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 hidden sm:block"
         />
       </div>
     </button>
@@ -861,19 +855,22 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
   return createPortal(
     <div
       data-testid="zone-donut-fullscreen-modal"
+      data-scroll-interactive="true"
       role="dialog"
       aria-modal="true"
       aria-labelledby="zone-donut-fullscreen-title"
-      className="fixed inset-0 z-[9000] w-screen h-[100dvh] bg-surface text-primary flex flex-col overflow-hidden animate-in fade-in duration-150"
+      className="fixed inset-0 z-[10025] w-screen h-[100dvh] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] bg-surface text-primary flex flex-col overflow-hidden overscroll-none animate-in fade-in duration-150"
     >
       {/* ═══ Top Sticky Command Header ═══ */}
       <header className="w-full px-4 sm:px-6 lg:px-8 py-3 border-b border-border bg-surface shrink-0 flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
           <span
-            className="w-2.5 h-2.5 rounded-full shrink-0"
-            style={{
-              backgroundColor: activeZoneMeta ? activeZoneMeta.color : '#3182f6',
-            }}
+            className={`w-2.5 h-2.5 rounded-full shrink-0 ${activeZoneMeta ? '' : 'bg-primary'}`}
+            style={
+              activeZoneMeta
+                ? { backgroundColor: activeZoneMeta.color }
+                : undefined
+            }
           />
           <h2
             id="zone-donut-fullscreen-title"
@@ -914,7 +911,7 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
             data-testid="donut-fullscreen-close-btn"
             onClick={onClose}
             aria-label="전체화면 닫기"
-            className="h-[34px] sm:h-[36px] px-3 rounded-[10px] bg-elevated hover:bg-slate-200/70 dark:hover:bg-slate-800 text-[12px] sm:text-[13px] font-extrabold text-secondary hover:text-primary inline-flex items-center gap-1.5 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-600/30"
+            className="h-[34px] sm:h-[36px] px-3 rounded-[10px] bg-elevated hover:bg-slate-200/70 dark:hover:bg-slate-800 text-[12px] sm:text-[13px] font-extrabold text-secondary hover:text-primary inline-flex items-center gap-1.5 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40"
           >
             <Minimize2 size={14} className="hidden sm:block" />
             <X size={16} className="sm:hidden" />
@@ -987,7 +984,7 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
                         : `${totalCount.toLocaleString()}건`}
                     </span>
                     {activeScopeStats.count > 0 && (
-                      <span className="text-[11px] sm:text-[12px] font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2.5 py-0.5 rounded-full mt-1 tabular-nums">
+                      <span className="text-[11px] sm:text-[12px] font-extrabold text-primary bg-[#eff1f5] dark:bg-[#1e2532] px-2.5 py-0.5 rounded-full mt-1 tabular-nums">
                         전체 평균 {activeScopeStats.compactAvgLabel}
                       </span>
                     )}
@@ -1008,7 +1005,7 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
                   type="button"
                   data-testid="fullscreen-reset-zone-btn"
                   onClick={() => setSelectedZoneKey('all')}
-                  className="text-[11.5px] font-bold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                  className="text-[11.5px] font-bold text-primary hover:underline inline-flex items-center gap-1 cursor-pointer"
                 >
                   <RotateCcw size={11} />
                   <span>전체 권역 보기</span>
@@ -1024,12 +1021,12 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
               aria-pressed={selectedZoneKey === 'all'}
               className={`w-full px-3 py-2.5 rounded-xl flex items-center justify-between gap-2 transition-colors cursor-pointer text-left ${
                 selectedZoneKey === 'all'
-                  ? 'bg-elevated ring-1 ring-blue-600/30'
+                  ? 'bg-elevated ring-1 ring-slate-900/25 dark:ring-white/30'
                   : 'hover:bg-elevated/70'
               }`}
             >
               <div className="flex items-center gap-2 min-w-0">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shrink-0" />
+                <span className="w-2.5 h-2.5 rounded-full bg-primary shrink-0" />
                 <span className="text-[12.5px] sm:text-[13px] font-extrabold text-primary">
                   동탄 전체 권역 한눈에
                 </span>
@@ -1062,7 +1059,7 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
                   aria-pressed={isSelected}
                   className={`w-full px-3 py-2.5 rounded-xl flex flex-col gap-1.5 transition-all cursor-pointer text-left ${
                     isSelected
-                      ? 'bg-elevated ring-1 ring-blue-600/30'
+                      ? 'bg-elevated ring-1 ring-slate-900/25 dark:ring-white/30'
                       : 'hover:bg-elevated/70'
                   } ${isDimmed ? 'opacity-50 hover:opacity-85' : 'opacity-100'}`}
                 >
@@ -1076,7 +1073,7 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
                         {zone.name}
                       </span>
                       {idx === 0 && zone.count > 0 && (
-                        <span className="px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 text-[9.5px] font-extrabold shrink-0 leading-none">
+                        <span className="px-1.5 py-0.5 rounded dview-spark-badge text-white text-[9.5px] font-extrabold shrink-0 leading-none">
                           1위
                         </span>
                       )}
@@ -1136,7 +1133,7 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
                 onClick={() => setSelectedZoneKey('all')}
                 className={`h-[32px] px-3 rounded-[9px] text-[12px] font-extrabold whitespace-nowrap shrink-0 transition-colors cursor-pointer tabular-nums ${
                   selectedZoneKey === 'all'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
                     : 'bg-elevated text-secondary hover:text-primary'
                 }`}
               >
@@ -1339,7 +1336,7 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
                 <span className="text-[11px] sm:text-[11.5px] font-bold text-tertiary">
                   최고 실거래 · 상승 에너지
                 </span>
-                <span className="text-[17px] sm:text-[19px] font-black text-red-600 dark:text-red-400 leading-tight">
+                <span className="text-[17px] sm:text-[19px] font-black text-brand-red leading-tight">
                   {activeScopeStats.maxItem
                     ? activeScopeStats.maxItem.priceEok ||
                       formatPriceEok(activeScopeStats.maxItem.priceVal)
@@ -1379,7 +1376,7 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      className="mt-1 px-3.5 py-1.5 rounded-[10px] bg-surface text-[12px] font-extrabold text-blue-600 dark:text-blue-400 cursor-pointer"
+                      className="mt-1 px-3.5 py-1.5 rounded-[10px] bg-surface text-[12px] font-extrabold text-primary cursor-pointer"
                     >
                       검색어 초기화
                     </button>
@@ -1420,7 +1417,7 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
                           <button
                             type="button"
                             onClick={() => handleSelectZone(zone.category)}
-                            className="text-[11.5px] sm:text-[12px] font-extrabold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-0.5 cursor-pointer shrink-0"
+                            className="text-[11.5px] sm:text-[12px] font-extrabold text-primary hover:underline inline-flex items-center gap-0.5 cursor-pointer shrink-0"
                           >
                             <span>권역 집중 보기</span>
                             <ChevronRight size={13} />
@@ -1450,7 +1447,7 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
                               </span>
                             )}
                             {stats.newHighCount > 0 && (
-                              <span className="px-2.5 py-1 rounded-lg bg-red-500/10 font-extrabold text-red-600 dark:text-red-400">
+                              <span className="px-2.5 py-1 rounded-lg bg-brand-red-light font-extrabold text-brand-red">
                                 신고가 {stats.newHighCount}건
                               </span>
                             )}

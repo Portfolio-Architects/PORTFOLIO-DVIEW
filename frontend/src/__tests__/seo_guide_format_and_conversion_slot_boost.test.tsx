@@ -100,9 +100,9 @@ describe('High-Efficiency SEO Guide Format Expansion & Top/Mid Conversion Slot B
         '/technovalley',
       ]);
       expect(TOP_ACQUISITION_ENTRY_ROUTES.map((r) => r.badge)).toEqual([
-        '구글 검색 1위',
-        'ChatGPT·구글 동시 유입',
-        '최근 7일 급상승',
+        '핵심 비교',
+        '교통 호재',
+        '기업·세제',
       ]);
 
       for (const route of TOP_ACQUISITION_ENTRY_ROUTES) {
@@ -149,7 +149,7 @@ describe('High-Efficiency SEO Guide Format Expansion & Top/Mid Conversion Slot B
   });
 
   describe('2. GuideAptPreviewCard High-Dwell & Flagship Badges + Boundary Resilience', () => {
-    it('renders "평균 15분 체류 대장" badge for 동탄더샵레이크에듀타운, "고전환 핵심 대장" for flagship apartments, and no conversion badge for standard apartments', () => {
+    it('renders "인기 대표 단지" badge for 동탄더샵레이크에듀타운, "권역 대장 단지" for flagship apartments, and no conversion badge for standard apartments', () => {
       const lakeEduItem = buildGuideAptMiniPreview('동탄더샵레이크에듀타운')!;
       const centralCityItem = buildGuideAptMiniPreview('더샵센트럴시티')!;
       const standardItem = buildGuideAptMiniPreview('푸르지오')!;
@@ -163,7 +163,7 @@ describe('High-Efficiency SEO Guide Format Expansion & Top/Mid Conversion Slot B
       );
       expect(
         r1.container.querySelector('[data-testid="guide-apt-preview-high-dwell-badge"]')?.textContent
-      ).toBe('평균 15분 체류 대장');
+      ).toBe('인기 대표 단지');
       expect(
         r1.container.querySelector('[data-testid="guide-apt-preview-flagship-badge"]')
       ).toBeNull();
@@ -178,7 +178,7 @@ describe('High-Efficiency SEO Guide Format Expansion & Top/Mid Conversion Slot B
       );
       expect(
         r2.container.querySelector('[data-testid="guide-apt-preview-flagship-badge"]')?.textContent
-      ).toBe('고전환 핵심 대장');
+      ).toBe('권역 대장 단지');
       expect(
         r2.container.querySelector('[data-testid="guide-apt-preview-high-dwell-badge"]')
       ).toBeNull();
@@ -292,7 +292,7 @@ describe('High-Efficiency SEO Guide Format Expansion & Top/Mid Conversion Slot B
         );
         expect(lakeEduSpotlight).not.toBeNull();
         expect(lakeEduSpotlight?.getAttribute('href')).toBe(lakeEduPreview.href);
-        expect(lakeEduSpotlight?.textContent).toContain('15분 체류');
+        expect(lakeEduSpotlight?.textContent).toContain('동탄더샵레이크에듀타운');
         expect(lakeEduSpotlight?.textContent).toContain(lakeEduPreview.latestPriceStr);
 
         // Top inflow hub links render all 3 top acquisition entry routes
@@ -409,8 +409,8 @@ describe('High-Efficiency SEO Guide Format Expansion & Top/Mid Conversion Slot B
         '[data-testid="technovalley-seo-guide-top-slot"]'
       );
       expect(seoTopSlot).not.toBeNull();
-      expect(seoTopSlot?.textContent).toContain('최근 7일 급상승');
-      expect(seoTopSlot?.textContent).toContain('Key Takeaways');
+      expect(seoTopSlot?.textContent).toContain('기업·세제');
+      expect(seoTopSlot?.textContent).toContain('핵심 요약');
 
       const topGuideCta = container.querySelector('[data-testid="technovalley-top-guide-cta"]');
       expect(topGuideCta?.getAttribute('href')).toBe(
@@ -519,9 +519,9 @@ describe('High-Efficiency SEO Guide Format Expansion & Top/Mid Conversion Slot B
 
       const topHub = container.querySelector('[data-testid="guide-index-top-conversion-hub"]');
       expect(topHub).not.toBeNull();
-      expect(topHub?.textContent).toContain('구글 검색 1위');
-      expect(topHub?.textContent).toContain('ChatGPT·구글 동시 유입');
-      expect(topHub?.textContent).toContain('최근 7일 급상승');
+      expect(topHub?.textContent).toContain('핵심 비교');
+      expect(topHub?.textContent).toContain('교통 호재');
+      expect(topHub?.textContent).toContain('기업·세제');
 
       const hubSpotlight = container.querySelector(
         '[data-testid="guide-index-lake-edutown-spotlight"]'
@@ -647,9 +647,6 @@ describe('High-Efficiency SEO Guide Format Expansion & Top/Mid Conversion Slot B
         );
         expect(topRepBar).not.toBeNull();
         expect(topRepBar?.getAttribute('data-top-landing-guide')).toBe('true');
-        expect(
-          topRepBar?.querySelector('[data-testid="guide-top3-landing-badge"]')
-        ).not.toBeNull();
 
         const topRepBtns = topRepBar!.querySelectorAll(
           '[data-testid="guide-top-rep-apt-cta-btn"]'

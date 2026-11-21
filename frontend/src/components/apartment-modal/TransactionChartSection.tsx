@@ -74,8 +74,8 @@ interface ScatterCustomizedDotsProps {
 
 const TOOLTIP_CURSOR_SECTION = { stroke: 'var(--border-color)', strokeWidth: 1, strokeDasharray: '4 4' };
 const BAR_RADIUS_SECTION: [number, number, number, number] = [2, 2, 0, 0];
-const DOT_SALE_SECTION = { r: 3, strokeWidth: 1.5, fill: '#ffffff', stroke: '#2563eb' };
-const DOT_JEONSE_SECTION = { r: 3, strokeWidth: 1.5, fill: '#ffffff', stroke: '#059669' };
+const DOT_SALE_SECTION = { r: 3, strokeWidth: 1.5, fill: '#ffffff', stroke: '#2f6bff' };
+const DOT_JEONSE_SECTION = { r: 3, strokeWidth: 1.5, fill: '#ffffff', stroke: '#64748b' };
 
 const TransactionChartTooltip = React.memo(({ active, payload }: TransactionChartTooltipProps) => {
   if (!active || !payload?.length) return null;
@@ -93,20 +93,20 @@ const TransactionChartTooltip = React.memo(({ active, payload }: TransactionChar
         {item?.saleAvg != null && (
           <div className="flex items-center justify-between gap-4">
             <span className="text-tertiary text-[13px] font-bold">매매 평균</span>
-            <span className="text-blue-600 dark:text-blue-400 text-[15px] font-extrabold">{item.saleAvg.toFixed(2)}억</span>
+            <span className="text-brand-blue text-[15px] font-extrabold">{item.saleAvg.toFixed(2)}억</span>
           </div>
         )}
         {item?.jeonseAvg != null && (
           <div className="flex items-center justify-between gap-4">
             <span className="text-tertiary text-[13px] font-bold">전월세 평균</span>
-            <span className="text-emerald-600 text-[15px] font-extrabold">{item.jeonseAvg.toFixed(2)}억</span>
+            <span className="text-secondary text-[15px] font-extrabold">{item.jeonseAvg.toFixed(2)}억</span>
           </div>
         )}
 
         {ratioValue != null && (
           <div className="flex items-center justify-between gap-4 border-t border-border/20 pt-1.5 mt-0.5">
             <span className="text-tertiary text-[13px] font-bold">전세가율</span>
-            <span className="text-toss-blue text-[15px] font-extrabold">{ratioValue}%</span>
+            <span className="text-primary text-[15px] font-extrabold">{ratioValue}%</span>
           </div>
         )}
         {vol != null && vol > 0 && (
@@ -133,6 +133,17 @@ const ScatterCustomizedDots = React.memo(({
   // Recharts 3.x does not pass xAxisMap/yAxisMap into <Customized>; read live axis scales via hooks.
   const xScale = useXAxisScale();
   const yScale = useYAxisScale('price');
+  const peakSalePrice = useMemo(() => {
+    let maxPrice = 0;
+    for (const d of displayScatterData) {
+      if (d.ts < visibleMinTs || d.ts > visibleMaxTs) continue;
+      if (!d.isOutlier && (!d.dealType || (d.dealType !== '전세' && d.dealType !== '월세'))) {
+        if (d.price > maxPrice) maxPrice = d.price;
+      }
+    }
+    return maxPrice;
+  }, [displayScatterData, visibleMinTs, visibleMaxTs]);
+
   if (!xScale || !yScale) return null;
 
   return (
@@ -147,7 +158,9 @@ const ScatterCustomizedDots = React.memo(({
             hoveredDot?.data?.ts === d.ts &&
             hoveredDot?.data?.price === d.price &&
             hoveredDot?.data?.floor === d.floor;
-          const floorColor = getFloorColor(d.dealType);
+          const isSale = !d.dealType || (d.dealType !== '전세' && d.dealType !== '월세');
+          const isPeak = isSale && !d.isOutlier && peakSalePrice > 0 && d.price === peakSalePrice;
+          const floorColor = isPeak ? '#ff3b5c' : getFloorColor(d.dealType);
           return (
             <g key={`${d.ts}-${d.price}-${d.floor}-${i}`} style={{ cursor: 'pointer' }}>
               {/* 12px 히트 영역 (마우스 오버/터치 영역 확장) */}
@@ -167,11 +180,11 @@ const ScatterCustomizedDots = React.memo(({
               <circle
                 cx={cx}
                 cy={cy}
-                r={isHov ? 5.5 : 3.5}
+                r={isHov ? 5.5 : isPeak ? 4.5 : 3.5}
                 fill={floorColor}
-                opacity={d.isOutlier ? 0.1 : (isHov ? 1 : 0.4)}
-                stroke={isHov ? '#3182f6' : 'none'}
-                strokeWidth={isHov ? 2 : 0}
+                opacity={d.isOutlier ? 0.1 : (isHov || isPeak ? 1 : 0.45)}
+                stroke={isHov ? (isPeak ? '#ff3b5c' : '#2f6bff') : isPeak ? '#ffffff' : 'none'}
+                strokeWidth={isHov ? 2 : isPeak ? 1.5 : 0}
                 style={{ pointerEvents: 'none', transition: 'r 0.15s, opacity 0.15s' }}
               />
             </g>
@@ -191,7 +204,7 @@ const CustomActiveDot = React.memo((props: { cx?: number; cy?: number; fill?: st
       cx={cx}
       cy={cy}
       r={6}
-      fill={fill || '#2563eb'}
+      fill={fill || '#2f6bff'}
       stroke="#ffffff"
       strokeWidth={2}
       style={{
@@ -206,8 +219,8 @@ const CustomActiveDot = React.memo((props: { cx?: number; cy?: number; fill?: st
 });
 CustomActiveDot.displayName = 'CustomActiveDot';
 
-const ACTIVE_DOT_SALE = <CustomActiveDot fill="#2563eb" />;
-const ACTIVE_DOT_JEONSE = <CustomActiveDot fill="#059669" />;
+const ACTIVE_DOT_SALE = <CustomActiveDot fill="#2f6bff" />;
+const ACTIVE_DOT_JEONSE = <CustomActiveDot fill="#64748b" />;
 
 interface TransactionChartSectionProps {
   transactions: TransactionRecord[];
@@ -403,6 +416,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         fullDate: `${year}.${String(month).padStart(2,'0')}.${String(day).padStart(2,'0')}`,
         areaLabelM2: tx.areaLabelM2,
         areaLabelPyeong: tx.areaLabelPyeong,
+        pipelineOutlier: typeof tx.isOutlier === 'boolean' ? tx.isOutlier : undefined,
       };
     }).filter(d => {
       const isFuture = d.yearMonth > maxAllowedYm || (d.yearMonth === maxAllowedYm && d.ts > todayMs);
@@ -412,7 +426,16 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
 
   const validRawData = React.useMemo(() => {
     const isJeonse = chartType === 'jeonse';
-    return filterOutliersIQR(rawData, d => d.price, isJeonse ? 3.0 : 1.5, isJeonse ? 5.0 : 3.5);
+    return filterOutliersIQR(
+      rawData,
+      d => d.price,
+      isJeonse ? 3.0 : 1.5,
+      isJeonse ? 5.0 : 3.5,
+      {
+        isPipelineOutlier: d => d.pipelineOutlier,
+        isDirectDeal: d => d.dealType === '직거래',
+      }
+    );
   }, [rawData, chartType]);
 
   // Use the actual current date as the baseline for rolling window calculation (R5)
@@ -451,11 +474,14 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   const timeFiltered = rawData.filter(d => d.yearMonth >= cutoffYm);
 
   const validTimeFiltered = React.useMemo(() => {
-    return filterOutliersIQR(timeFiltered, d => d.price);
+    return filterOutliersIQR(timeFiltered, d => d.price, 1.5, 3.0, {
+      isPipelineOutlier: d => d.pipelineOutlier,
+      isDirectDeal: d => d.dealType === '직거래',
+    });
   }, [timeFiltered]);
 
   const validTimeFilteredSet = React.useMemo(() => {
-    return new Set(validTimeFiltered.map(d => d.ts));
+    return new Set(validTimeFiltered);
   }, [validTimeFiltered]);
 
   const sortedValidPrices = React.useMemo(() => {
@@ -469,7 +495,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   const scatterData = React.useMemo(() => {
     return timeFiltered.map(d => ({
       ...d,
-      isOutlier: !validTimeFilteredSet.has(d.ts),
+      isOutlier: !validTimeFilteredSet.has(d),
     }));
   }, [timeFiltered, validTimeFilteredSet]);
 
@@ -526,8 +552,8 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   }, [displayAptName, chartType, jsonLdElements, relevantTxs, rawData]);
   
   const getFloorColor = (dealType: string | undefined) => {
-    if (dealType === '전세' || dealType === '월세') return '#059669'; // Orange/amber for Rent/Jeonse
-    return '#2563eb'; // Emerald/green for Sale
+    if (dealType === '전세' || dealType === '월세') return '#64748b';
+    return '#2f6bff';
   };
 
   const byMonthTier = React.useMemo(() => {
@@ -686,7 +712,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   return (
     <ChartErrorBoundary fallbackText="아파트 실거래가 차트를 로드할 수 없습니다.">
       <div className="w-full flex flex-col h-full">
-      <div ref={chartRef} className={`bg-surface rounded-2xl flex-1 flex flex-col h-full relative overflow-hidden touch-pan-y ${compact ? 'px-0.5 py-1 sm:p-2' : 'p-4 md:p-6 ring-1 ring-[#f2f4f6] dark:ring-[#202027]'}`}>
+      <div ref={chartRef} className={`bg-surface rounded-2xl flex-1 flex flex-col h-full relative overflow-hidden touch-pan-y ${compact ? 'px-0.5 py-1 sm:p-2' : 'p-4 md:p-6 ring-1 ring-border'}`}>
         {jsonLd && (
           <script
             type="application/ld+json"
@@ -701,7 +727,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         {(() => {
           const chartHeading = (
             <h3 className={`text-[14px] font-extrabold text-primary flex items-center gap-1.5 shrink-0 ${compact ? 'whitespace-nowrap' : ''}`}>
-              <TrendingUp size={15} className="text-toss-blue" /> {chartType === 'sale' ? '매매가 추이' : '전월세 추이'}
+              <TrendingUp size={15} className="text-primary" /> {chartType === 'sale' ? '매매가 추이' : '전월세 추이'}
             </h3>
           );
 
@@ -717,16 +743,16 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                   <div className={`flex flex-col gap-1 ${compact ? 'mt-0.5' : 'mt-1'}`}>
                     <div className={`flex justify-between ${compact ? 'text-[11px] sm:text-[12.5px]' : 'text-[12px] sm:text-[13px]'} font-bold tabular-nums`}>
                       <span className="text-tertiary">최고 평균가 {formatAvgPriceEok(maxPrice)}</span>
-                      <span className={dropRatio > 0 ? "text-[#d33340] dark:text-red-300" : "text-blue-600 dark:text-blue-400"}>
+                      <span className={dropRatio > 0 ? 'text-brand-blue' : 'text-brand-red'}>
                         최근 1개월 {formatAvgPriceEok(currentPrice)} ({dropRatio > 0 ? `-${dropRatio.toFixed(1)}%` : `+${Math.abs(dropRatio).toFixed(1)}%`})
                       </span>
                     </div>
-                    <div className="w-full h-1.5 bg-body rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-[#eff1f5] dark:bg-[#1e2532] rounded-full overflow-hidden">
                       <div 
                         className={`h-full rounded-full transition-all duration-1000 ${
-                          dropRatio > 0 
-                            ? "bg-gradient-to-r from-red-400 to-[#f04452] dark:from-red-500/80 dark:to-[#f26d78]" 
-                            : "bg-gradient-to-r from-blue-600 to-blue-500"
+                          dropRatio > 0
+                            ? 'bg-brand-blue'
+                            : 'bg-brand-red'
                         }`} 
                         style={{ width: `${ratio}%` }} 
                       />
@@ -743,14 +769,14 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
               {zoomDomain.left !== 'dataMin' && (
                 <button 
                   onClick={handleResetZoom}
-                  className="text-[12px] font-extrabold text-toss-blue hover:text-toss-blue/80 transition-colors bg-toss-blue/10 px-2.5 py-1.5 rounded-lg border-none cursor-pointer active:scale-95"
+                  className="text-[12px] font-extrabold text-primary hover:bg-[#e4e8ef] dark:hover:bg-[#252c3d] transition-colors bg-[#eff1f5] dark:bg-[#1e2532] px-2.5 py-1.5 rounded-lg border-none cursor-pointer active:scale-95"
                 >
                   줌 초기화
                 </button>
               )}
               <button 
                 onClick={handleCaptureChart}
-                className={`${compact ? 'w-7 h-7 sm:w-8 sm:h-8' : 'w-8 h-8'} flex items-center justify-center bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary rounded-[10px] transition-colors border-none shrink-0 cursor-pointer`}
+                className={`${compact ? 'w-7 h-7 sm:w-8 sm:h-8' : 'w-8 h-8'} flex items-center justify-center bg-[#eff1f5] hover:bg-[#e4e8ef] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-secondary hover:text-primary rounded-[10px] transition-colors border-none shrink-0 cursor-pointer`}
                 title="차트 이미지로 저장"
               >
                 <Camera size={15} strokeWidth={2} />
@@ -803,14 +829,14 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                 key={item.label} 
                 className={`flex flex-col min-w-0 relative rounded-xl transition-colors ${compact ? 'px-2.5 py-1.5 sm:px-3.5 sm:py-2.5' : 'px-3 py-2.5 sm:px-4 sm:py-3.5'} ${
                   isTarget 
-                    ? 'bg-blue-50/70 dark:bg-blue-950/30' 
-                    : 'bg-[#f9fafb] dark:bg-[#17171c]'
+                    ? 'bg-[#eff1f5] dark:bg-[#1e2532] ring-1 ring-inset ring-slate-900/10 dark:ring-white/15' 
+                    : 'bg-elevated'
                 }`}
               >
-                <div className={`${compact ? 'text-[10.5px] sm:text-[12px] mb-0.5' : 'text-[11px] sm:text-[12.5px] mb-1'} font-semibold flex items-center justify-between w-full whitespace-nowrap gap-1.5 ${isTarget ? 'text-blue-600 dark:text-blue-400' : 'text-tertiary'}`}>
+                <div className={`${compact ? 'text-[10.5px] sm:text-[12px] mb-0.5' : 'text-[11px] sm:text-[12.5px] mb-1'} font-semibold flex items-center justify-between w-full whitespace-nowrap gap-1.5 ${isTarget ? 'text-secondary' : 'text-tertiary'}`}>
                   <span>{item.label} 평균</span>
                 </div>
-                <span className={`${compact ? 'text-[13.5px] sm:text-[16px]' : 'text-[14.5px] sm:text-[17px]'} whitespace-nowrap tabular-nums ${isTarget ? 'text-blue-600 dark:text-blue-400 font-black tracking-tight' : 'text-primary font-extrabold'}`}>
+                <span className={`${compact ? 'text-[13.5px] sm:text-[16px]' : 'text-[14.5px] sm:text-[17px]'} whitespace-nowrap tabular-nums text-primary ${isTarget ? 'font-black tracking-tight' : 'font-extrabold'}`}>
                   {formatAvgPriceEok(item.val)}
                 </span>
               </div>
@@ -842,8 +868,8 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
               >
                 <defs>
                   <linearGradient id={colorPriceGradId} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.22} />
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#2f6bff" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#2f6bff" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
@@ -870,7 +896,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                     x1={refAreaLeft}
                     x2={refAreaRight}
                     strokeOpacity={0.3}
-                    fill="#2563eb"
+                    fill="#2f6bff"
                     fillOpacity={0.15}
                   />
                 )}
@@ -881,9 +907,9 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                   animationDuration={0}
                   wrapperStyle={{ zIndex: 30, pointerEvents: 'none' }}
                 />
-                <Bar dataKey="volume" yAxisId="volume" fill={chartType === 'sale' ? '#2563eb' : '#059669'} radius={BAR_RADIUS_SECTION} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
-                <Area type="linear" dataKey="saleAvg" yAxisId="price" stroke="#2563eb" strokeWidth={2.5} fillOpacity={1} fill={`url(#${colorPriceGradId})`} dot={DOT_SALE_SECTION} activeDot={ACTIVE_DOT_SALE} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
-                <Line type="linear" dataKey="jeonseAvg" yAxisId="price" stroke="#059669" strokeWidth={2.5} dot={DOT_JEONSE_SECTION} activeDot={ACTIVE_DOT_JEONSE} connectNulls isAnimationActive={false} />
+                <Bar dataKey="volume" yAxisId="volume" fill={chartType === 'sale' ? '#2f6bff' : '#64748b'} radius={BAR_RADIUS_SECTION} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
+                <Area type="linear" dataKey="saleAvg" yAxisId="price" stroke="#2f6bff" strokeWidth={2.5} fillOpacity={1} fill={`url(#${colorPriceGradId})`} dot={DOT_SALE_SECTION} activeDot={ACTIVE_DOT_SALE} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
+                <Line type="linear" dataKey="jeonseAvg" yAxisId="price" stroke="#64748b" strokeWidth={2.5} dot={DOT_JEONSE_SECTION} activeDot={ACTIVE_DOT_JEONSE} connectNulls isAnimationActive={false} />
 
                 <ScatterCustomizedDots
                   displayScatterData={displayScatterData}
@@ -916,7 +942,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                   {d.priceEok || `${d.price.toFixed(2)}억`}
                 </div>
                 <div className="text-tertiary text-[11px] flex gap-1.5 items-center">
-                  {typeName ? <span className="text-blue-600 dark:text-blue-400 font-bold">{typeName}</span> : <span>{areaUnit === 'm2' ? `${d.rawArea}m²` : `${d.area}평`}</span>}
+                  {typeName ? <span className="text-primary font-bold">{typeName}</span> : <span>{areaUnit === 'm2' ? `${d.rawArea}m²` : `${d.area}평`}</span>}
                   <span>·</span><span style={{ color: floorColor }}>{d.floor}층</span>
                   {d.dealType && <><span>·</span><span>{d.dealType}</span></>}
                 </div>
@@ -925,10 +951,10 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
           })()}
         </div>
         <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 mt-2 px-1 text-[12px] sm:text-[13px] font-bold text-tertiary">
-          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[2px] bg-blue-600 rounded"/>매매 평균</span>
+          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[2px] bg-brand-blue rounded"/>매매 평균</span>
 
-          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[2px] bg-emerald-600 rounded"/>전월세 평균</span>
-          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className={`w-3.5 h-3.5 rounded-sm ${chartType === 'sale' ? 'bg-blue-600/20' : 'bg-emerald-600/20'}`}/>{chartType === 'sale' ? '매매 거래량' : '전월세 거래량'}</span>
+          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[2px] bg-slate-500 rounded"/>전월세 평균</span>
+          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className={`w-3.5 h-3.5 rounded-sm ${chartType === 'sale' ? 'bg-brand-blue/20' : 'bg-slate-500/20'}`}/>{chartType === 'sale' ? '매매 거래량' : '전월세 거래량'}</span>
         </div>
       </div>
     </div>

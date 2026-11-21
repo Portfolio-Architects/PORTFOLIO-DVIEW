@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "overrides": {
+    "@grpc/grpc-js": "^1.14.7",
     "postcss": "^8.5.10",
     "uuid": "^11.1.1"
   },
@@ -31,6 +32,7 @@
     "seo:ctr": "npx ts-node -T -r tsconfig-paths/register --project scratch/tsconfig.test.json scripts/analyze-gsc-ctr.ts",
     "seo:compare-cohort": "npx ts-node -T -r tsconfig-paths/register --project scratch/tsconfig.test.json scripts/compare-3f056525-cohort.ts",
     "seo:naver": "npx ts-node -T -r tsconfig-paths/register --project scratch/tsconfig.test.json scripts/audit-naver-seo-readiness.ts",
+    "adsense:audit": "npx ts-node -T -r tsconfig-paths/register --project scratch/tsconfig.test.json scripts/audit-adsense-readiness.ts",
     "ga4:sync-dimensions": "npx ts-node -T -r tsconfig-paths/register --project scratch/tsconfig.test.json scripts/sync-ga4-custom-dimensions.ts",
     "import-csv": "node scripts/import-csv.js",
     "sync-nps": "node scripts/sync-nps.js",
@@ -43,11 +45,11 @@
   },
   "dependencies": {
     "@google-analytics/data": "^5.2.1",
-    "@next/third-parties": "^16.2.4",
+    "@next/third-parties": "^16.4.6",
     "@tailwindcss/typography": "^0.5.19",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
-    "axios": "^1.15.0",
+    "axios": "^1.21.1",
     "browser-image-compression": "^2.0.2",
     "cheerio": "^1.2.0",
     "clsx": "^2.1.1",
@@ -59,10 +61,10 @@
     "https-proxy-agent": "^9.0.0",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.577.0",
-    "next": "^16.2.4",
+    "next": "^16.4.6",
     "next-themes": "^0.4.6",
     "nextjs-toploader": "^3.9.17",
-    "nodemailer": "^8.0.8",
+    "nodemailer": "^10.6.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-intersection-observer": "^10.0.3",
@@ -73,7 +75,7 @@
     "swr": "^2.4.1",
     "tailwind-merge": "^3.5.0",
     "web-push": "^3.6.7",
-    "zod": "^4.3.6"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
@@ -87,7 +89,7 @@
     "@types/react-dom": "^19",
     "@types/web-push": "^3.6.4",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "^16.4.6",
     "fast-check": "^4.10.2",
     "iconv-lite": "^0.7.2",
     "jest": "^30.3.0",

@@ -26,9 +26,9 @@ export interface StatsPyeongRankingChartProps {
 }
 
 const getBarColor = (rank: number) => {
-  if (rank === 1) return '#2563eb'; // Trust Blue 600
-  if (rank <= 3) return '#3b82f6'; // Trust Blue 500
-  return '#94a3b8'; // Minimalist Muted Slate 400
+  if (rank === 1) return '#2f6bff'; // Electric Cobalt
+  if (rank <= 3) return '#60a5fa'; // Cobalt Light
+  return '#94a3b8'; // Cool Slate 400
 };
 
 const formatPyeongAxisTick = (val: number) => {
@@ -122,7 +122,7 @@ export function StatsPyeongRankingChart({
               단지별 평당가 TOP 20
             </h3>
             {hasData && (
-              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-secondary text-[11px] font-bold tabular-nums">
+              <span className="px-2 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-secondary text-[11px] font-bold tabular-nums">
                 TOP {topRankings.length}
               </span>
             )}
@@ -136,7 +136,7 @@ export function StatsPyeongRankingChart({
         <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
           <Link
             href="/explore?category=rank-price" prefetch={false}
-            className="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-blue-50/80 hover:bg-blue-100/80 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-xs font-bold transition-colors shrink-0"
+            className="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-[#eff1f5] hover:bg-slate-200/80 dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-primary text-xs font-bold transition-colors shrink-0"
           >
             <span>아파트 탐색에서 전체 보기</span>
           </Link>
@@ -181,7 +181,7 @@ export function StatsPyeongRankingChart({
             {/* Metric 1: 1위 최고 평당가 */}
             <div className="flex flex-col justify-between min-w-0 lg:pr-3 lg:border-r lg:border-border/40">
               <span className="text-[11px] font-medium text-tertiary">1위 최고 평당가</span>
-              <p className="text-sm sm:text-[15px] font-extrabold tabular-nums text-blue-600 dark:text-blue-400 mt-0.5">
+              <p className="text-sm sm:text-[15px] font-extrabold tabular-nums text-primary mt-0.5">
                 {top1Item ? `${safePyeong(top1Item.avgPyeongPrice).toLocaleString()}만원/평` : '-'}
               </p>
               <span className="text-[11px] text-secondary truncate mt-0.5 tabular-nums">
@@ -249,7 +249,7 @@ export function StatsPyeongRankingChart({
                 </span>
                 <div className="flex items-center gap-3 text-[11px] text-tertiary">
                   <span className="inline-flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-blue-600 inline-block" />
+                    <span className="w-2 h-2 rounded-full bg-[#2f6bff] inline-block" />
                     TOP 1~3
                   </span>
                   <span className="inline-flex items-center gap-1">
@@ -366,7 +366,7 @@ export function StatsPyeongRankingChart({
                           onSelectComplex?.(item.aptKey, item.aptName);
                         }
                       }}
-                      className="p-4 rounded-xl border border-border/60 bg-body/40 hover:bg-body hover:border-blue-500/40 transition-all cursor-pointer flex flex-col justify-between gap-2.5 group"
+                      className="p-4 rounded-xl border border-border/60 bg-body/40 hover:bg-body hover:border-slate-900/20 dark:hover:border-white/20 transition-all cursor-pointer flex flex-col justify-between gap-2.5 group"
                     >
                       {/* Top Row: Rank Badge + Complex Name + Dong Pill */}
                       <div className="flex items-start justify-between gap-2">
@@ -374,8 +374,8 @@ export function StatsPyeongRankingChart({
                           <span
                             className={`w-5 h-5 rounded-md text-[11px] tabular-nums font-bold flex items-center justify-center shrink-0 ${
                               rank === 1
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200'
+                                ? 'dview-spark-badge'
+                                : 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary'
                             }`}
                           >
                             {rank}
@@ -383,11 +383,11 @@ export function StatsPyeongRankingChart({
                           <span className="font-bold text-[13.5px] text-primary truncate">
                             {rank}위 {item.aptName}
                           </span>
-                          <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-secondary text-[10px] font-medium shrink-0">
+                          <span className="px-1.5 py-0.5 rounded bg-[#eff1f5] dark:bg-[#1e2532] text-secondary text-[10px] font-medium shrink-0">
                             {item.dong}
                           </span>
                           {item.isNewHigh && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold dview-spark-badge shrink-0">
                               신고가
                             </span>
                           )}
@@ -399,16 +399,16 @@ export function StatsPyeongRankingChart({
                         <span className="text-base sm:text-[17px] font-black tabular-nums text-primary">
                           {itemPyeong.toLocaleString()}만원/평
                         </span>
-                        <span className="px-2 py-0.5 rounded-md bg-blue-50/80 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[11px] font-bold tabular-nums shrink-0">
+                        <span className="px-2 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-secondary text-[11px] font-bold tabular-nums shrink-0">
                           34평 환산 {formatPriceEok(eq84Price)}
                         </span>
                       </div>
 
                       {/* Inline Relative Gauge Bar */}
-                      <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div className="w-full h-1.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${
-                            rank === 1 ? 'bg-blue-600' : 'bg-blue-500/80'
+                            rank === 1 ? 'bg-[#2f6bff]' : 'bg-[#2f6bff]/75'
                           }`}
                           style={{ width: `${relativePct}%` }}
                         />
@@ -486,14 +486,14 @@ export function StatsPyeongRankingChart({
                                 {item.dong}
                               </span>
                               {item.isNewHigh && (
-                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold dview-spark-badge shrink-0">
                                   신고가
                                 </span>
                               )}
                             </div>
                             {/* Subtle Inline Gauge + Sub-meta */}
                             <div className="flex items-center gap-2">
-                              <div className="w-16 sm:w-20 h-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0">
+                              <div className="w-16 sm:w-20 h-1 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] overflow-hidden shrink-0">
                                 <div
                                   className="h-full rounded-full bg-slate-400 dark:bg-slate-500"
                                   style={{ width: `${relativePct}%` }}

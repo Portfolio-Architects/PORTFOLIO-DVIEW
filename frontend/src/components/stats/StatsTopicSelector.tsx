@@ -45,11 +45,11 @@ export function StatsTopicSelector({
   return (
     <section
       aria-label="통계 리포트 토픽 선택기"
-      className={`w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-3 sm:p-4 border border-[#f2f4f6] dark:border-[#202027] ${className}`}
+      className={`w-full rounded-2xl bg-elevated p-3 sm:p-4 border border-border ${className}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3 px-1">
         <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+          <Layers className="w-4 h-4 text-primary" aria-hidden="true" />
           <h2 className="text-xs sm:text-sm font-black text-primary tracking-tight">
             D-VIEW 부동산 통계 연구소 리포트 아카이브
           </h2>
@@ -57,10 +57,10 @@ export function StatsTopicSelector({
         <div className="flex items-center gap-2 text-[11px] font-bold text-tertiary tabular-nums">
           {latestContractShort && (
             <>
-              <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">
+              <span className="text-primary font-extrabold">
                 최신 실거래 {latestContractShort} 계약 반영
               </span>
-              <span className="text-slate-300 dark:text-slate-700">|</span>
+              <span className="text-border">|</span>
             </>
           )}
           <span>총 {resolvedTopics.length}개 이슈</span>
@@ -81,23 +81,25 @@ export function StatsTopicSelector({
               aria-pressed={isActive}
               className={`text-left p-3 rounded-xl transition-all relative flex flex-col justify-between min-h-[92px] ${
                 isActive
-                  ? 'bg-white dark:bg-[#202027] border border-blue-500/40 shadow-xs'
-                  : 'bg-white/60 dark:bg-[#131317]/60 hover:bg-white dark:hover:bg-[#202027] border border-transparent'
+                  ? 'bg-surface ring-2 ring-slate-900/20 dark:ring-white/25 border border-transparent shadow-xs'
+                  : 'bg-surface/65 hover:bg-surface border border-transparent'
               }`}
             >
               <div>
                 <div className="flex items-center justify-between gap-1.5 mb-1.5">
                   <span
                     className={`inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-md ${
-                      isPublished
-                        ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
-                        : 'bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                      isActive
+                        ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                        : isPublished
+                        ? 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary'
+                        : 'bg-[#eff1f5] dark:bg-[#1e2532] text-tertiary'
                     }`}
                   >
                     {isPublished ? (
-                      <CheckCircle2 className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                      <CheckCircle2 className="w-3 h-3" />
                     ) : (
-                      <Clock className="w-3 h-3 text-slate-400" />
+                      <Clock className="w-3 h-3 text-tertiary" />
                     )}
                     {topic.badge}
                   </span>
@@ -117,10 +119,10 @@ export function StatsTopicSelector({
                 </h3>
               </div>
 
-              <div className="mt-2 pt-2 border-t border-[#f2f4f6] dark:border-[#202027] flex items-center justify-between text-[10px] font-medium text-tertiary">
+              <div className="mt-2 pt-2 border-t border-border flex items-center justify-between text-[10px] font-medium text-tertiary">
                 <span className="tabular-nums truncate">{topic.sampleCount}</span>
                 {isActive && (
-                  <span className="inline-flex items-center gap-0.5 text-blue-600 dark:text-blue-400 font-extrabold text-[10px]">
+                  <span className="inline-flex items-center gap-0.5 text-primary font-extrabold text-[10px]">
                     <Sparkles className="w-2.5 h-2.5" />
                     열람 중
                   </span>

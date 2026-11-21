@@ -33,10 +33,10 @@ describe('MacroTrendChart Component', () => {
     );
     const polygons = container.querySelectorAll('polygon');
     expect(polygons.length).toBe(2);
-    // Sale diamond vertex with trust blue fill and white stroke
-    expect(Array.from(polygons).some(p => p.getAttribute('fill') === '#2563eb')).toBe(true);
-    // Rent diamond vertex with brand yellow fill and white stroke
-    expect(Array.from(polygons).some(p => p.getAttribute('fill') === '#059669')).toBe(true);
+    // Sale diamond vertex with Live Spark Cobalt fill and white stroke
+    expect(Array.from(polygons).some(p => p.getAttribute('fill') === '#2f6bff')).toBe(true);
+    // Rent diamond vertex with Live Spark Slate baseline fill and white stroke
+    expect(Array.from(polygons).some(p => p.getAttribute('fill') === '#64748b')).toBe(true);
     // Both vertices have white stroke
     expect(Array.from(polygons).every(p => p.getAttribute('stroke') === '#ffffff')).toBe(true);
   });
@@ -73,7 +73,7 @@ describe('MacroTrendChart Component', () => {
       />
     );
     // nonNullSaleCount is 3 (so sale has NO dots under ALL), but nonNullRentCount is 1 (so rent HAS a diamond vertex)
-    const rentPolygon = container.querySelector('polygon[fill="#059669"]');
+    const rentPolygon = container.querySelector('polygon[fill="#64748b"]');
     expect(rentPolygon).toBeInTheDocument();
     expect(rentPolygon).toHaveAttribute('points');
     expect(rentPolygon).toHaveAttribute('stroke', '#ffffff');
@@ -204,5 +204,57 @@ describe('MacroTrendChart Component', () => {
     expect(chartWrapper).toBeInTheDocument();
     expect(chartWrapper).toHaveClass('custom-chart-wrapper');
     expect(chartWrapper).toHaveClass('flex-1');
+    expect(chartWrapper).toHaveClass('lg:min-h-[430px]');
+    expect(chartWrapper).toHaveClass('xl:min-h-[470px]');
+  });
+
+  it('renders transaction volume bars and right volume Y-axis when saleCount is present', () => {
+    const dataWithVolume = [
+      { name: '26.09', '동탄 아파트 전체': 8.03, '동탄 아파트 전세 평균': 4.61, saleCount: 241, rentCount: 404 },
+      { name: '26.10', '동탄 아파트 전체': 8.59, '동탄 아파트 전세 평균': 4.93, saleCount: 347, rentCount: 559 },
+      { name: '26.11', '동탄 아파트 전체': 9.02, '동탄 아파트 전세 평균': 4.83, saleCount: 230, rentCount: 248 },
+    ];
+    const { container } = render(
+      <MacroTrendChart
+        lineData={dataWithVolume}
+        xTicks={['26.09', '26.10', '26.11']}
+        yTicks={[0, 4, 8, 12]}
+        timeframe="3M"
+        granularity="monthly"
+      />
+    );
+
+    const chartWrapper = container.querySelector('[data-testid="macro-trend-chart-container"]');
+    expect(chartWrapper).toHaveAttribute('data-has-volume', 'true');
+    expect(chartWrapper).toHaveAttribute('data-granularity', 'monthly');
+    expect(container.querySelector('.recharts-bar')).toBeInTheDocument();
+  });
+
+  it('keeps compact min-height when isSplitMode=true and elevates min-height in wide view', () => {
+    const { container, rerender } = render(
+      <MacroTrendChart
+        lineData={[]}
+        xTicks={[]}
+        yTicks={[0, 5, 10]}
+        timeframe="3Y"
+        isSplitMode={false}
+      />
+    );
+    const wideWrapper = container.querySelector('[data-testid="macro-trend-chart-container"]');
+    expect(wideWrapper).toHaveClass('lg:min-h-[430px]');
+    expect(wideWrapper).toHaveClass('xl:min-h-[470px]');
+
+    rerender(
+      <MacroTrendChart
+        lineData={[]}
+        xTicks={[]}
+        yTicks={[0, 5, 10]}
+        timeframe="3Y"
+        isSplitMode={true}
+      />
+    );
+    const splitWrapper = container.querySelector('[data-testid="macro-trend-chart-container"]');
+    expect(splitWrapper).not.toHaveClass('lg:min-h-[430px]');
+    expect(splitWrapper).toHaveClass('min-h-[330px]');
   });
 });

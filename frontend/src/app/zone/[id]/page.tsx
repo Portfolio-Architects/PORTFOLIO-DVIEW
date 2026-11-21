@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { Building2, MapPin, BookOpen, ArrowRight } from 'lucide-react';
+import { Building2, BookOpen, ArrowRight } from 'lucide-react';
 import { ZONES, getZoneById, getDongsForZone } from '@/lib/zones';
 import { GUIDE_ARTICLES } from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
@@ -242,10 +242,6 @@ export default async function ZoneDetailPage(props: {
       >
         <div className="bg-surface border border-border/80 rounded-3xl p-6 sm:p-10 shadow-sm space-y-8">
           <div className="border-b border-border/60 pb-6">
-            <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[12px] font-extrabold px-3 py-1 rounded-full mb-3 border border-emerald-500/20">
-              <MapPin size={13} className="shrink-0" />
-              <span>D-VIEW 권역별 실거래 정량 분석</span>
-            </span>
             <h1 className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
               동탄 {zone.name} 아파트 가치 및 학군 분석 리포트
             </h1>
@@ -259,7 +255,7 @@ export default async function ZoneDetailPage(props: {
 
           <div className="space-y-4">
             <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
-              <Building2 size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <Building2 size={18} className="text-primary shrink-0" />
               <span>{zone.name} 권역 소속 아파트 단지 실거래가 및 전세가율 현황</span>
             </h2>
 
@@ -279,7 +275,7 @@ export default async function ZoneDetailPage(props: {
                     <th scope="col" className="p-3.5 whitespace-nowrap">전세가율</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/40 font-medium">
+                <tbody className="divide-y divide-border/40 font-medium tabular-nums">
                   {apartmentsList.map((apt) => {
                     const { canonicalSlug } = apt;
                     const hasDetailPage = Boolean(txSummary[canonicalSlug] || txSummary[apt.name]);
@@ -294,7 +290,7 @@ export default async function ZoneDetailPage(props: {
                           {hasDetailPage ? (
                             <Link
                               href={`/apartment/${encodeURIComponent(canonicalSlug)}`} prefetch={false}
-                              className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                              className="hover:underline transition-colors"
                             >
                               {apt.name}
                             </Link>
@@ -305,7 +301,7 @@ export default async function ZoneDetailPage(props: {
                         <td className="p-3.5 whitespace-nowrap">{apt.dong}</td>
                         <td className="p-3.5 whitespace-nowrap">{apt.yearBuilt ? `${apt.yearBuilt}년` : '정보 없음'}</td>
                         <td className="p-3.5 whitespace-nowrap">{apt.householdCount ? `${apt.householdCount}세대` : '정보 없음'}</td>
-                        <td className="p-3.5 font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">{formatPrice(salesPrice)}</td>
+                        <td className="p-3.5 font-bold text-primary whitespace-nowrap">{formatPrice(salesPrice)}</td>
                         <td className="p-3.5 whitespace-nowrap">{formatPrice(rentPrice)}</td>
                         <td className="p-3.5 whitespace-nowrap">{ratio > 0 ? `${ratio}%` : '정보 없음'}</td>
                       </tr>
@@ -323,13 +319,13 @@ export default async function ZoneDetailPage(props: {
             >
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-base sm:text-lg font-extrabold text-primary tracking-tight flex items-center gap-2">
-                  <BookOpen size={17} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                  <BookOpen size={17} className="text-primary shrink-0" />
                   <span>{zone.name} 권역 1:1 비교 가이드 및 심층 리포트</span>
                 </h2>
                 <Link
                   href="/guide"
                   prefetch={false}
-                  className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 shrink-0"
+                  className="text-xs font-extrabold text-primary hover:underline inline-flex items-center gap-1 shrink-0"
                 >
                   <span>전체 비교 가이드</span>
                   <ArrowRight size={13} />
@@ -346,17 +342,17 @@ export default async function ZoneDetailPage(props: {
                       key={article.slug}
                       href={`/guide/${article.slug}`}
                       prefetch={false}
-                      className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 hover:border-emerald-300 dark:hover:border-emerald-700 p-4 flex flex-col justify-between gap-2 transition-colors"
+                      className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-[#f7f8fa] dark:bg-[#151a23] hover:border-slate-400/60 dark:hover:border-slate-600 p-4 flex flex-col justify-between gap-2 transition-colors"
                     >
                       <div className="space-y-1">
-                        <span className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400">
+                        <span className="text-[11px] font-extrabold text-secondary">
                           {article.category}
                         </span>
-                        <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-snug">
+                        <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-50 group-hover:underline transition-colors leading-snug">
                           {article.title}
                         </h3>
                       </div>
-                      <span className="text-xs font-bold text-blue-700 dark:text-blue-400 inline-flex items-center gap-1">
+                      <span className="text-xs font-bold text-primary inline-flex items-center gap-1">
                         <span>1:1 실거래 비교 읽기</span>
                         <ArrowRight size={12} />
                       </span>

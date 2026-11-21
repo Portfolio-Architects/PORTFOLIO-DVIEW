@@ -65,7 +65,7 @@ export {
   type PriceAnalytics,
 };
 
-export const ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT = 40;
+export const ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT = 0;
 
 export function isAdSenseApprovalMode(): boolean {
   return process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true';
@@ -96,7 +96,7 @@ export function getAdSenseApprovalEliteAptSlugs(
   txSummary: Record<string, AptTxSummary>,
   limit: number = ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT
 ): Set<string> {
-  if (!txSummary || typeof txSummary !== 'object') {
+  if (!txSummary || typeof txSummary !== 'object' || limit <= 0) {
     return new Set<string>();
   }
   if (limit === ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT) {
@@ -1379,7 +1379,7 @@ export function buildApartmentJsonLd(
  */
 export function getDefaultApartmentMetadata(baseUrl: string, aptName: string = '아파트'): Metadata {
   const canonicalSlug = resolveCanonicalAptSlug(aptName) || aptName;
-  const title = `동탄 ${aptName} 실거래가·평당가·매매가·전세가율 및 배정 초등학교 학군 분석 - D-VIEW`;
+  const title = `동탄 ${aptName} 실거래가·전세가율·평당가 분석 | D-VIEW`;
   const description = `동탄 ${aptName} 실거래가, 평당가, 매매가, 전세가율, 배정 초등학교 학군, 호갱노노 비교, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
   return {
     title,
@@ -1490,31 +1490,38 @@ export async function buildApartmentSeoMetadata(
 
     ogUrl.searchParams.set('status', analytics.statusStr);
 
+    // 모바일 SERP 앞 32자 안에 단지명 + 실거래가 + 최근 실거래액이 노출되도록
+    // 평형 표기를 가격·전세가율 뒤로 재배치하고, 긴 단지명은 대표 평형 수를 압축해 60자 이내 유지
+    const maxPyeongInTitle = decodedName.length >= 16 ? 1 : decodedName.length >= 12 ? 2 : 3;
     let titlePyeong = '';
     if (pyeongSummaries.length > 0) {
       const representativePyeongs = [...pyeongSummaries]
         .sort((a, b) => (b.salesCount + b.rentCount) - (a.salesCount + a.rentCount))
-        .slice(0, 3)
+        .slice(0, maxPyeongInTitle)
         .sort((a, b) => a.pyeong - b.pyeong);
-      const pyeongListStr = representativePyeongs.map((p) => `${p.pyeong}평`).join('/');
-      const extraSuffix = pyeongSummaries.length > 3 ? ' 외' : '';
-      titlePyeong = ` ${pyeongListStr}${extraSuffix}`;
+      const pyeongListStr = `${representativePyeongs.map((p) => p.pyeong).join('/')}평`;
+      const extraSuffix = pyeongSummaries.length > maxPyeongInTitle ? ' 외' : '';
+      titlePyeong = `${pyeongListStr}${extraSuffix}`;
     } else if (aptSummary?.latestArea && aptSummary.latestArea > 0) {
-      titlePyeong = ` ${Math.round(aptSummary.latestArea)}평`;
+      titlePyeong = `${Math.round(aptSummary.latestArea)}평`;
     }
 
     const latestSaleVal = aptSummary?.latestPrice || analytics.maxSalePrice || 0;
     const latestRentVal = aptSummary?.latestRentDeposit || 0;
-    const realPriceHook =
-      latestSaleVal > 0
-        ? ` (최근 ${formatPriceEok(latestSaleVal)})`
-        : latestRentVal > 0
-          ? ` (전세 ${formatPriceEok(latestRentVal)})`
-          : '';
+    const compactSalePrice = latestSaleVal > 0 ? formatPriceEok(latestSaleVal).replace(/\s+/g, '') : '';
+    const compactRentPrice = latestRentVal > 0 ? formatPriceEok(latestRentVal).replace(/\s+/g, '') : '';
+    const realPriceHook = compactSalePrice
+      ? ` 최근 ${compactSalePrice}`
+      : compactRentPrice
+        ? ` 전세 ${compactRentPrice}`
+        : '';
     const realRatioHook =
       effectiveRatioPercent > 0 ? `·전세가율 ${effectiveRatioPercent}%` : '·전세가율';
+    const pyeongSegment = titlePyeong ? `·${titlePyeong}` : '';
 
-    const seoTitle = `${decodedName}${titlePyeong} 실거래가${realPriceHook}·평당가${realRatioHook}·학군 분석 - D-VIEW`;
+    const coreSeoTitle = `${decodedName} 실거래가${realPriceHook}${realRatioHook}${pyeongSegment}·평당가`;
+    const brandedSeoTitle = `${coreSeoTitle} | D-VIEW`;
+    const seoTitle = brandedSeoTitle.length <= 60 ? brandedSeoTitle : coreSeoTitle;
 
     const shortAlias = decodedName.replace(/아파트$/g, '').trim();
     const spacedDisplayAlias =
@@ -1546,7 +1553,7 @@ export async function buildApartmentSeoMetadata(
       .filter(Boolean)
       .join(', ');
     const highValueMortgageKeywords = '주택담보대출 갈아타기, DSR 40% 한도, 스트레스 DSR, 전세보증금 반환대출, 역전세 대출, 금리 충격 계산기';
-    const dynamicKeywords = `동탄, ${decodedName}, 실거래가, 평당가, 매매가, 전세가율, 배정 초등학교, 호갱노노 비교, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산, ${highValueMortgageKeywords}${aliasKeywords ? `, ${aliasKeywords}` : ''}${pyeongKeywordsList ? `, ${pyeongKeywordsList}` : ''}`;
+    const dynamicKeywords = `동탄, ${decodedName}, 실거래가, 평당가, 매매가, 전세가율, 배정 초등학교, 호갱노노 비교, 학군, 교통, 인프라, 아파트 분석, 임장, 부동산, ${highValueMortgageKeywords}${aliasKeywords ? `, ${aliasKeywords}` : ''}${pyeongKeywordsList ? `, ${pyeongKeywordsList}` : ''}`;
 
     let robotsDirective: Metadata['robots'];
     if (!hasVerifiedApartmentSalePrice(aptSummary)) {

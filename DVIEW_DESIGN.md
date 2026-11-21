@@ -1,6 +1,6 @@
-# DVIEW Design System Specification (v5.1 — "Ad Money" Toss Pure Financial Canvas, Visual-First Copy Diet & Semantic SEO Dual-Layer)
+# DVIEW Design System Specification (v6.0 — "Live Spark" Ad Money Canvas, 90/10 Dopamine Signal Architecture, Visual-First Copy Diet & Semantic SEO Dual-Layer)
 
-> **Single Source of Truth (SSOT)**: 본 문서는 DVIEW(디뷰) 프론트엔드 아키텍처의 공식 디자인 시스템인 **Ad Money (애드 머니 v5.1)**의 명세서이며, 에이전트 행동 강령([`DVIEW_AGENT.md`](./DVIEW_AGENT.md)) 및 응답·폰트 프로토콜([`.agent/rules/DVIEW_DRSP.md`](./.agent/rules/DVIEW_DRSP.md))과 상호 연계됩니다. **Ad Money** 디자인 시스템의 최상위 존재 목적은 단순한 심미적 구성을 넘어 **직관적 시각 탐색 경험(3-Second Visual Scan)과 구글 검색 노출(100% SSR Semantic Indexing)을 동시에 달성하여 구글 애드센스 수익률(Google AdSense Monetization Yield — RPM, eCPM, CTR, Active Viewability, High-CPC 전환율)을 극대화**하는 것입니다.
+> **Single Source of Truth (SSOT)**: 본 문서는 DVIEW(디뷰) 프론트엔드 아키텍처의 공식 디자인 시스템인 **Ad Money v6.0 — Live Spark (라이브 스파크)**의 명세서이며, 에이전트 행동 강령([`DVIEW_AGENT.md`](./DVIEW_AGENT.md)) 및 응답·폰트 프로토콜([`.agent/rules/DVIEW_DRSP.md`](./.agent/rules/DVIEW_DRSP.md))과 상호 연계됩니다. **Live Spark**는 쇼츠·릴스형 몰입 원리(**극도로 정돈된 90% 무채색 무대 + 희귀 도파민 이벤트에만 집중되는 10% 조색 스파크**)를 부동산 실거래 데이터에 적용해, 원색 피로도를 제거하면서도 **탐색 재미(도파민 · 체류 시간 · PV)와 구글 애드센스 수익률(RPM · CTR · Active Viewability · High-CPC)**을 동시에 극대화합니다.
 
 ---
 
@@ -25,9 +25,13 @@ $$\text{Max } \mathcal{Y}_{\text{AdSense}} = \sum_{s \in \text{Slots}} \Big[ \te
 - 이를 원천 차단하기 위해 사용자가 가장 빈번하게 클릭하는 **핵심 인터랙티브 블록(도넛 하단 4대 핵심 지표·대표 실거래 카드 `AptMetricCards`, 상단 금융 퀵 액션 바, 교통·인프라 인사이트 콜아웃)**과 **인피드 광고/CPA 슬롯(`AdSlot`, `MidFeedAdBanner`, `RankingBreakAdBanner`)**에 동일한 **보더리스 소프트 서피스(`bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] rounded-2xl`, 테두리·그림자 없음)**를 1:1로 동형화합니다.
 - 사용자는 `#f9fafb` 소프트 서피스 블록을 **"클릭하면 유용한 상세 리포트와 금융 계산기가 열리는 핵심 알짜 영역"**으로 인지하게 되어 광고 주목도와 클릭률(CTR)이 극대화됩니다.
 
-### 1.3 High-CPC Financial Trust Psychology (고단가 금융·자산 신뢰 컬러 심리학 — CPC & 전환율 극대화)
-- 주택담보대출, 대환대출, 양도세·취득세 절세, 부동산 밸류에이션 등 **고단가(High-CPC) 금융 광고주 섹터**의 브랜드 톤앤매너와 가장 완벽하게 부합하는 **Toss Action Blue (`#3182f6` / `#2563eb`)**와 **Value Emerald (`#059669` / `#10b981`)**, **Bullish Up Red (`#f04452`)**를 핵심 시맨틱 컬러로 사용합니다.
-- 자극적이거나 산만한 난색·과채도 유채색을 전면 배제하고 **토스 잉크 스케일(`#191f28` ~ `#8b95a1`)**을 유지함으로써, 전문 금융 터미널 수준의 신뢰감을 부여해 고단가 금융 광고 및 CPA 캠페인의 클릭 전환율을 높입니다.
+### 1.3 Live Spark 90/10 Dopamine Color Architecture (무대와 스포트라이트 분리 — 원색 피로 제거 & 도파민 집중)
+- 기존의 순백 배경 위 고채도 RGB 3원색(빨강·파랑·초록) 동시 충돌과 가격 본체 전체 착색은 시각적 피로도를 높이고 정작 중요한 시장 이벤트의 임팩트를 희석시킵니다.
+- **Live Spark v6.0**은 화면의 색상 예산을 3계층으로 엄격히 통제합니다:
+  1. **Stage (무대 — 약 90%)**: 캔버스(`#ffffff` / Dark `#0e1117`), 소프트 서피스(`#f7f8fa` / Dark `#151a23`), 네비게이션·토글·필터 컨트롤, 일반 매매가 본체(`11억 9,700만`), 평균가, 거래량, 보합(`0%`)은 모두 **딥 잉크 무채색(`#14181f` / Dark `#f4f6fa`)**으로 통일합니다.
+  2. **Calibrated Pulse (방향 시그널 — 약 8%)**: 일반 상승·하락은 가격 본체가 아닌 **등락 칩(`+0.6%`, `-4.8%`)과 방향 지표**에만 조색된 2색 스파크(**Hot Spark `#ff3b5c`** / **Cool Spark `#2f6bff`**)를 적용합니다. 하락 지표는 예외 없이 Cool Spark로 일관 통일합니다.
+  3. **Jackpot Highlight (도파민 잭팟 — 약 2%)**: **신고가 돌파, 최고가 갱신, 체결 온도 과열** 등 희귀 이벤트에만 그라데이션 배지(`.dview-spark-badge`: `#ff3b5c → #ff6b4a`)와 미세 하이라이트 카드(`.dview-spark-card`)를 터뜨려 사용자가 피드를 넘기며 다음 스파크를 계속 탐색하게 유도합니다.
+- **신호등 초록 배제 원칙**: 메인 대시보드(도넛 보합, 일자 도트, 최고 평당가 KPI, 상단 티커)에서는 원색 초록(`emerald`)을 완전히 제거하며, `--brand-green` (`#059669` / Dark `#10b981`)은 오직 **전세 안전 진단(`SAFE`/`안정권`)·DSR 안전 통과** 등 안전 의미가 필수인 계산기·모달 내부에서만 제한적으로 사용합니다.
 
 ### 1.4 Zero-CLS Bounding Box Contract ($\text{CLS} < 0.001$ — 정책 준수 및 유효 수익 보호)
 - 비동기 광고 로드 과정에서 발생하는 레이아웃 시프트(Layout Shift)는 사용자의 오클릭(Accidental Click)을 유발하여 구글 애드센스 무효 트래픽 감점 및 단가 하락(Smart Pricing)의 원인이 됩니다.
@@ -43,38 +47,44 @@ $$\text{Max } \mathcal{Y}_{\text{AdSense}} = \sum_{s \in \text{Slots}} \Big[ \te
 
 ---
 
-## 2. Color System & High-CPC Theme Palette (토스 퓨어 파이낸셜 캔버스 팔레트)
+## 2. Color System & Live Spark Theme Palette (v6.0 — 90% 무채색 무대 + 10% 도파민 스파크)
 
-### 2.1 Base Seamless Canvas & Ink Palette
+### 2.1 Base Seamless Stage & Ink Palette (90% Neutral Stage)
 - **Light Mode**:
   - Unified Body & Section Canvas (`--bg-body`, `--bg-surface`): `#ffffff` (단일 보더리스 화이트 캔버스)
-  - Interactive Soft Surface (`--bg-elevated`): `#f9fafb` / Hover `#f2f4f6` (핵심 지표 카드, 금융 퀵 바, 네이티브 광고/CPA 동형 표면)
-  - Hairline Divider (`--border-color`, `--border-hairline`): `#f2f4f6` (섹션 및 리스트 행을 나누는 미세 구분선)
-  - Primary Ink (`--text-primary`): `#191f28` (토스 차콜 잉크 — 타이틀 및 핵심 가격 숫자)
+  - Interactive Soft Surface (`--bg-elevated`): `#f7f8fa` / Hover `#eff1f5` (핵심 지표 카드, 금융 퀵 바, 네이티브 광고/CPA 동형 표면)
+  - Hairline Divider (`--border-color`, `--border-hairline`): `#eef0f4` (섹션 및 리스트 행을 나누는 미세 구분선)
+  - Primary Ink (`--text-primary`, `--brand-primary`): `#14181f` (딥 차콜 잉크 — 타이틀, 활성 컨트롤, 일반 매매가 본체)
   - Secondary Ink (`--text-secondary`): `#4e5968` (본문 및 보조 레이블)
-  - Tertiary Ink (`--text-tertiary`): `#8b95a1` (단위, 날짜, 캡션)
+  - Tertiary Ink (`--text-tertiary`): `#7b8696` (단위, 날짜, 캡션)
 - **Dark Mode (`.dark`)**:
-  - Unified Body & Section Canvas (`--bg-body`, `--bg-surface`): `#101013` (Deep Financial Terminal Charcoal)
-  - Interactive Soft Surface (`--bg-elevated`): `#17171c` / Hover `#202027`
-  - Hairline Divider (`--border-color`, `--border-hairline`): `#202027`
-  - Primary Ink (`--text-primary`): `#f9fafb` (`slate-50`)
-  - Secondary Ink (`--text-secondary`): `#cbd5e1` (`slate-300`)
-  - Tertiary Ink (`--text-tertiary`): `#94a3b8` (`slate-400`)
+  - Unified Body & Section Canvas (`--bg-body`, `--bg-surface`): `#0e1117` (Midnight Ticker Deep Charcoal)
+  - Interactive Soft Surface (`--bg-elevated`): `#151a23` / Hover `#1e2532`
+  - Hairline Divider (`--border-color`, `--border-hairline`): `#1e2532`
+  - Primary Ink (`--text-primary`, `--brand-primary`): `#f4f6fa`
+  - Secondary Ink (`--text-secondary`): `#cbd5e1`
+  - Tertiary Ink (`--text-tertiary`): `#8b96a8`
 
-### 2.2 Brand & Semantic Accent Tokens
-1. **Primary Brand & High-CPC Action Theme (Toss Blue — `#3182f6` / `blue-600`)**:
-   - `--brand-primary`: `#3182f6` (Hover: `#1b64da`)
-   - `--brand-primary-light`: `#e8f3ff` (Dark: `rgba(49, 130, 246, 0.16)`)
-2. **Positive / Safe / Valuation & CPA Accent (Value Emerald — `emerald-600`)**:
-   - `--brand-green`: `#059669` (Dark: `#10b981`, Light Tint: `#ecfdf5`)
-   - 안전 진단(`SAFE`), 국평 평균가, 도넛 차트 핵심 섹터 및 긍정 가치 시그널에 사용합니다.
-3. **Alert / New High / Upward Surge (Toss Up Red — `#f04452`)**:
-   - `--brand-red`: `#f04452` (Dark: `#ff5c6a`, Light Tint: `#ffeeee`)
-   - 신고가 경신(`신고가`), 상승 변동률(`+`), 전세 위험 경고(`DANGER`)에 사용합니다.
+### 2.2 Calibrated 2-Color Spark & Restricted Safety Tokens (10% Dopamine Focus)
+1. **Hot Spark — Upward / New High / Overheat (`--brand-red` / `.dview-spark-badge`)**:
+   - Light: `#ff3b5c` (Tint: `#fff1f3`) | Dark: `#ff4d6d` (Tint: `rgba(255, 77, 109, 0.16)`)
+   - **Jackpot Gradient (`.dview-spark-badge`)**: Light `linear-gradient(135deg, #ff3b5c, #ff6b4a)` | Dark `linear-gradient(135deg, #ff4d6d, #ff7a59)` — **신고가 돌파 · 최고가 갱신** 전용
+   - **Jackpot Card (`.dview-spark-card`)**: Light `#fff7f8` + Rim `#ffd6de` + Soft Glow | Dark `#1c151f` + Rim `rgba(255, 77, 109, 0.36)`
+   - Soft Rising Step (`직전가 대비 상승` 도넛 보조 링): `#fda4af`
+2. **Cool Spark — Downward / Bargain Catch (`--brand-blue`)**:
+   - Light: `#2f6bff` (Tint: `#ebf2ff`) | Dark: `#60a5fa` (Tint: `rgba(96, 165, 250, 0.16)`)
+   - 하락 변동률(`-`), 직전가 대비 하락 KPI, 급매 포착 및 매매 시세 추이 주 라인에 일관 적용합니다.
+3. **Neutral Ink Control (`--brand-primary`)**:
+   - Light: `#14181f` (Soft Track `#eff1f5`, Active Thumb `#ffffff`) | Dark: `#f4f6fa` (Soft Track `#1e2532`, Active Thumb `#252c3d`)
+   - 네비게이션 활성 탭, 기간·정렬 세그먼트 토글, 일반 필터 칩에 사용하여 시장 방향 색(Hot/Cool)과의 역할 충돌을 원천 차단합니다.
+4. **Restricted Safety Accent (`--brand-green`)**:
+   - Light: `#059669` (Tint: `#ecfdf5`) | Dark: `#10b981` (Tint: `rgba(16, 185, 129, 0.15)`)
+   - **사용 범위 제한**: 전세 안전 진단(`안전권`/`SAFE`), DSR 안전 통과 등 '안전' 판정 계산기·모달 내부로 한정하며, 메인 실거래 피드·도넛 보합·일자 점·평당가 KPI에는 사용하지 않습니다.
 
 ### 2.3 Prohibited Color Tokens (사용 금지 색상)
-- 시선을 분산시키고 금융 신뢰감 및 광고 주목도를 저해하는 비표준 난색 및 과채도 유채색 클래스 사용을 전면 금지합니다:
+- 시선을 분산시키고 90/10 Live Spark 위계를 무너뜨리는 비표준 유채색 Tailwind 유틸리티 클래스 사용을 전면 금지합니다:
   - **금지 목록**: `pink-*`, `purple-*`, `fuchsia-*`, `violet-*`, `indigo-*`, `yellow-*`, `orange-*`, `amber-*`, `rose-*`, `teal-*`, `cyan-*`, `sky-*`, `green-*`, `zinc-*`, `neutral-*`, `stone-*`, `gray-*`
+  - 모든 조색된 Live Spark 색상은 반드시 `globals.css` 시맨틱 변수(`text-brand-red`, `bg-brand-red-light`, `text-brand-blue`, `bg-brand-blue-light`, `.dview-spark-badge`, `.dview-spark-card`)를 통해 참조합니다.
 
 ---
 

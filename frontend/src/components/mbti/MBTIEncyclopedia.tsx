@@ -71,7 +71,7 @@ export function MBTIEncyclopedia({
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl bg-surface border border-border/80 shadow-xs">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+          <div className="flex items-center gap-2 text-xs font-bold text-secondary mb-1">
             <span>동탄 16대 랜드마크 아파트 주거 도감</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-primary tracking-tight">
@@ -87,7 +87,7 @@ export function MBTIEncyclopedia({
             type="button"
             data-testid="encyclopedia-start-quiz"
             onClick={onStartQuiz}
-            className="self-start md:self-auto py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs sm:text-sm shadow-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+            className="self-start md:self-auto py-3 px-5 rounded-xl bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 active:scale-95 text-white dark:text-slate-900 font-black text-xs sm:text-sm flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
           >
             <span>나의 주거 MBTI 테스트하기</span>
           </button>
@@ -106,7 +106,7 @@ export function MBTIEncyclopedia({
                 type="button"
                 data-testid={`filter-tab-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
-                className={getToggleBtnClass({ active: isActive, tone: 'emerald' })}
+                className={getToggleBtnClass({ active: isActive })}
               >
                 {tab.label}
               </button>
@@ -139,7 +139,7 @@ export function MBTIEncyclopedia({
               key={profile.type}
               data-testid={`profile-card-${profile.type}`}
               onClick={() => handleCardClick(profile)}
-              className="group relative flex flex-col justify-between rounded-2xl p-5 bg-surface border border-border/80 hover:border-emerald-500/50 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer active:scale-[0.99]"
+              className="group relative flex flex-col justify-between rounded-2xl p-5 bg-surface border border-border/80 hover:border-slate-400/60 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer active:scale-[0.99]"
             >
               <div>
                 {/* Header: MBTI Badge + Temperament Indicator */}
@@ -163,7 +163,7 @@ export function MBTIEncyclopedia({
                 </h3>
 
                 {/* Matched Complex Name */}
-                <div className="flex items-center gap-1 text-base font-black text-emerald-600 dark:text-emerald-400 tracking-tight mt-2 mb-1">
+                <div className="flex items-center gap-1 text-base font-black text-primary tracking-tight mt-2 mb-1">
                   <span className="truncate">{profile.aptName}</span>
                 </div>
 
@@ -184,7 +184,7 @@ export function MBTIEncyclopedia({
                 {tx ? (
                   <div className="flex items-baseline justify-between text-xs">
                     <span className="text-tertiary text-[11px]">최근 실거래</span>
-                    <div className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400 font-black text-sm">
+                    <div className="flex items-baseline gap-0.5 text-primary font-black text-sm tabular-nums">
                       <span>{tx.latestPriceEok}</span>
                     </div>
                   </div>

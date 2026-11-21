@@ -53,8 +53,9 @@ const RentTransactionSchema = z.object({
   _key: z.string().min(1)
 });
 
-const DEFAULT_API_KEY = '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
-const API_KEY = (process.env.BUILDING_API_KEY || DEFAULT_API_KEY).trim();
+function getApiKey() {
+  return (process.env.BUILDING_API_KEY || process.env.PUBLIC_DATA_PORTAL_KEY || '').trim();
+}
 const LAWD_CDS = ['41590', '41597']; // 화성시 및 동탄구 모두 스캔
 const API_BASE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent';
 const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동', '석우동'];
@@ -131,10 +132,10 @@ async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
         if (relayUrl) {
           targetUrl = relayUrl;
           usingRelay = true;
+          const cronSecret = (process.env.CRON_SECRET || '').trim();
           requestOptions.headers = {
             ...(requestOptions.headers || {}),
-            Authorization: `Bearer ${(process.env.CRON_SECRET || 'dview-default-cron-secret-2026').trim()}`,
-            'x-building-api-key': API_KEY,
+            ...(cronSecret ? { Authorization: `Bearer ${cronSecret}` } : {}),
           };
         }
       }
@@ -173,7 +174,8 @@ async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
 }
 
 async function main() {
-  if (!API_KEY) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
     console.error('❌ BUILDING_API_KEY 환경변수가 설정되지 않았습니다.');
     process.exit(1);
   }
@@ -271,7 +273,7 @@ async function main() {
       const currentDistrictOccurrences = new Map();
 
       do {
-        const url = `${API_BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000&_type=json`;
+        const url = `${API_BASE}?serviceKey=${encodeURIComponent(apiKey)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000&_type=json`;
         const agent = getProxyAgent();
 
         let rawData;
@@ -518,7 +520,6 @@ async function main() {
 
 module.exports = {
   RentTransactionSchema,
-  DEFAULT_API_KEY,
   buildRelayUrl,
   fetchWithRetry,
   main,

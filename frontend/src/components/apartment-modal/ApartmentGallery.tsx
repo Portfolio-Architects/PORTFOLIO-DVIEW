@@ -151,7 +151,7 @@ export const ApartmentGallery = React.memo(function ApartmentGallery({ images, t
                   <button
                     key={i}
                     type="button"
-                    className="relative shrink-0 w-[240px] md:w-[280px] aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group border-none bg-[#f9fafb] dark:bg-[#17171c] snap-start text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
+                    className="relative shrink-0 w-[240px] md:w-[280px] aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group border-none bg-elevated snap-start text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30 dark:focus-visible:ring-white/30"
                     onClick={() => onImageClick(img.url)}
                     aria-label={`${altText} 크게 보기`}
                   >
@@ -174,7 +174,7 @@ export const ApartmentGallery = React.memo(function ApartmentGallery({ images, t
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-3.5 pt-8">
                         <div className="flex flex-col gap-1.5">
                           {img.isPremium && (
-                            <span className="w-fit text-[9px] font-bold bg-[#ffc107] text-primary px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5">
+                            <span className="w-fit text-[9px] font-bold bg-slate-900/90 text-white px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5">
                               <Star size={10} className="fill-current" />
                               <span>PRO</span>
                             </span>

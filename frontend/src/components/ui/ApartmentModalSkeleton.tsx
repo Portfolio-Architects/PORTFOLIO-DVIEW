@@ -56,11 +56,11 @@ export function ApartmentModalSkeleton({ onClose, inline = false }: ApartmentMod
       <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 flex flex-col gap-6">
         {/* 1. Hero Image Gallery Slider Area */}
         <div className="w-full h-[220px] md:h-[340px] rounded-2xl bg-slate-100 dark:bg-slate-900/30 border border-slate-200/40 dark:border-slate-800/10 animate-shimmer relative overflow-hidden flex items-center justify-center">
-          {/* Emerald Diamond Center Spinner */}
+          {/* Live Spark Neutral Ink Center Spinner */}
           <div className="relative w-16 h-16 flex items-center justify-center">
-            <div className="absolute inset-0 border-2 border-emerald-500/10 dark:border-emerald-400/10 rounded-full animate-ping" />
-            <div className="w-10 h-10 border-t-2 border-r-2 border-emerald-500 dark:border-emerald-400 rounded-full animate-spin" />
-            <div className="absolute w-4 h-4 bg-emerald-500 dark:bg-emerald-400 rotate-45 rounded-sm animate-pulse" />
+            <div className="absolute inset-0 border-2 border-slate-900/10 dark:border-white/10 rounded-full animate-ping" />
+            <div className="w-10 h-10 border-t-2 border-r-2 border-slate-900 dark:border-slate-100 rounded-full animate-spin" />
+            <div className="absolute w-4 h-4 bg-slate-900 dark:bg-slate-100 rotate-45 rounded-sm animate-pulse" />
           </div>
           <span className="absolute bottom-3 right-4 w-[152px] inline-flex items-center justify-center text-center text-[11px] font-bold text-tertiary px-2 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 backdrop-blur-md whitespace-nowrap">아파트 임장 카드 로드 중...</span>
         </div>

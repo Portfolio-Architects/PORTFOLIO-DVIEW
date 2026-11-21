@@ -577,10 +577,10 @@ describe('AptDonutSection Test Suite', () => {
       expect(PRICE_TIER_COLORS.under15).toBe(PYEONG_TIER_COLORS.large);
       expect(PRICE_TIER_COLORS.over15).toBe(PYEONG_TIER_COLORS.xlarge);
 
-      expect(PRICE_TIER_COLORS.under6).toBe('#059669');
-      expect(PRICE_TIER_COLORS.under9).toBe('#2563eb');
+      expect(PRICE_TIER_COLORS.under6).toBe('#94a3b8');
+      expect(PRICE_TIER_COLORS.under9).toBe('#2f6bff');
       expect(PRICE_TIER_COLORS.under15).toBe('#60a5fa');
-      expect(PRICE_TIER_COLORS.over15).toBe('#334155');
+      expect(PRICE_TIER_COLORS.over15).toBe('#14181f');
     });
 
     it('does not render duplicate loan CTA in selected card in price mode (unified in top hero bar)', () => {

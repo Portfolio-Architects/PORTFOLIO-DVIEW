@@ -19,6 +19,11 @@ import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 import { GuideStatsComparisonBridge } from '@/components/guide/GuideStatsComparisonBridge';
 import GuideAptPreviewCard, { GuideAptCtaLink } from '@/components/guide/GuideAptPreviewCard';
 import GuideMorningAlertRetentionCard from '@/components/guide/GuideMorningAlertRetentionCard';
+import BalanceMatchupWidget from '@/components/engagement/BalanceMatchupWidget';
+import BudgetTierChallengeWidget from '@/components/engagement/BudgetTierChallengeWidget';
+import { resolveBalanceMatchups } from '@/lib/data/balanceMatchups';
+import { extractVerifiedComplexCatalog } from '@/lib/finance/budgetTierEngine';
+import { getSyncTxSummaryMap } from '@/lib/server/syncTxSummary';
 import { getVisualSignalPillClass } from '@/lib/design-system/copyDiet';
 import {
   getCompactGuideCategory,
@@ -166,37 +171,11 @@ export default function GuideIndexPage() {
         />
 
         <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full max-w-full min-w-0 gap-6 box-border">
-          {/* Top Action & Summary Bar (Synchronized with Main Dashboard Control Bar) */}
-          <div className="w-full p-3 sm:p-4 rounded-2xl bg-surface border border-border/80 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-              <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[12px] font-extrabold px-3 py-1 rounded-lg border border-emerald-500/20 w-fit shrink-0">
-                <span>D-VIEW 부동산 데이터 랩스 공식 인사이트</span>
-              </span>
-              <p className="text-xs sm:text-[13px] text-secondary font-medium">
-                동탄 1·2신도시 구조적 입지 격차, GTX-A·트램 역세권 재편, 스트레스 DSR 40% 실거주 PER 가치평가 실증 리포트
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              <Link
-                href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison" prefetch={false}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors"
-              >
-                <span>동탄1 vs 동탄2 집값 통계 비교</span>
-              </Link>
-              <Link
-                href="/explore" prefetch={false}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
-              >
-                <span>184개 단지 탐색</span>
-              </Link>
-              <Link
-                href="/technovalley" prefetch={false}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-colors"
-              >
-                <span>지식산업센터 카탈로그</span>
-              </Link>
-            </div>
+          {/* Concise Hub Summary Strip (GNB already exposes /stats, /explore, /technovalley) */}
+          <div className="w-full px-4 py-3 rounded-2xl bg-elevated border border-border/60">
+            <p className="text-xs sm:text-[13px] text-secondary font-medium">
+              동탄 1·2신도시 입지 격차, GTX-A·트램 역세권 재편, 스트레스 DSR 40% 실거주 가치평가 심층 리포트 {GUIDE_ARTICLES.length}편을 국토교통부 실거래 데이터 기준으로 정리했습니다.
+            </p>
           </div>
 
           {/* Bidirectional Live House Price Comparison Bridge to /stats */}
@@ -207,6 +186,21 @@ export default function GuideIndexPage() {
             compact
           />
 
+          {/* Site-Wide Interactive Engagement Strip: 1:1 Balance Matchup + Budget Tier Reality Check */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+            <BalanceMatchupWidget
+              matchups={resolveBalanceMatchups('guide_hub', getSyncTxSummaryMap())}
+              surface="guide_hub"
+              heading="읽기 전 워밍업 · 동탄 1:1 밸런스 맞대결"
+              compact
+            />
+            <BudgetTierChallengeWidget
+              catalog={extractVerifiedComplexCatalog(getSyncTxSummaryMap())}
+              surface="guide_hub"
+              variant="compact"
+            />
+          </div>
+
           {/* Top Inflow Guides & High-Dwell Apartment Conversion Slot */}
           <section
             data-testid="guide-index-top-conversion-hub"
@@ -214,14 +208,9 @@ export default function GuideIndexPage() {
             className="w-full p-4 sm:p-5 rounded-2xl bg-surface border border-border/80 shadow-2xs space-y-4"
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                  신규 유입 TOP 3 · 고전환 단지 허브
-                </span>
-                <h2 className="text-sm sm:text-base font-extrabold text-primary">
-                  구글·ChatGPT 유입 1위 핵심 가이드 & 체류 상위 대장 단지 프리뷰
-                </h2>
-              </div>
+              <h2 className="text-sm sm:text-base font-extrabold text-primary">
+                많이 찾는 핵심 가이드 · 주요 대장 단지
+              </h2>
               <GuideAptCtaLink
                 item={lakeEduPreview}
                 href={
@@ -236,12 +225,12 @@ export default function GuideIndexPage() {
                 placement="article_top"
                 sectionTitle="가이드 허브 상단 동탄더샵레이크에듀타운 바로가기"
                 dataTestId="guide-index-lake-edutown-spotlight"
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors w-fit shrink-0 tabular-nums"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-xs font-extrabold transition-colors w-fit shrink-0 tabular-nums"
               >
                 <span>
-                  {`동탄더샵레이크에듀타운 (평균 15분 체류${
-                    lakeEduPreview?.latestPriceStr ? ` · ${lakeEduPreview.latestPriceStr}` : ''
-                  })`}
+                  {`동탄더샵레이크에듀타운${
+                    lakeEduPreview?.latestPriceStr ? ` · 최근 ${lakeEduPreview.latestPriceStr}` : ''
+                  }`}
                 </span>
                 <ArrowUpRight size={13} className="shrink-0" />
               </GuideAptCtaLink>
@@ -252,13 +241,13 @@ export default function GuideIndexPage() {
                 <Link
                   key={`guide-hub-route-${route.id}`}
                   href={route.href} prefetch={false}
-                  className="p-3.5 rounded-xl bg-body hover:bg-emerald-500/5 border border-border/60 hover:border-emerald-500/40 transition-colors flex flex-col justify-between gap-1.5"
+                  className="p-3.5 rounded-xl bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border/70 hover:border-slate-300 dark:hover:border-slate-700 transition-colors flex flex-col justify-between gap-1.5"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                    <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-primary border border-border/60">
                       {route.badge}
                     </span>
-                    <ArrowUpRight size={13} className="text-slate-400 shrink-0" />
+                    <ArrowUpRight size={13} className="text-tertiary shrink-0" />
                   </div>
                   <p className="text-xs sm:text-[13px] font-extrabold text-primary line-clamp-1">
                     {route.title}
@@ -316,21 +305,21 @@ export default function GuideIndexPage() {
               return (
                 <article
                   key={article.slug}
-                  className="bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] rounded-2xl p-5 sm:p-6 transition-colors group flex flex-col justify-between gap-4 min-w-0"
+                  className="bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] rounded-2xl p-5 sm:p-6 transition-colors group flex flex-col justify-between gap-4 min-w-0"
                 >
                   <div className="min-w-0">
                     {/* Meta Bar */}
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className={getVisualSignalPillClass({ tone: 'safe', size: 'xs' })}>
+                        <span className={getVisualSignalPillClass({ tone: 'neutral', size: 'xs' })}>
                           {getCompactGuideCategory(article.category)}
                         </span>
                         {isTopLandingGuideSlug(article.slug) && (
                           <span
                             data-testid="guide-index-card-top3-badge"
-                            className={getVisualSignalPillClass({ tone: 'down', size: 'xs' })}
+                            className={getVisualSignalPillClass({ tone: 'jackpot', size: 'xs' })}
                           >
-                            신규 유입 TOP 3
+                            인기 TOP 3
                           </span>
                         )}
                       </div>
@@ -340,7 +329,7 @@ export default function GuideIndexPage() {
                     </div>
 
                     {/* Title */}
-                    <h2 className="mt-3 text-[17px] sm:text-[18px] font-black text-primary tracking-tight leading-snug line-clamp-2 break-keep group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    <h2 className="mt-3 text-[17px] sm:text-[18px] font-black text-primary tracking-tight leading-snug line-clamp-2 break-keep group-hover:text-primary transition-colors">
                       <Link href={`/guide/${article.slug}`} prefetch={false}>
                         {cardTitle}
                       </Link>
@@ -372,11 +361,11 @@ export default function GuideIndexPage() {
                               placement="article_bottom"
                               sectionTitle="가이드 목록 카드 대표 단지 바로가기"
                               dataTestId="guide-index-card-apt-cta-pill"
-                              className="inline-flex flex-wrap items-baseline gap-x-1 max-w-full min-w-0 text-[12px] font-bold text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors tabular-nums"
+                              className="inline-flex flex-wrap items-baseline gap-x-1 max-w-full min-w-0 text-[12px] font-bold text-secondary hover:text-primary transition-colors tabular-nums"
                             >
                               <span>{labelText}</span>
                               {preview && preview.latestPrice > 0 && (
-                                <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">
+                                <span className="text-primary font-extrabold">
                                   · {preview.latestPriceStr}
                                 </span>
                               )}
@@ -388,11 +377,11 @@ export default function GuideIndexPage() {
                   </div>
 
                   {/* Bottom CTA */}
-                  <div className="pt-3 border-t border-[#f2f4f6] dark:border-[#202027] flex items-center justify-end">
+                  <div className="pt-3 border-t border-border flex items-center justify-end">
                     <Link
                       href={`/guide/${article.slug}`}
                       prefetch={false}
-                      className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-extrabold text-[13px] hover:underline"
+                      className="inline-flex items-center gap-1 text-primary font-extrabold text-[13px] hover:underline"
                     >
                       <span>전문 읽기</span>
                       <ArrowUpRight size={14} />
@@ -410,32 +399,6 @@ export default function GuideIndexPage() {
             surface="guide_hub"
             sectionId="guide-hub-morning-alert-retention"
           />
-
-          {/* Recirculation Hub Links */}
-          <section className="bg-surface border border-border/80 rounded-2xl p-5 sm:p-6 lg:p-8 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-base sm:text-lg font-extrabold text-primary tracking-tight">
-                단지별 실거래가 및 테크노밸리 세제 혜택 직접 비교
-              </h2>
-              <p className="text-[13px] text-secondary mt-1 font-medium">
-                184개 아파트 단지 4대 금융 수리 테이블과 56개 지식산업센터 세제 혜택 데이터를 즉시 확인하세요.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3 shrink-0">
-              <Link
-                href="/explore" prefetch={false}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-bold transition-colors"
-              >
-                <span>184개 단지 탐색</span>
-              </Link>
-              <Link
-                href="/technovalley" prefetch={false}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-[13px] font-bold transition-colors"
-              >
-                <span>지식산업센터 카탈로그</span>
-              </Link>
-            </div>
-          </section>
 
           {/* Bottom Zero-CLS AdSlot */}
           {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (

@@ -526,8 +526,9 @@ describe('Challenger 2 Empirical Adversarial Suite: Zero-Cost, Period Chunks, Vi
       // Assert UI responsiveness under jsdom: execution should complete safely without freezing (< 10000ms under parallel test load)
       expect(t1 - t0).toBeLessThan(10000);
 
-      // Verify header indicates collapsed count
-      expect(screen.getAllByText(/접힘 \(30건\)/i).length).toBeGreaterThanOrEqual(1);
+      // Verify header indicates collapsed state alongside the group's total count badge
+      expect(screen.getAllByText('접힘').length).toBeGreaterThanOrEqual(1);
+      expect(firstDateHeaderBtn).toHaveTextContent('총 30건 거래');
 
       // Click first date header again (expand group)
       const t2 = performance.now();
@@ -536,7 +537,7 @@ describe('Challenger 2 Empirical Adversarial Suite: Zero-Cost, Period Chunks, Vi
       expect(t3 - t2).toBeLessThan(10000);
 
       // Assert items are visible again
-      expect(screen.queryByText(/접힘 \(30건\)/i)).not.toBeInTheDocument();
+      expect(screen.queryByText('접힘')).not.toBeInTheDocument();
     });
 
     it('retains virtualization styles when toggling viewMode between card and compact', () => {

@@ -17,6 +17,7 @@ const {
   accumulateMacroTrend,
   calculateRecent7DaysVolume,
   generateMacroTrendSeries,
+  generateGranularMacroTrendSeries,
   isCancelledTransaction: isCancelledInMacroTrend
 } = require('../../scripts/pipeline/macroTrendCalculator');
 
@@ -145,6 +146,43 @@ describe('D-VIEW Data Pipeline Integration Test Suite', () => {
         expect(volume.prevCount).toBe(2);
         expect(volume.trendText).toContain('상승');
         expect(volume.trendColor).toBe('#ff4b5c');
+      });
+
+      it('should generate daily, weekly, and monthly granular Dongtan series with exact counts excluding cancelled & monthly-rent records', () => {
+        const saleTxs = [
+          { contractDate: '20261109', price: 80000, dealType: '매매' },
+          { contractDate: '20261109', price: 100000, dealType: '중개거래' },
+          { contractDate: '20261112', price: 90000, dealType: '매매' },
+          { contractDate: '20261112', price: 500000, dealType: '매매', cancelDate: '20261113' }, // cancelled -> excluded
+        ];
+        const rentTxs = [
+          { contractDate: '20261109', deposit: 45000, monthlyRent: 0, dealType: '전세' },
+          { contractDate: '20261112', deposit: 55000, monthlyRent: 0, dealType: '전세' },
+          { contractDate: '20261112', deposit: 10000, monthlyRent: 120, dealType: '월세' }, // monthly rent -> excluded
+        ];
+
+        const { compactSeries, monthlyPoints } = generateGranularMacroTrendSeries(saleTxs, rentTxs, {
+          dailyWindowYears: 5,
+          minYear: 2008,
+        });
+
+        expect(compactSeries.latestContractDate).toBe('20261112');
+        expect(compactSeries.daily).toEqual([
+          ['26.11.09', 9, 4.5, 2, 1],
+          ['26.11.12', 9, 5.5, 1, 1],
+        ]);
+        // Both 2026-11-09 (Mon) and 2026-11-12 (Thu) share Monday week 26.11.09
+        expect(compactSeries.weekly).toEqual([['26.11.09', 9, 5, 3, 2]]);
+        expect(compactSeries.monthly).toEqual([['26.11', 9, 5, 3, 2]]);
+        expect(monthlyPoints).toEqual([
+          {
+            name: '26.11',
+            '동탄 아파트 전체': 9,
+            '동탄 아파트 전세 평균': 5,
+            saleCount: 3,
+            rentCount: 2,
+          },
+        ]);
       });
     });
 
@@ -1346,7 +1384,10 @@ describe('D-VIEW Data Pipeline Integration Test Suite', () => {
       expect(syncTxRoute.shouldTriggerDeployHook(10, null, '   ')).toBe(false);
       expect(syncTxRoute.shouldTriggerDeployHook(10, null, undefined)).toBe(false);
 
-      // 2. Verify cron authorization fallbacks when CRON_SECRET is unset
+      // 2. Verify strict fail-closed cron authorization (zero default secrets, zero header spoofing)
+      expect((syncTxRoute as Record<string, unknown>).DEFAULT_CRON_SECRET).toBeUndefined();
+      expect((syncTxRoute as Record<string, unknown>).DEFAULT_BUILDING_API_KEY).toBeUndefined();
+
       const origCronSecret = process.env.CRON_SECRET;
       try {
         delete process.env.CRON_SECRET;
@@ -1357,60 +1398,64 @@ describe('D-VIEW Data Pipeline Integration Test Suite', () => {
             },
           }) as any;
 
-        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ authorization: `Bearer ${syncTxRoute.DEFAULT_CRON_SECRET}` }))).toBe(true);
-        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ 'x-building-api-key': syncTxRoute.DEFAULT_BUILDING_API_KEY }))).toBe(true);
-        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ 'x-building-api-key': 'wrong-api-key' }))).toBe(false);
-        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ 'user-agent': 'vercel-cron/1.0' }))).toBe(true);
-        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ 'x-vercel-cron': '1' }))).toBe(true);
+        // When CRON_SECRET is unset, ALL requests MUST fail closed (no default secret, no x-building-api-key, no vercel-cron UA/header)
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ authorization: 'Bearer dview-default-cron-secret-2026' }))).toBe(false);
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ 'x-building-api-key': 'any-api-key' }))).toBe(false);
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ 'user-agent': 'vercel-cron/1.0' }))).toBe(false);
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ 'x-vercel-cron': '1' }))).toBe(false);
         expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ authorization: 'Bearer wrong-token' }))).toBe(false);
         expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({}))).toBe(false);
 
-        // Proxy mode must require explicit Authorization or x-building-api-key (rejects spoofed vercel-cron user-agent)
         expect(syncTxRoute.isAuthorizedProxyRequest(makeMockReq({ 'user-agent': 'vercel-cron/1.0', 'x-vercel-cron': '1' }))).toBe(false);
-        expect(syncTxRoute.isAuthorizedProxyRequest(makeMockReq({ 'x-building-api-key': 'wrong-api-key' }))).toBe(false);
-        expect(syncTxRoute.isAuthorizedProxyRequest(makeMockReq({ 'x-building-api-key': syncTxRoute.DEFAULT_BUILDING_API_KEY }))).toBe(true);
+        expect(syncTxRoute.isAuthorizedProxyRequest(makeMockReq({ 'x-building-api-key': 'any-api-key' }))).toBe(false);
 
-        expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({ authorization: `Bearer ${syncTxRoute.DEFAULT_CRON_SECRET}` }))).toBe(true);
-        expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({ 'x-building-api-key': 'wrong-api-key' }))).toBe(false);
-        expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({ 'user-agent': 'vercel-cron/1.0' }))).toBe(true);
+        expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({ authorization: 'Bearer dview-default-cron-secret-2026' }))).toBe(false);
+        expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({ 'x-building-api-key': 'any-api-key' }))).toBe(false);
+        expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({ 'user-agent': 'vercel-cron/1.0' }))).toBe(false);
         expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({}))).toBe(false);
 
-        // When CRON_SECRET is explicitly configured, DEFAULT_CRON_SECRET and vercel-cron UA must be rejected
+        // When CRON_SECRET is explicitly configured, ONLY exact Bearer CRON_SECRET is accepted
         process.env.CRON_SECRET = 'custom-production-cron-secret';
-        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ authorization: `Bearer ${syncTxRoute.DEFAULT_CRON_SECRET}` }))).toBe(false);
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ authorization: 'Bearer dview-default-cron-secret-2026' }))).toBe(false);
         expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ 'user-agent': 'vercel-cron/1.0' }))).toBe(false);
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ 'x-building-api-key': 'custom-production-cron-secret' }))).toBe(false);
         expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ authorization: 'Bearer custom-production-cron-secret' }))).toBe(true);
-        expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({ authorization: `Bearer ${syncTxRoute.DEFAULT_CRON_SECRET}` }))).toBe(false);
+        expect(syncTxRoute.isAuthorizedProxyRequest(makeMockReq({ authorization: 'Bearer custom-production-cron-secret' }))).toBe(true);
+        expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({ authorization: 'Bearer dview-default-cron-secret-2026' }))).toBe(false);
         expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({ authorization: 'Bearer custom-production-cron-secret' }))).toBe(true);
       } finally {
         if (origCronSecret !== undefined) process.env.CRON_SECRET = origCronSecret;
         else delete process.env.CRON_SECRET;
       }
 
-      // 2b. Verify GET handler directly rejects wrong x-building-api-key (401) and malformed proxy/ym params (400)
+      // 2b. Verify GET handler fails closed without CRON_SECRET, rejects spoofed headers (401), and rejects malformed proxy/ym params (400)
       const origNodeEnv = process.env.NODE_ENV;
       const origBuildingKey = process.env.BUILDING_API_KEY;
+      const origCronSecret2b = process.env.CRON_SECRET;
       try {
         (process.env as any).NODE_ENV = 'production';
         delete process.env.BUILDING_API_KEY;
         delete process.env.CRON_SECRET;
 
         const { NextRequest } = require('next/server');
-        // Wrong x-building-api-key must return 401 (no tautology bypass)
+        // x-building-api-key must return 401 (API key is never an auth token)
         const unauthReq = new NextRequest('https://dongtanview.com/api/cron/sync-transactions?mode=proxy&lawdCd=41590&dealYmd=202610', {
           headers: { 'x-building-api-key': 'attacker-invalid-key' },
         });
         const unauthRes = await syncTxRoute.GET(unauthReq);
         expect(unauthRes.status).toBe(401);
 
-        // Spoofed vercel-cron user-agent on mode=proxy must return 401
+        // Spoofed vercel-cron user-agent on mode=proxy or sync mode must return 401 even when CRON_SECRET is unset
         const spoofProxyReq = new NextRequest('https://dongtanview.com/api/cron/sync-transactions?mode=proxy&lawdCd=41590&dealYmd=202610', {
           headers: { 'user-agent': 'vercel-cron/1.0', 'x-vercel-cron': '1' },
         });
         const spoofProxyRes = await syncTxRoute.GET(spoofProxyReq);
         expect(spoofProxyRes.status).toBe(401);
 
-        // SQL injection / invalid lawdCd or dealYmd or pageNo or target on mode=proxy must return 400
+        // With explicit test CRON_SECRET configured, SQL injection / invalid lawdCd or dealYmd or pageNo or target must return 400
+        const testCronSecret = 'jest-pipeline-test-cron-secret';
+        process.env.CRON_SECRET = testCronSecret;
+        process.env.BUILDING_API_KEY = 'jest-pipeline-test-building-key';
         const badProxyUrls = [
           'https://dongtanview.com/api/cron/sync-transactions?mode=proxy&lawdCd=41590%27%20OR%201=1--&dealYmd=202610',
           'https://dongtanview.com/api/cron/sync-transactions?mode=proxy&lawdCd=41590&dealYmd=999999',
@@ -1421,7 +1466,7 @@ describe('D-VIEW Data Pipeline Integration Test Suite', () => {
         ];
         for (const badUrl of badProxyUrls) {
           const badReq = new NextRequest(badUrl, {
-            headers: { authorization: `Bearer ${syncTxRoute.DEFAULT_CRON_SECRET}` },
+            headers: { authorization: `Bearer ${testCronSecret}` },
           });
           const badRes = await syncTxRoute.GET(badReq);
           expect(badRes.status).toBe(400);
@@ -1429,6 +1474,9 @@ describe('D-VIEW Data Pipeline Integration Test Suite', () => {
       } finally {
         (process.env as any).NODE_ENV = origNodeEnv;
         if (origBuildingKey !== undefined) process.env.BUILDING_API_KEY = origBuildingKey;
+        else delete process.env.BUILDING_API_KEY;
+        if (origCronSecret2b !== undefined) process.env.CRON_SECRET = origCronSecret2b;
+        else delete process.env.CRON_SECRET;
       }
 
       // Numeric cancelDate/cdealDay in isCancelledRecord

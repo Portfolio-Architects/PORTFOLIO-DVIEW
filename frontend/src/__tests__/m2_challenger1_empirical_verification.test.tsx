@@ -445,20 +445,23 @@ describe('Milestone 2 Challenger 1 Comprehensive Empirical Verification Suite', 
       it('renders nothing when isOpen is false', () => {
         const handleClose = jest.fn();
         render(<PushSubscriptionModal isOpen={false} onClose={handleClose} aptName="동탄역 롯데캐슬" />);
-        expect(screen.queryByText('동탄역 롯데캐슬 알림 신청')).not.toBeInTheDocument();
+        expect(screen.queryByText('동탄 실거래가 알림 설정')).not.toBeInTheDocument();
       });
 
       it('renders subscription modal and handles subscribe action', async () => {
         const handleClose = jest.fn();
         render(<PushSubscriptionModal isOpen={true} onClose={handleClose} aptName="동탄역 롯데캐슬" />);
 
-        expect(screen.getByText('동탄역 롯데캐슬 알림 신청')).toBeInTheDocument();
+        expect(screen.getByText('동탄 실거래가 알림 설정')).toBeInTheDocument();
+        expect(screen.getByText('동탄 전체 + 동탄역 롯데캐슬')).toBeInTheDocument();
 
         const subscribeBtn = screen.getByText('실거래가 알림 신청하기');
         fireEvent.click(subscribeBtn);
 
         await waitFor(() => {
-          expect(mockSubscribeToPush).toHaveBeenCalledWith(null, '동탄역 롯데캐슬');
+          expect(mockSubscribeToPush).toHaveBeenCalledWith(null, '동탄역 롯데캐슬', {
+            extraAptNames: ['동탄 전체'],
+          });
           expect(handleClose).toHaveBeenCalled();
         });
       });

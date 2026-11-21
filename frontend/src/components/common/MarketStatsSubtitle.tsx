@@ -82,7 +82,7 @@ export function MarketStatsStrong() {
         {aptCount ? aptCount.toLocaleString('ko-KR') : <StatSkeleton widthClass="w-6" />}
       </span>
       개 단지 · 국토부 매매 실거래{' '}
-      <span className="inline-block min-w-[4.5rem] text-emerald-700 dark:text-emerald-400 font-extrabold tabular-nums">
+      <span className="inline-block min-w-[4.5rem] text-primary font-extrabold tabular-nums">
         {stats ? `${stats.saleTxCount.toLocaleString('ko-KR')}건` : <StatSkeleton widthClass="w-14" />}
       </span>
     </>
@@ -124,8 +124,8 @@ export function MarketStatsLight({ text }: { text?: string } = {}) {
         data-testid="market-stats-today-ticker"
         className="inline-flex flex-wrap items-center gap-1.5 tabular-nums"
       >
-        <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-        <span className="font-bold text-emerald-700 dark:text-emerald-400">
+        <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+        <span className="font-bold text-primary">
           오늘 신규 {todayRegisteredCount.toLocaleString('ko-KR')}건
         </span>
         {todayNewHighCount > 0 && (
@@ -133,7 +133,7 @@ export function MarketStatsLight({ text }: { text?: string } = {}) {
             <span aria-hidden="true" className="text-slate-300 dark:text-slate-600">
               ·
             </span>
-            <span className="font-extrabold text-brand-red">
+            <span className="font-black text-brand-red">
               신고가 {todayNewHighCount.toLocaleString('ko-KR')}건
             </span>
           </>
@@ -151,8 +151,8 @@ export function MarketStatsLight({ text }: { text?: string } = {}) {
         data-testid="market-stats-today-ticker"
         className="inline-flex items-center gap-1.5 tabular-nums"
       >
-        <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-        <span className="font-bold text-emerald-700 dark:text-emerald-400">
+        <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+        <span className="font-bold text-primary">
           {syncTimeHm ? `오늘 ${syncTimeHm} 실거래 갱신` : '오늘 실거래 갱신'}
         </span>
         {shortRegLabel && (

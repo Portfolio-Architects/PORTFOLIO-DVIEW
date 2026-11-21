@@ -71,7 +71,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
   return (
     <div className="space-y-4">
       <h3 className="text-[14px] font-extrabold text-primary flex items-center gap-1.5 px-1">
-        <Award size={16} className="text-blue-600 dark:text-blue-400" />
+        <Award size={16} className="text-secondary" />
         <span>1:1 지표 매트릭스 비교</span>
       </h3>
 
@@ -81,28 +81,28 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
           <div className="flex flex-col justify-center">비교 평가 지표</div>
           <div className="text-center truncate flex flex-col items-center justify-center gap-1">
             {aiFitScores.winner === 'apt1' && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-black text-white bg-blue-600 px-2 py-0.5 rounded-full shadow-sm animate-pulse mb-1 shrink-0">
+              <span className="inline-flex items-center gap-1 text-[9px] font-black dview-spark-badge px-2 py-0.5 rounded-full shadow-sm mb-1 shrink-0">
                 <Sparkles size={8} className="fill-white" />
                 <span>AI 맞춤 위너</span>
               </span>
             )}
-            <span className="block">{apt1Label}</span>
+            <span className="block text-brand-blue">{apt1Label}</span>
             {quizAnswers && Object.keys(quizAnswers).length > 0 && (
-              <span className="text-[9.5px] text-emerald-600 dark:text-emerald-400 font-bold">
+              <span className="text-[9.5px] text-secondary font-bold tabular-nums">
                 AI 적합도 {aiFitScores.score1}점
               </span>
             )}
           </div>
           <div className="text-center truncate flex flex-col items-center justify-center gap-1">
             {aiFitScores.winner === 'apt2' && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-black text-white bg-blue-600 px-2 py-0.5 rounded-full shadow-sm animate-pulse mb-1 shrink-0">
+              <span className="inline-flex items-center gap-1 text-[9px] font-black dview-spark-badge px-2 py-0.5 rounded-full shadow-sm mb-1 shrink-0">
                 <Sparkles size={8} className="fill-white" />
                 <span>AI 맞춤 위너</span>
               </span>
             )}
-            <span className="block">{apt2Label}</span>
+            <span className="block text-brand-red">{apt2Label}</span>
             {quizAnswers && Object.keys(quizAnswers).length > 0 && (
-              <span className="text-[9.5px] text-emerald-600 dark:text-emerald-400 font-bold">
+              <span className="text-[9.5px] text-secondary font-bold tabular-nums">
                 AI 적합도 {aiFitScores.score2}점
               </span>
             )}
@@ -110,13 +110,13 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
         </div>
 
         {/* Section: Transit */}
-        <div className="bg-[#f8fafc]/30 dark:bg-slate-950/20 px-4 py-2 border-b border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
-          <MapPin size={12} className="text-[#0284c7]" /> 역세권 인프라 (철도 및 트램)
+        <div className="bg-elevated/60 px-4 py-2 border-b border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
+          <MapPin size={12} className="text-secondary" /> 역세권 인프라 (철도 및 트램)
         </div>
 
         <div className="divide-y divide-border/20">
           {/* GTX Distance */}
-          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.transit === 'gtx' ? 'bg-emerald-500/10' : ''}`}>
+          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.transit === 'gtx' ? 'bg-[#eff1f5]/70 dark:bg-[#1e2532]/70' : ''}`}>
             <div className="text-secondary font-bold">GTX-A / SRT역 거리</div>
             <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.subway ?? null)}`}>
               {metrics1?.distanceToSubway ? `${metrics1.distanceToSubway}m` : '-'}
@@ -127,7 +127,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
           </div>
 
           {/* Indeokwon Line Distance */}
-          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.transit === 'indeokwon' ? 'bg-emerald-500/10' : ''}`}>
+          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.transit === 'indeokwon' ? 'bg-[#eff1f5]/70 dark:bg-[#1e2532]/70' : ''}`}>
             <div className="text-secondary font-bold">동인선 예정역 거리</div>
             <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.indeokwon ?? null)}`}>
               {metrics1?.distanceToIndeokwon ? `${metrics1.distanceToIndeokwon}m` : '-'}
@@ -138,7 +138,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
           </div>
 
           {/* Tram Distance */}
-          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.transit === 'tram' ? 'bg-emerald-500/10' : ''}`}>
+          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.transit === 'tram' ? 'bg-[#eff1f5]/70 dark:bg-[#1e2532]/70' : ''}`}>
             <div className="text-secondary font-bold">동탄트램 예정역 거리</div>
             <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.tram ?? null)}`}>
               {metrics1?.distanceToTram ? `${metrics1.distanceToTram}m` : '-'}
@@ -150,12 +150,12 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
         </div>
 
         {/* Section: Education & Living */}
-        <div className="bg-[#f8fafc]/30 dark:bg-slate-950/20 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
-          <School size={12} className="text-[#0ea5e9]" /> 교육 및 생활 인프라 (학교 및 편의시설)
+        <div className="bg-elevated/60 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
+          <School size={12} className="text-secondary" /> 교육 및 생활 인프라 (학교 및 편의시설)
         </div>
 
         <div className="divide-y divide-border/20">
-          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${(quizAnswers?.family === 'baby' || quizAnswers?.family === 'elementary') ? 'bg-emerald-500/10' : ''}`}>
+          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${(quizAnswers?.family === 'baby' || quizAnswers?.family === 'elementary') ? 'bg-[#eff1f5]/70 dark:bg-[#1e2532]/70' : ''}`}>
             <div className="text-secondary font-bold flex items-center gap-1">
               <span>초등학교 도보 통학 거리</span>
             </div>
@@ -167,7 +167,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
             </div>
           </div>
 
-          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.family === 'middleHigh' ? 'bg-emerald-500/10' : ''}`}>
+          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.family === 'middleHigh' ? 'bg-[#eff1f5]/70 dark:bg-[#1e2532]/70' : ''}`}>
             <div className="text-secondary font-bold">중학교 도보 통학 거리</div>
             <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.middle ?? null)}`}>
               {metrics1?.distanceToMiddle ? `${metrics1.distanceToMiddle}m` : '-'}
@@ -177,7 +177,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
             </div>
           </div>
 
-          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.family === 'middleHigh' ? 'bg-emerald-500/10' : ''}`}>
+          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.family === 'middleHigh' ? 'bg-[#eff1f5]/70 dark:bg-[#1e2532]/70' : ''}`}>
             <div className="text-secondary font-bold">고등학교 도보 통학 거리</div>
             <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.high ?? null)}`}>
               {metrics1?.distanceToHigh ? `${metrics1.distanceToHigh}m` : '-'}
@@ -187,9 +187,9 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
             </div>
           </div>
 
-          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${(quizAnswers?.lifestyle === 'nature' || quizAnswers?.family === 'baby' || quizAnswers?.family === 'elementary' || quizAnswers?.family === 'middleHigh') ? 'bg-emerald-500/10' : ''}`}>
+          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${(quizAnswers?.lifestyle === 'nature' || quizAnswers?.family === 'baby' || quizAnswers?.family === 'elementary' || quizAnswers?.family === 'middleHigh') ? 'bg-[#eff1f5]/70 dark:bg-[#1e2532]/70' : ''}`}>
             <div className="text-secondary font-bold flex items-center gap-1">
-              <TreePine size={13} className="text-emerald-500" />
+              <TreePine size={13} className="text-secondary" />
               <span>공원 도보 거리</span>
             </div>
             <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.park ?? null)}`}>
@@ -200,7 +200,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
             </div>
           </div>
 
-          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.lifestyle === 'shop' ? 'bg-emerald-500/10' : ''}`}>
+          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.lifestyle === 'shop' ? 'bg-[#eff1f5]/70 dark:bg-[#1e2532]/70' : ''}`}>
             <div className="text-secondary font-bold">스타벅스 거리</div>
             <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.starbucks ?? null)}`}>
               {metrics1?.distanceToStarbucks ? `${metrics1.distanceToStarbucks}m` : '-'}
@@ -210,7 +210,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
             </div>
           </div>
 
-          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.lifestyle === 'shop' ? 'bg-emerald-500/10' : ''}`}>
+          <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.lifestyle === 'shop' ? 'bg-[#eff1f5]/70 dark:bg-[#1e2532]/70' : ''}`}>
             <div className="text-secondary font-bold">올리브영 거리</div>
             <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.oliveYoung ?? null)}`}>
               {metrics1?.distanceToOliveYoung ? `${metrics1.distanceToOliveYoung}m` : '-'}
@@ -222,8 +222,8 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
         </div>
 
         {/* Section: Specs */}
-        <div className="bg-[#f8fafc]/30 dark:bg-slate-950/20 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
-          <Building2 size={12} className="text-[#db2777]" /> 단지 스펙 (규모·연식)
+        <div className="bg-elevated/60 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
+          <Building2 size={12} className="text-secondary" /> 단지 스펙 (규모·연식)
         </div>
 
         <div className="divide-y divide-border/20">
@@ -274,8 +274,8 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
         </div>
 
         {/* Section: Price and Valuation */}
-        <div className="bg-[#f8fafc]/30 dark:bg-slate-950/20 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
-          <TrendingUp size={12} className="text-blue-600 dark:text-blue-400" /> 가치 & 거래 정보 (최근 3M 기준)
+        <div className="bg-elevated/60 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
+          <TrendingUp size={12} className="text-secondary" /> 가치 & 거래 정보 (최근 3M 기준)
         </div>
 
         <div className="divide-y divide-border/20">

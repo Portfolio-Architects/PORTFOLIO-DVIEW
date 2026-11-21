@@ -14,15 +14,26 @@
 
 export const ADSENSE_CRAWLER_BOT = 'Mediapartners-Google' as const;
 
+export const ADSENSE_AND_GOOGLE_REVIEW_BOTS = [
+  'Mediapartners-Google',
+  'AdsBot-Google',
+  'AdsBot-Google-Mobile',
+  'Google-Display-Ads-Bot',
+  'Google-InspectionTool',
+  'GoogleOther',
+] as const;
+
 export const ALLOWED_REVENUE_SEARCH_BOTS = [
   'Googlebot',
+  'Googlebot-Mobile',
+  'Googlebot-Image',
   'Yeti',
   'Daumoa',
   'Bingbot',
 ] as const;
 
 export const REQUIRED_ALLOWED_BOTS = [
-  ADSENSE_CRAWLER_BOT,
+  ...ADSENSE_AND_GOOGLE_REVIEW_BOTS,
   ...ALLOWED_REVENUE_SEARCH_BOTS,
 ] as const;
 
@@ -84,5 +95,6 @@ export const ROBOTS_DISALLOWED_INTERNAL_APIS: string[] = [
   '/api/ads/',
   '/api/favorite',
   '/api/apartments/vote',
+  '/api/matchups/',
   '/api/indexing/',
 ];

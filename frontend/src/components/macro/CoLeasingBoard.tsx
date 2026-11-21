@@ -192,7 +192,7 @@ export default function CoLeasingBoard() {
           {/* Max Rent Range */}
           <div className="flex items-center gap-1.5 flex-wrap min-w-0 max-w-full">
             <span className="text-[10px] sm:text-[11px] text-tertiary font-bold shrink-0">월세 상한선:</span>
-            <span className="text-[10px] sm:text-[11.5px] font-extrabold text-emerald-700 tabular-nums shrink-0">{maxRent === 100 ? '전체' : `${maxRent}만 원`}</span>
+            <span className="text-[10px] sm:text-[11.5px] font-extrabold text-primary tabular-nums shrink-0">{maxRent === 100 ? '전체' : `${maxRent}만 원`}</span>
             <input
               type="range"
               min="20"
@@ -200,7 +200,7 @@ export default function CoLeasingBoard() {
               step="5"
               value={maxRent}
               onChange={(e) => setMaxRent(Number(e.target.value))}
-              className="w-14 sm:w-28 h-1 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-600"
+              className="w-14 sm:w-28 h-1 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-900 dark:accent-white"
             />
           </div>
 
@@ -209,7 +209,7 @@ export default function CoLeasingBoard() {
         {/* Create Ad Button */}
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-1 px-3 py-2 sm:px-3.5 sm:py-2.5 bg-emerald-600 hover:bg-emerald-600/95 text-white text-[11px] sm:text-[11.5px] font-black rounded-xl cursor-pointer shadow-sm transition-all active:scale-[0.98] w-full sm:w-auto max-w-full box-border justify-center shrink-0"
+          className="flex items-center gap-1 px-3 py-2 sm:px-3.5 sm:py-2.5 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 text-white dark:text-slate-900 text-[11px] sm:text-[11.5px] font-black rounded-xl cursor-pointer transition-all active:scale-[0.98] w-full sm:w-auto max-w-full box-border justify-center shrink-0"
         >
           <Plus size={14} />
           <span>공동임차 구인 등록</span>
@@ -247,12 +247,12 @@ export default function CoLeasingBoard() {
                       </div>
                       
                       {isApplied ? (
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-[#00a37b] text-[9.5px] font-black flex items-center gap-0.5">
+                        <span className="px-2 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-secondary text-[9.5px] font-black flex items-center gap-0.5">
                           <Check size={11} />
                           신청 완료
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-600/10 text-emerald-700 text-[9.5px] font-black">
+                        <span className="px-2 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-primary text-[9.5px] font-black">
                           모집 중
                         </span>
                       )}
@@ -285,7 +285,7 @@ export default function CoLeasingBoard() {
                       </span>
                     </div>
                     
-                    <span className="text-[10px] font-black text-emerald-700 flex items-center gap-0.5 hover:underline">
+                    <span className="text-[10px] font-black text-primary flex items-center gap-0.5 hover:underline">
                       상세보기
                       <ArrowRight size={11} />
                     </span>
@@ -319,7 +319,7 @@ export default function CoLeasingBoard() {
                     onClick={(e) => { e.stopPropagation(); setCurrentPage(pageNum); }}
                     className={`w-9 h-9 flex items-center justify-center rounded-xl text-[12px] font-black transition-all cursor-pointer ${
                       currentPage === pageNum
-                        ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                        ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
                         : 'border border-border bg-body text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
@@ -344,8 +344,13 @@ export default function CoLeasingBoard() {
 
       {/* ═══ DETAIL & APPLY MODAL ═══ */}
       {mounted && activeDetailPost && createPortal(
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-3 sm:p-4 max-w-full overflow-hidden">
-          <div className="bg-surface border border-border rounded-3xl w-full max-w-lg p-5 sm:p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto box-border">
+        <div
+          role="dialog"
+          aria-modal="true"
+          data-scroll-interactive="true"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[10020] flex items-center justify-center p-3 sm:p-4 max-w-full overflow-hidden overscroll-none"
+        >
+          <div className="bg-surface border border-border rounded-3xl w-full max-w-lg p-5 sm:p-6 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] sm:pb-6 shadow-2xl relative animate-in zoom-in-95 duration-200 max-h-[90dvh] overflow-y-auto overscroll-contain box-border">
             {/* Close Button */}
             <button
               onClick={() => {
@@ -361,7 +366,7 @@ export default function CoLeasingBoard() {
               // 1) Detail view
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1 pb-2 border-b border-border/40">
-                  <span className="text-[10px] font-black text-emerald-700 uppercase tracking-wide">
+                  <span className="text-[10px] font-black text-secondary uppercase tracking-wide">
                     {activeDetailPost.buildingName} • 공동임차 세부 정보
                   </span>
                   <h3 className="text-[15px] font-black text-primary leading-snug">
@@ -397,7 +402,7 @@ export default function CoLeasingBoard() {
                     <div className="flex flex-wrap gap-1.5">
                       {activeDetailPost.inclusions.map((inc, i) => (
                         <span key={i} className="text-[10px] font-extrabold px-2.5 py-1 rounded-xl bg-body text-secondary border border-border/40 inline-flex items-center gap-1">
-                          <Check size={11} className="text-emerald-500 shrink-0" />
+                          <Check size={11} className="text-primary shrink-0" />
                           <span>{inc}</span>
                         </span>
                       ))}
@@ -423,7 +428,7 @@ export default function CoLeasingBoard() {
                   ) : (
                     <button
                       onClick={() => setIsApplyModalOpen(true)}
-                      className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-600/95 text-white text-[12px] font-black rounded-xl transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+                      className="flex-1 py-3 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 text-white dark:text-slate-900 text-[12px] font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
                     >
                       <Send size={13} />
                       공동임차 신청하기
@@ -448,7 +453,7 @@ export default function CoLeasingBoard() {
                       value={applicantName}
                       onChange={(e) => setApplicantName(e.target.value)}
                       placeholder="예: (주)알파크리에이티브"
-                      className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-emerald-200 font-bold"
+                      className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-slate-500 font-bold"
                     />
                   </div>
 
@@ -460,7 +465,7 @@ export default function CoLeasingBoard() {
                       value={applicantPhone}
                       onChange={(e) => setApplicantPhone(e.target.value)}
                       placeholder="예: 010-9876-5432"
-                      className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-emerald-200 font-bold"
+                      className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-slate-500 font-bold"
                     />
                   </div>
 
@@ -471,7 +476,7 @@ export default function CoLeasingBoard() {
                       onChange={(e) => setApplicantNote(e.target.value)}
                       rows={3}
                       placeholder="예: 독립 그래픽 디자이너입니다. 7월 중순 입주 가능하며, 회의실은 주 2회 정도 사용할 예정입니다."
-                      className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-emerald-200 resize-none font-bold"
+                      className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-slate-500 resize-none font-bold"
                     />
                   </div>
 
@@ -486,7 +491,7 @@ export default function CoLeasingBoard() {
                     <button
                       type="submit"
                       disabled={isApplying}
-                      className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-600/95 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-[12px] font-black rounded-xl transition-all cursor-pointer shadow-sm"
+                      className="flex-1 py-3 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 disabled:bg-slate-300 disabled:cursor-not-allowed text-white dark:text-slate-900 text-[12px] font-black rounded-xl transition-all cursor-pointer"
                     >
                       {isApplying ? '제출 중...' : '신청서 제출'}
                     </button>
@@ -501,8 +506,13 @@ export default function CoLeasingBoard() {
 
       {/* ═══ CREATE POST AD MODAL ═══ */}
       {mounted && isCreateModalOpen && createPortal(
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-3 sm:p-4 max-w-full overflow-hidden">
-          <div className="bg-surface border border-border rounded-3xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto box-border">
+        <div
+          role="dialog"
+          aria-modal="true"
+          data-scroll-interactive="true"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[10020] flex items-center justify-center p-3 sm:p-4 max-w-full overflow-hidden overscroll-none"
+        >
+          <div className="bg-surface border border-border rounded-3xl w-full max-w-md p-5 sm:p-6 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] sm:pb-6 shadow-2xl relative animate-in zoom-in-95 duration-200 max-h-[90dvh] overflow-y-auto overscroll-contain box-border">
             {/* Close Button */}
             <button
               onClick={() => setIsCreateModalOpen(false)}
@@ -513,7 +523,7 @@ export default function CoLeasingBoard() {
 
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2 pb-2 border-b border-border/40">
-                <span className="p-1.5 bg-emerald-600/10 text-emerald-700 rounded-xl">
+                <span className="p-1.5 bg-[#eff1f5] dark:bg-[#1e2532] text-primary rounded-xl">
                   <Sparkles size={18} />
                 </span>
                 <div className="flex flex-col">
@@ -531,7 +541,7 @@ export default function CoLeasingBoard() {
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     placeholder="예: 실리콘앨리 테라스 뷰 15평 분할 임차"
-                    className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-emerald-200 font-bold"
+                    className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-slate-500 font-bold"
                   />
                 </div>
 
@@ -541,7 +551,7 @@ export default function CoLeasingBoard() {
                     <select
                       value={newBuilding}
                       onChange={(e) => setNewBuilding(e.target.value)}
-                      className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-emerald-200 font-bold"
+                      className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-slate-500 font-bold"
                     >
                       {AVAILABLE_BUILDING_OPTIONS.filter(o => o !== '전체 빌딩').map(b => (
                         <option key={b} value={b}>{b}</option>
@@ -556,7 +566,7 @@ export default function CoLeasingBoard() {
                       value={newSector}
                       onChange={(e) => setNewSector(e.target.value)}
                       placeholder="예: IT 서비스 (개발사)"
-                      className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-emerald-200 font-bold"
+                      className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-slate-500 font-bold"
                     />
                   </div>
                 </div>
@@ -569,7 +579,7 @@ export default function CoLeasingBoard() {
                       required
                       value={newDeposit}
                       onChange={(e) => setNewDeposit(Number(e.target.value))}
-                      className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-emerald-200 font-bold"
+                      className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-slate-500 font-bold"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -579,7 +589,7 @@ export default function CoLeasingBoard() {
                       required
                       value={newRent}
                       onChange={(e) => setNewRent(Number(e.target.value))}
-                      className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-emerald-200 font-bold"
+                      className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-slate-500 font-bold"
                     />
                   </div>
                 </div>
@@ -592,7 +602,7 @@ export default function CoLeasingBoard() {
                     value={newSpaceType}
                     onChange={(e) => setNewSpaceType(e.target.value)}
                     placeholder="예: 전용 면적 10평 분할 구역"
-                    className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-emerald-200 font-bold"
+                    className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-slate-500 font-bold"
                   />
                 </div>
 
@@ -603,7 +613,7 @@ export default function CoLeasingBoard() {
                     value={newInclusionsText}
                     onChange={(e) => setNewInclusionsText(e.target.value)}
                     placeholder="예: 회의실 사용 가능, 원두 커피 무료, 주차 등록 가능"
-                    className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-emerald-200 font-bold"
+                    className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-slate-500 font-bold"
                   />
                 </div>
 
@@ -615,7 +625,7 @@ export default function CoLeasingBoard() {
                     onChange={(e) => setNewDescription(e.target.value)}
                     rows={3}
                     placeholder="사무실 환경, 매이트에게 바라는 점 등을 상세하게 적어주세요."
-                    className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-emerald-200 resize-none font-bold"
+                    className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-slate-500 resize-none font-bold"
                   />
                 </div>
 
@@ -630,7 +640,7 @@ export default function CoLeasingBoard() {
                   <button
                     type="submit"
                     disabled={isCreating}
-                    className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-600/95 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-[12px] font-black rounded-xl transition-all cursor-pointer shadow-sm"
+                    className="flex-1 py-3 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 disabled:bg-slate-300 disabled:cursor-not-allowed text-white dark:text-slate-900 text-[12px] font-black rounded-xl transition-all cursor-pointer"
                   >
                     {isCreating ? '게시글 등록 중...' : '구인 글 등록'}
                   </button>

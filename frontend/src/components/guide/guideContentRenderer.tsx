@@ -155,7 +155,7 @@ export function renderInlineBoldCore(
             href={rawHref}
             prefetch={false}
             data-testid="guide-inline-cross-link"
-            className="font-extrabold text-blue-700 dark:text-blue-400 underline decoration-blue-500/40 underline-offset-4 hover:text-blue-600 transition-colors"
+            className="font-extrabold text-primary underline decoration-slate-400/60 underline-offset-4 hover:text-brand-blue transition-colors"
           >
             {cleanLabel}
           </Link>
@@ -196,7 +196,7 @@ export function renderInlineBoldCore(
           key={idx}
           href={rawHref}
           prefetch={false}
-          className="font-extrabold text-blue-700 dark:text-blue-400 underline decoration-blue-500/40 underline-offset-4 hover:text-blue-600 transition-colors"
+          className="font-extrabold text-primary underline decoration-slate-400/60 underline-offset-4 hover:text-brand-blue transition-colors"
         >
           {cleanLabel}
         </Link>
@@ -346,14 +346,11 @@ export function renderGuideBodyContentCore(
       <div
         data-testid="guide-mid-conversion-slot"
         data-top-landing-guide={isTopLandingGuide ? 'true' : 'false'}
-        className="pt-3.5 border-t border-emerald-500/25 space-y-3"
+        className="pt-3.5 border-t border-border space-y-3"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div className="text-[11.5px] font-bold text-slate-700 dark:text-slate-300 flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-600 text-white font-extrabold text-[10.5px]">
-              {isTopLandingGuide ? 'TOP 3 가이드 중간 전환 하이라이트' : '중간 전환 하이라이트'}
-            </span>
-            <span>실시간 실거래 대표 단지 상세 리포트 및 유입 상위 허브 바로가기</span>
+          <div className="text-[12px] font-extrabold text-primary flex flex-wrap items-center gap-1.5">
+            <span>대표 단지 실거래 · 비교 통계 바로가기</span>
           </div>
           <div className="flex flex-wrap items-center gap-1.5 shrink-0">
             <GuideAptCtaLink
@@ -366,7 +363,7 @@ export function renderGuideBodyContentCore(
               placement="zone_section"
               sectionTitle={barSectionTitle}
               data-testid="guide-mid-lake-edutown-cta"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[11px] font-extrabold transition-colors"
             >
               <span className="tabular-nums">{`동탄더샵레이크에듀타운 실거래${lakeEduPriceLabel}`}</span>
               <DviewIcon name="arrow-up-right" size={11} />
@@ -374,7 +371,7 @@ export function renderGuideBodyContentCore(
             <Link
               href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
               prefetch={false}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#eff1f5] hover:bg-slate-200/80 dark:bg-[#1e2532] dark:hover:bg-slate-700/80 border border-border text-primary text-[11px] font-extrabold transition-colors"
             >
               <span>1동탄 vs 2동탄 통계</span>
               <DviewIcon name="arrow-up-right" size={11} />
@@ -382,7 +379,7 @@ export function renderGuideBodyContentCore(
             <Link
               href="/technovalley"
               prefetch={false}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 text-slate-800 dark:text-slate-200 text-[11px] font-extrabold transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface border border-border hover:border-slate-300 dark:hover:border-slate-700 text-secondary hover:text-primary text-[11px] font-extrabold transition-colors"
             >
               <span>테크노밸리 직주근접</span>
               <DviewIcon name="arrow-up-right" size={11} />
@@ -408,26 +405,26 @@ export function renderGuideBodyContentCore(
                 placement="zone_section"
                 sectionTitle={barSectionTitle}
                 data-testid="guide-mid-rep-apt-cta-btn"
-                className="group rounded-xl bg-white dark:bg-slate-900/95 hover:bg-emerald-50/70 dark:hover:bg-emerald-950/40 border border-emerald-500/35 hover:border-emerald-600 px-3 py-2 flex items-center justify-between gap-2 transition-colors shadow-2xs"
+                className="group rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border hover:border-slate-300 dark:hover:border-slate-700 px-3 py-2 flex items-center justify-between gap-2 transition-colors shadow-2xs"
               >
                 <div className="min-w-0">
-                  <div className="flex items-center gap-1 text-[10.5px] font-extrabold text-emerald-700 dark:text-emerald-400">
+                  <div className="flex items-center gap-1 text-[10.5px] font-extrabold text-secondary">
                     <span>{apt.dong}</span>
                     {apt.jeonseRatio > 0 && (
-                      <span className="text-slate-500 dark:text-slate-400 tabular-nums">
+                      <span className="text-tertiary tabular-nums">
                         · 전세가율 {apt.jeonseRatio}%
                       </span>
                     )}
                   </div>
-                  <p className="text-xs font-black text-slate-900 dark:text-slate-50 truncate group-hover:text-emerald-700 dark:group-hover:text-emerald-300">
+                  <p className="text-xs font-black text-primary truncate group-hover:text-primary">
                     {apt.displayName}
                   </p>
                 </div>
                 <div className="flex flex-col items-end shrink-0">
-                  <span className="text-xs font-black text-emerald-700 dark:text-emerald-400 tabular-nums">
+                  <span className="text-xs font-black text-primary tabular-nums">
                     {apt.latestPriceStr}
                   </span>
-                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-extrabold">
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-[10px] font-extrabold">
                     <span>실거래 상세</span>
                     <DviewIcon name="arrow-up-right" size={10} />
                   </span>
@@ -496,15 +493,15 @@ export function renderGuideBodyContentCore(
         data-testid="guide-zone-section-preview"
         data-zone-id={currentPreview.zoneId || 'guide'}
         aria-label={currentPreview.sectionTitle}
-        className="not-prose my-6 rounded-2xl border border-emerald-500/25 dark:border-emerald-500/30 bg-emerald-500/[0.03] dark:bg-emerald-950/15 p-4 sm:p-5 space-y-3.5"
+        className="not-prose my-6 rounded-2xl border border-border bg-elevated p-4 sm:p-5 space-y-3.5"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-extrabold text-emerald-700 dark:text-emerald-300">
+            <div className="inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-extrabold text-primary">
               <DviewIcon name="map-pin" size={15} />
               <span>{currentPreview.sectionTitle}</span>
             </div>
-            <p className="mt-0.5 text-[11.5px] sm:text-xs text-slate-600 dark:text-slate-400 font-medium">
+            <p className="mt-0.5 text-[11.5px] sm:text-xs text-secondary font-medium">
               본 권역 설명에 언급된 대표 단지의 국토교통부 실시간 실거래가 미니 프리뷰입니다. 카드를 클릭하면 단지 상세 시세·전세가율·DSR 리포트로 이동합니다.
             </p>
           </div>
@@ -513,7 +510,7 @@ export function renderGuideBodyContentCore(
             <Link
               href={`/zone/${currentPreview.zoneId}`}
               prefetch={false}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-[11px] font-extrabold hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors w-fit shrink-0"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-surface border border-border text-primary text-[11px] font-extrabold hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] transition-colors w-fit shrink-0"
             >
               <span>{currentPreview.zoneName} 전체 시세</span>
               <DviewIcon name="arrow-up-right" size={12} />
@@ -789,7 +786,7 @@ export function renderGuideBodyContentCore(
         data-testid="guide-zone-section-preview"
         data-zone-id="guide"
         aria-label="리포트 중간 핵심 전환 및 실거래 바로가기"
-        className="not-prose my-6 rounded-2xl border border-emerald-500/25 dark:border-emerald-500/30 bg-emerald-500/[0.03] dark:bg-emerald-950/15 p-4 sm:p-5 space-y-3.5"
+        className="not-prose my-6 rounded-2xl border border-border bg-elevated p-4 sm:p-5 space-y-3.5"
       >
         {renderMidConversionActionBar(undefined, true)}
         {renderInBodyAdSlot(

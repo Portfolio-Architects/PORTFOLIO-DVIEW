@@ -64,8 +64,8 @@ describe('Challenger Milestone 2: Adversarial Stress Test Suite', () => {
       expect(activeBadge.className).toContain('h-[26px]');
       expect(activeBadge.className).toContain('shrink-0');
       expect(activeBadge.className).toContain('tabular-nums');
-      expect(activeBadge.className).toContain('bg-emerald-50');
-      expect(activeBadge.className).toContain('text-emerald-700');
+      expect(activeBadge.className).toContain('bg-[#eff1f5]');
+      expect(activeBadge.className).toContain('text-primary');
     });
 
     it('1.3 Truthful empty state strictly enforces h-[26px] shrink-0 footprint (Delta H = 0px)', () => {
@@ -88,8 +88,8 @@ describe('Challenger Milestone 2: Adversarial Stress Test Suite', () => {
       expect(emptyBadge.className).toContain('h-[26px]');
       expect(emptyBadge.className).toContain('shrink-0');
       expect(emptyBadge.className).toContain('tabular-nums');
-      expect(emptyBadge.className).toContain('bg-slate-100');
-      expect(emptyBadge.className).toContain('text-slate-600');
+      expect(emptyBadge.className).toContain('bg-[#eff1f5]');
+      expect(emptyBadge.className).toContain('text-secondary');
     });
 
     it('1.4 MacroHeader preserves PageHeroHeader h-[130px] sm:h-[128px] Zero-CLS container and unifies live ticker into subtitle without duplicate rightContent badge', () => {
@@ -387,9 +387,9 @@ describe('Challenger Milestone 2: Adversarial Stress Test Suite', () => {
         />
       );
 
-      // Verify Value Emerald
-      expect(container.innerHTML).toContain('text-emerald-700');
-      expect(container.innerHTML).toContain('bg-emerald-50');
+      // Verify Live Spark v6.0 Neutral Ink Pill + Hot Spark Accent
+      expect(container.innerHTML).toContain('bg-[#eff1f5]');
+      expect(container.innerHTML).toContain('text-brand-red');
 
       // Prohibited colors (green-*, purple, pink, etc.) must not exist
       const prohibitedColorRegex =

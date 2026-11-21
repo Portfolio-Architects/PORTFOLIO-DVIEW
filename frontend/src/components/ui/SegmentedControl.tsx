@@ -90,7 +90,7 @@ function SegmentedControlInner<T extends string | number>({
       {/* Sliding Background */}
       {isMounted && (
         <div
-          className="absolute top-[3px] bottom-[3px] left-0 bg-surface dark:bg-[#2c2c35] rounded-[7px] shadow-xs transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+          className="absolute top-[3px] bottom-[3px] left-0 bg-surface dark:bg-[#252c3d] rounded-[7px] shadow-xs transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
           style={sliderStyle}
         />
       )}
@@ -107,7 +107,7 @@ function SegmentedControlInner<T extends string | number>({
             className={`${DVIEW_CONTROL_CLASSES.btnBase} ${DVIEW_CONTROL_CLASSES.btnSize[size]} relative flex-1 z-10 border-none outline-none bg-transparent ${
               disabled ? 'cursor-not-allowed text-tertiary' : 'cursor-pointer'
             } ${
-              isActive ? 'text-blue-600 dark:text-blue-400 font-black' : 'text-secondary hover:text-primary'
+              isActive ? 'text-primary font-black' : 'text-secondary hover:text-primary'
             }`}
           >
             {opt.label}

@@ -51,31 +51,31 @@ export const ApartmentModalPriceSummary = React.memo(function ApartmentModalPric
   const norm84Str = norm84 > 0 ? (norm84Man > 0 ? `${norm84Eok}억 ${norm84Man.toLocaleString()}만` : `${norm84Eok}억`) : '-';
 
   return (
-    <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-surface/50 dark:bg-surface/30 rounded-2xl border border-border/40">
-      <div className="flex flex-col gap-1 p-3 bg-body/50 rounded-xl border border-border/20">
+    <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-elevated rounded-2xl border border-border/60">
+      <div className="flex flex-col gap-1 p-3 bg-surface rounded-xl border border-border/40">
         <span className="text-[11px] font-bold text-tertiary">최근 실거래가</span>
-        <span className="text-[16px] font-extrabold text-primary">{saleStr}</span>
+        <span className="text-[16px] font-extrabold text-primary tabular-nums">{saleStr}</span>
       </div>
 
-      <div className="flex flex-col gap-1 p-3 bg-body/50 rounded-xl border border-border/20">
+      <div className="flex flex-col gap-1 p-3 bg-surface rounded-xl border border-border/40">
         <span className="text-[11px] font-bold text-tertiary">최근 전세가</span>
-        <span className="text-[16px] font-extrabold text-emerald-600 dark:text-emerald-400">{jeonseStr}</span>
+        <span className="text-[16px] font-extrabold text-primary tabular-nums">{jeonseStr}</span>
       </div>
 
-      <div className="flex flex-col gap-1 p-3 bg-body/50 rounded-xl border border-border/20">
+      <div className="flex flex-col gap-1 p-3 bg-surface rounded-xl border border-border/40">
         <span className="text-[11px] font-bold text-tertiary">실구매 갭</span>
-        <div className="flex items-baseline gap-1">
-          <span className="text-[16px] font-extrabold text-emerald-600 dark:text-emerald-400">{gapStr}</span>
+        <div className="flex items-baseline gap-1 tabular-nums">
+          <span className="text-[16px] font-extrabold text-primary">{gapStr}</span>
           {ratio > 0 && <span className="text-[10.5px] font-bold text-secondary">({ratio.toFixed(1)}%)</span>}
         </div>
       </div>
 
-      <div className="flex flex-col gap-1 p-3 bg-body/50 rounded-xl border border-border/20">
+      <div className="flex flex-col gap-1 p-3 bg-surface rounded-xl border border-border/40">
         <span className="text-[11px] font-bold text-tertiary">국평(84㎡) 환산</span>
-        <div className="flex items-baseline gap-1">
+        <div className="flex items-baseline gap-1 tabular-nums">
           <span className="text-[16px] font-extrabold text-primary">{norm84Str}</span>
           {valuation?.status === 'undervalued' && (
-            <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">저평가</span>
+            <span className="text-[10px] font-black text-brand-blue bg-brand-blue-light px-1.5 py-0.5 rounded">저평가</span>
           )}
         </div>
       </div>

@@ -55,26 +55,14 @@ export function AdSlotAdBlockView({
             className="group flex flex-row items-center justify-between gap-2 w-full min-w-0 hover:opacity-95 transition-opacity"
           >
             <div className="min-w-0 flex-1 flex flex-col justify-center">
-              <h4
-                className={
-                  cpaTemplate.accentTone === 'emerald'
-                    ? 'text-xs font-black text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors truncate'
-                    : 'text-xs font-black text-slate-900 dark:text-slate-50 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors truncate'
-                }
-              >
+              <h4 className="text-xs font-black text-slate-900 dark:text-slate-50 group-hover:underline transition-colors truncate">
                 {cpaPayload.title}
               </h4>
               <p className="hidden sm:block text-[11px] text-slate-600 dark:text-slate-400 truncate">
                 {cpaPayload.subtitle}
               </p>
             </div>
-            <span
-              className={
-                cpaTemplate.accentTone === 'emerald'
-                  ? 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-slate-50 text-[11px] font-bold transition-colors shrink-0 whitespace-nowrap'
-                  : 'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 text-slate-50 text-[11px] font-bold transition-colors shrink-0 whitespace-nowrap'
-              }
-            >
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-[11px] font-bold transition-colors shrink-0 whitespace-nowrap">
               <span>{cpaPayload.ctaText}</span>
               <ArrowRight size={12} />
             </span>
@@ -105,13 +93,7 @@ export function AdSlotAdBlockView({
           onClick={onAdBlockFallbackClick}
           className="group flex flex-col items-center justify-center gap-1.5 max-w-lg w-full hover:opacity-95 transition-opacity"
         >
-          <span
-            className={
-              cpaTemplate.accentTone === 'emerald'
-                ? 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-[11px] font-bold'
-                : 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/50 text-blue-700 dark:text-blue-400 text-[11px] font-bold'
-            }
-          >
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] border border-border/60 text-primary text-[11px] font-bold">
             {cpaTemplate.accentTone === 'emerald' ? (
               <ShieldCheck size={14} />
             ) : (
@@ -119,26 +101,14 @@ export function AdSlotAdBlockView({
             )}
             <span>{cpaTemplate.badgeText}</span>
           </span>
-          <h4
-            className={
-              cpaTemplate.accentTone === 'emerald'
-                ? 'text-xs sm:text-sm font-black text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors inline-flex items-center gap-1'
-                : 'text-xs sm:text-sm font-black text-slate-900 dark:text-slate-50 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors inline-flex items-center gap-1'
-            }
-          >
+          <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-slate-50 group-hover:underline transition-colors inline-flex items-center gap-1">
             <span>{cpaPayload.title}</span>
             <ArrowRight size={14} />
           </h4>
           <p className="text-[11px] text-slate-600 dark:text-slate-400">
             {cpaPayload.subtitle}
           </p>
-          <span
-            className={
-              cpaTemplate.accentTone === 'emerald'
-                ? 'mt-1 inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-slate-50 text-[11px] font-bold transition-colors'
-                : 'mt-1 inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 text-slate-50 text-[11px] font-bold transition-colors'
-            }
-          >
+          <span className="mt-1 inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-[11px] font-bold transition-colors">
             <span>{cpaPayload.ctaText}</span>
             <ArrowRight size={14} />
           </span>

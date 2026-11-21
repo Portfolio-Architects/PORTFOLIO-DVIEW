@@ -31,7 +31,7 @@ export const ApartmentModalKakaoCard = React.memo(function ApartmentModalKakaoCa
         top: '-9999px',
         width: '1200px',
         height: '630px',
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
+        background: 'linear-gradient(135deg, #0e1117 0%, #151a23 50%, #0e1117 100%)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -45,18 +45,18 @@ export const ApartmentModalKakaoCard = React.memo(function ApartmentModalKakaoCa
       {/* Top Header */}
       <div className="flex justify-between items-center w-full">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-5 h-5 text-white">
+          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg shadow-black/20">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-5 h-5 text-slate-900">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
           <div>
-            <span className="text-blue-600 text-[20px] font-black tracking-wider uppercase block leading-none">D-VIEW</span>
+            <span className="text-white text-[20px] font-black tracking-wider uppercase block leading-none">D-VIEW</span>
             <span className="text-slate-400 text-[13px] font-bold block leading-none mt-1">동탄 부동산 가치분석 플랫폼</span>
           </div>
         </div>
-        <div className="bg-[#1e293b] border border-slate-800/80 rounded-full px-5 py-2">
-          <span className="text-slate-300 text-[14px] font-bold">실거래 가치분석 리포트</span>
+        <div className="bg-[#1e2532] border border-slate-700/80 rounded-full px-5 py-2">
+          <span className="text-slate-200 text-[14px] font-bold">실거래 가치분석 리포트</span>
         </div>
       </div>
 
@@ -65,26 +65,26 @@ export const ApartmentModalKakaoCard = React.memo(function ApartmentModalKakaoCa
         {/* Left: Apt Name & Info */}
         <div className="col-span-6 flex flex-col gap-4">
           <div className="flex items-center gap-2">
-            <span className="bg-blue-600/15 text-blue-600 text-[14px] font-black px-3.5 py-1.5 rounded-full border border-blue-600/30">
+            <span className="bg-[#1e2532] text-slate-200 text-[14px] font-black px-3.5 py-1.5 rounded-full border border-slate-700/80">
               {report.dong || '동탄'}
             </span>
             {report.metrics?.yearBuilt && (
-              <span className="bg-slate-800 text-slate-400 text-[14px] font-bold px-3.5 py-1.5 rounded-full">
+              <span className="bg-[#1e2532] text-slate-300 text-[14px] font-bold px-3.5 py-1.5 rounded-full tabular-nums">
                 {String(report.metrics.yearBuilt).substring(0, 4)}년 입주
               </span>
             )}
             {valuation?.status === 'undervalued' && (
-              <span className="bg-blue-500/20 text-blue-600 text-[14px] font-black px-3.5 py-1.5 rounded-full border border-blue-500/30">
+              <span className="bg-[#2f6bff]/20 text-[#60a5fa] text-[14px] font-black px-3.5 py-1.5 rounded-full border border-[#2f6bff]/40">
                 저평가 메리트
               </span>
             )}
             {valuation?.status === 'overvalued' && (
-              <span className="bg-red-500/20 text-red-400 text-[14px] font-black px-3.5 py-1.5 rounded-full border border-red-500/30">
+              <span className="bg-[#ff3b5c]/20 text-[#ff4d6d] text-[14px] font-black px-3.5 py-1.5 rounded-full border border-[#ff3b5c]/40">
                 시세 고평가
               </span>
             )}
             {valuation?.status === 'fair' && (
-              <span className="bg-slate-800 text-slate-300 text-[14px] font-black px-3.5 py-1.5 rounded-full">
+              <span className="bg-[#1e2532] text-slate-300 text-[14px] font-black px-3.5 py-1.5 rounded-full">
                 적정 시세
               </span>
             )}
@@ -92,8 +92,8 @@ export const ApartmentModalKakaoCard = React.memo(function ApartmentModalKakaoCa
           <div className="text-[44px] font-black leading-tight tracking-tight text-white drop-shadow-sm">
             {displayAptName}
           </div>
-          <div className="flex items-center gap-2 text-slate-400 text-[15px] font-semibold">
-            <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-blue-600">
+          <div className="flex items-center gap-2 text-slate-400 text-[15px] font-semibold tabular-nums">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-slate-300">
               <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm11.378-3.917c-.08-.417-.507-.65-.913-.485a4.5 4.5 0 00-2.836 2.836c-.166.406.067.833.485.913a.75.75 0 01.614.93L9.61 16.57a.75.75 0 11-1.46-.388l1.378-5.182a.75.75 0 111.46.388L9.61 16.57a.75.75 0 11-1.46-.388l1.378-5.182z" clipRule="evenodd" />
             </svg>
             입지평점: {report.premiumScores?.totalPremiumScore ? `${report.premiumScores.totalPremiumScore.toFixed(1)} / 100` : '90.0 / 100'}
@@ -101,9 +101,9 @@ export const ApartmentModalKakaoCard = React.memo(function ApartmentModalKakaoCa
         </div>
 
         {/* Right: Metrics Grid */}
-        <div className="col-span-6 grid grid-cols-2 gap-4">
+        <div className="col-span-6 grid grid-cols-2 gap-4 tabular-nums">
           {/* Metric 1: Sale Price */}
-          <div className="bg-[#1e293b]/60 border border-slate-800/80 rounded-3xl p-6 flex flex-col gap-1.5">
+          <div className="bg-[#151a23] border border-[#1e2532] rounded-3xl p-6 flex flex-col gap-1.5">
             <span className="text-slate-400 text-[14px] font-bold">최근 실거래 매매가</span>
             <span className="text-[28px] font-black text-white tracking-tight">
               {(() => {
@@ -118,7 +118,7 @@ export const ApartmentModalKakaoCard = React.memo(function ApartmentModalKakaoCa
           </div>
 
           {/* Metric 2: Jeonse Price */}
-          <div className="bg-[#1e293b]/60 border border-slate-800/80 rounded-3xl p-6 flex flex-col gap-1.5">
+          <div className="bg-[#151a23] border border-[#1e2532] rounded-3xl p-6 flex flex-col gap-1.5">
             <span className="text-slate-400 text-[14px] font-bold">최근 실거래 전세가</span>
             <span className="text-[28px] font-black text-white tracking-tight">
               {(() => {
@@ -133,15 +133,14 @@ export const ApartmentModalKakaoCard = React.memo(function ApartmentModalKakaoCa
           </div>
 
           {/* Metric 3: Gap Investment */}
-          <div className="bg-blue-600/10 border border-blue-600/20 rounded-3xl p-6 flex flex-col gap-1.5 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/5 rounded-full blur-xl -mr-6 -mt-6"></div>
-            <span className="text-blue-600 text-[14px] font-extrabold flex items-center gap-1">
+          <div className="bg-[#1e2532] border border-slate-700/80 rounded-3xl p-6 flex flex-col gap-1.5 relative overflow-hidden">
+            <span className="text-slate-300 text-[14px] font-extrabold flex items-center gap-1">
               <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z" clipRule="evenodd" />
               </svg>
               실구매 필요자금
             </span>
-            <span className="text-[30px] font-black text-blue-600 tracking-tight">
+            <span className="text-[30px] font-black text-white tracking-tight">
               {(() => {
                 const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
                 const jeonseTxs = transactions.filter(t => t.dealType === '전세');
@@ -158,7 +157,7 @@ export const ApartmentModalKakaoCard = React.memo(function ApartmentModalKakaoCa
           </div>
 
           {/* Metric 4: Jeonse Ratio */}
-          <div className="bg-[#1e293b]/60 border border-slate-800/80 rounded-3xl p-6 flex flex-col gap-1.5">
+          <div className="bg-[#151a23] border border-[#1e2532] rounded-3xl p-6 flex flex-col gap-1.5">
             <span className="text-slate-400 text-[14px] font-bold">전세가율 (매매 대비 전세)</span>
             <span className="text-[28px] font-black text-white tracking-tight">
               {(() => {
@@ -176,11 +175,11 @@ export const ApartmentModalKakaoCard = React.memo(function ApartmentModalKakaoCa
       </div>
 
       {/* Bottom Footer */}
-      <div className="flex justify-between items-center w-full border-t border-slate-800/80 pt-6">
+      <div className="flex justify-between items-center w-full border-t border-[#1e2532] pt-6">
         <div className="flex items-center gap-2 text-slate-400 text-[14px] font-bold">
           <span>지금 D-VIEW 모바일 앱/웹에서 실시간 동탄 주거 안심 분석 지표를 확인하세요.</span>
         </div>
-        <div className="text-blue-600 text-[16px] font-black tracking-wider uppercase">
+        <div className="text-slate-200 text-[16px] font-black tracking-wider uppercase">
           DONGTANVIEW.COM
         </div>
       </div>

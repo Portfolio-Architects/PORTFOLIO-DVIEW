@@ -97,4 +97,29 @@ describe('IQR Outlier Filtering Algorithm Test Suite', () => {
     expect(filteredStrict.map(t => t.price)).toEqual([500, 505, 510, 515, 520, 525]);
     expect(filteredRelaxed.map(t => t.price)).toEqual([430, 500, 505, 510, 515, 520, 525]);
   });
+
+  test('Should preserve pipeline-verified upper brokered trades while excluding pipeline outliers and direct upper spikes', () => {
+    interface TxWithMeta extends DummyTx {
+      isOutlier?: boolean;
+      dealType?: string;
+    }
+    const data: TxWithMeta[] = [
+      { id: 1, price: 900, isOutlier: false, dealType: '중개거래' },
+      { id: 2, price: 910, isOutlier: false, dealType: '중개거래' },
+      { id: 3, price: 920, isOutlier: false, dealType: '중개거래' },
+      { id: 4, price: 930, isOutlier: false, dealType: '중개거래' },
+      { id: 5, price: 940, isOutlier: false, dealType: '중개거래' },
+      { id: 6, price: 950, isOutlier: false, dealType: '중개거래' },
+      { id: 7, price: 960, isOutlier: false, dealType: '중개거래' },
+      { id: 8, price: 970, isOutlier: false, dealType: '중개거래' },
+      { id: 9, price: 950, isOutlier: true, dealType: '직거래' },     // 파이프라인 확정 이상치
+      { id: 10, price: 1500, isOutlier: false, dealType: '중개거래' }, // Q3+3*IQR(1085) 초과이지만 파이프라인 검증 통과 정상 신고가
+      { id: 11, price: 1500, isOutlier: false, dealType: '직거래' },   // 직거래는 상한 완화 미적용 -> 제외
+    ];
+    const filtered = filterOutliersIQR(data, t => t.price, 1.5, 3.0, {
+      isPipelineOutlier: t => t.isOutlier,
+      isDirectDeal: t => t.dealType === '직거래',
+    });
+    expect(filtered.map(t => t.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 10]);
+  });
 });

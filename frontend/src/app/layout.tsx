@@ -6,7 +6,7 @@ import './globals.css';
 const pretendard = localFont({
   src: '../../public/fonts/Pretendard-subset.woff2',
   display: 'swap',
-  weight: '45 920',
+  weight: '400 920',
   variable: '--font-pretendard',
   preload: true,
 });
@@ -46,9 +46,9 @@ const ROOT_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURICompo
 export const metadata: Metadata = {
   referrer: 'strict-origin-when-cross-origin',
   metadataBase: new URL('https://dongtanview.com'),
-  title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (1·2신도시 184개 가격 순위·전세가율) | D-VIEW',
-  description: '동탄 아파트 시세·집값 추이 그래프·실거래가 순위 매일 동기화 — 동탄 1·2신도시 184개 아파트 가격·전세가율·학군지 비교, 주담대 DSR 계산기 및 56개 지식산업센터 세제 감면을 국토부 공식 데이터로 확인하세요.',
-  keywords: '동탄 아파트 시세, 동탄 집값, 동탄 집값 그래프, 동탄 집값 추이 그래프, 동탄 아파트 가격, 동탄 아파트 순위, 동탄 신도시 아파트 시세, 동탄 1 신도시 아파트 시세, 동탄 아파트 실거래가, 1동탄 2동탄 차이, 동탄1 동탄2 비교, 동탄역 롯데캐슬, 동탄 전세가율, 동탄 학군지, 동탄 학원가, 스트레스 DSR, 동탄테크노밸리 지식산업센터, D-VIEW, 디뷰, 동뷰, 동탄뷰',
+  title: '동탄 아파트 시세·집값 추이 그래프 (184개 실거래 리포트) | D-VIEW',
+  description: '동탄 1·2신도시 184개 아파트 시세·집값 추이 그래프·국토교통부 실거래가, 1:1 밸런스 비교, 내 예산 동탄 현실 티어 진단 및 25편 심층 입지 분석 리포트를 매일 동기화해 제공합니다.',
+  keywords: '동탄 아파트 시세, 동탄 아파트 실거래가, 1동탄 2동탄 비교, 동탄 전세가율, 동탄 학군, 스트레스 DSR, 동탄테크노밸리, D-VIEW, 디뷰',
   alternates: {
     canonical: '/',
     types: {
@@ -115,12 +115,13 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#020617' },
+    { media: '(prefers-color-scheme: dark)', color: '#0e1117' },
   ],
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
 };
 
 const PREVIEW_IFRAME_SHIELD_SCRIPT = `(function(){try{var isIframe=false;try{isIframe=window.self!==window.top;}catch(e){isIframe=true;}var host='';var origin='';try{host=(window.location&&window.location.hostname)||'';origin=(window.location&&window.location.origin)||'';}catch(e){}var isProxy=Boolean(!host||origin==='null'||host.indexOf('googleusercontent.com')!==-1||host.indexOf('googlesyndication.com')!==-1||host.indexOf('google.com')!==-1||host.indexOf('doubleclick.net')!==-1);if(!isIframe&&!isProxy)return;window.__DVIEW_EMBEDDED_PREVIEW__=true;if(window.history){var op=window.history.pushState;if(typeof op==='function'){window.history.pushState=function(s,t,u){try{return op.call(this,s,t,u);}catch(e){try{return op.call(this,s,t);}catch(_){}}};}var or=window.history.replaceState;if(typeof or==='function'){window.history.replaceState=function(s,t,u){try{return or.call(this,s,t,u);}catch(e){try{return or.call(this,s,t);}catch(_){}}};}}if(typeof Node!=='undefined'&&Node.prototype){var orc=Node.prototype.removeChild;Node.prototype.removeChild=function(c){if(c&&c.parentNode!==this)return c;return orc.apply(this,arguments);};var oib=Node.prototype.insertBefore;Node.prototype.insertBefore=function(n,r){if(r&&r.parentNode!==this)return this.appendChild(n);return oib.apply(this,arguments);};}var snap=function(){try{if(document.body&&!window.__DVIEW_SSR_SNAPSHOT__){var bh=document.body.innerHTML||'';if(bh.length>400&&bh.indexOf('앗, 문제가 발생했어요')===-1&&bh.indexOf('페이지를 불러올 수 없어요')===-1){var hh='';var hn=document.head?document.head.querySelectorAll('base,meta,link[rel="stylesheet"],link[rel="preload"][as="font"],style'):[];for(var i=0;i<hn.length;i++){hh+=hn[i].outerHTML;}var clone=document.body.cloneNode(true);var sc=clone.querySelectorAll('script');for(var j=0;j<sc.length;j++){if(sc[j].parentNode)sc[j].parentNode.removeChild(sc[j]);}var mc=clone.querySelector('#dview-main-content');window.__DVIEW_SSR_SNAPSHOT__={headHtml:hh,bodyHtml:clone.innerHTML,mainHtml:mc?mc.innerHTML:'',bodyClass:document.body.className||'antialiased',htmlClass:document.documentElement.className||''};}}}catch(_){}};window.__dviewCapturePreviewSnap=snap;if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',snap,{once:true});}else{snap();}}catch(_){}})();`;
@@ -165,7 +166,7 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body suppressHydrationWarning className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 selection:bg-blue-600/15 selection:text-blue-600 dark:selection:bg-blue-500/25 dark:selection:text-blue-400">
+      <body suppressHydrationWarning className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 selection:bg-brand-blue-light selection:text-brand-blue">
         <Script 
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" 
           strategy="lazyOnload" 

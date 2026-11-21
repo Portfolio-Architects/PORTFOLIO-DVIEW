@@ -72,7 +72,7 @@ describe('Ad Money v5.1 Copy Diet, Visual Signal & Semantic SEO Dual-Layer SSOT'
     const cssContent = fs.readFileSync(globalsCssPath, 'utf8');
 
     it('codifies all 3 core pillars (Copy Diet, Visual Signal First, Semantic SEO Accordion) in DVIEW_DESIGN.md', () => {
-      expect(designMd).toContain('Ad Money (애드 머니 v5.1)');
+      expect(designMd).toContain('Ad Money v6.0 — Live Spark');
       expect(designMd).toContain('### 1.6 Visual-First Copy Diet & Semantic SEO Dual-Layer');
       expect(designMd).toContain('### 3.4 Progressive SEO Disclosure Accordion');
       expect(designMd).toContain(
@@ -365,15 +365,19 @@ describe('Ad Money v5.1 Copy Diet, Visual Signal & Semantic SEO Dual-Layer SSOT'
       expect(safeCls).toContain('text-brand-green');
 
       const neutralCls = getVisualSignalPillClass('neutral');
-      expect(neutralCls).toContain('bg-[#f2f4f6]');
-      expect(neutralCls).toContain('dark:bg-[#202027]');
+      expect(neutralCls).toContain('bg-[#eff1f5]');
+      expect(neutralCls).toContain('dark:bg-[#1e2532]');
       expect(neutralCls).not.toContain('bg-elevated');
+
+      const jackpotCls = getVisualSignalPillClass('jackpot');
+      expect(jackpotCls).toContain('dview-spark-badge');
+      expect(jackpotCls).toContain('text-white');
 
       const fallbackCls = getVisualSignalPillClass({
         tone: 'toString' as unknown as 'neutral',
         size: '__proto__' as unknown as 'xs',
       });
-      expect(fallbackCls).toContain('bg-[#f2f4f6]');
+      expect(fallbackCls).toContain('bg-[#eff1f5]');
       expect(fallbackCls).toContain('text-secondary');
     });
 

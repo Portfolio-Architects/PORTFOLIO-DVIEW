@@ -172,14 +172,14 @@ describe('Design System Static Verification Guardrails (Challenger Suite)', () =
       const infraSectionContent = fs.readFileSync(infraSectionFile, 'utf8');
 
       expect(aptCompareContent.match(prohibitedHexRegex)).toBeNull();
-      expect(aptCompareContent).toContain('hover:bg-emerald-700');
+      expect(aptCompareContent).toContain('bg-brand-blue');
 
       expect(inAppBypassContent.match(prohibitedHexRegex)).toBeNull();
       expect(inAppBypassContent).toContain('bg-slate-800');
 
       expect(aptModalContent.match(prohibitedHexRegex)).toBeNull();
       expect(infraSectionContent.match(prohibitedHexRegex)).toBeNull();
-      expect(infraSectionContent).toContain('bg-blue-600');
+      expect(infraSectionContent).toContain('bg-brand-blue');
 
       // Scan all component files for prohibited hex tokens
       const hexViolations: { file: string; line: number; token: string }[] = [];

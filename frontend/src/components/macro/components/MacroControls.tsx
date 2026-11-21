@@ -181,7 +181,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             <button
               type="button"
               onClick={onResetFilters}
-              className={getControlPillClass({ extraClass: 'hover:text-red-500' })}
+              className={getControlPillClass({ extraClass: 'hover:text-brand-red' })}
               title="모든 필터 초기화"
               aria-label="모든 필터 초기화"
             >
@@ -211,7 +211,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2 text-tertiary hover:text-primary transition-colors p-0.5 rounded-full"
+                  className="absolute right-1.5 w-7 h-7 inline-flex items-center justify-center text-tertiary hover:text-primary transition-colors rounded-full touch-manipulation"
                   aria-label="검색어 지우기"
                 >
                   <X size={14} />
@@ -235,13 +235,22 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               onClick={() => setIsMobileFiltersExpanded((prev) => !prev)}
               className={getControlPillClass({
                 active: isMobileFiltersExpanded,
-                extraClass: 'sm:hidden flex items-center gap-1.5 shrink-0 px-2.5 py-2 text-[11.5px] font-bold whitespace-nowrap active:scale-95',
+                extraClass: 'sm:hidden flex items-center gap-1.5 shrink-0 px-2.5 py-2 text-[11.5px] font-bold whitespace-nowrap active:scale-95 touch-manipulation',
               })}
             >
-              <SlidersHorizontal size={13} className="text-secondary" />
+              <SlidersHorizontal
+                size={13}
+                className={isMobileFiltersExpanded ? 'text-white dark:text-slate-900' : 'text-secondary'}
+              />
               <span>{isMobileFiltersExpanded ? '상세조건 접기' : '상세조건 펼치기'}</span>
               {detailedFiltersActiveCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-blue-600 text-white text-[9.5px] font-black tabular-nums">
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[9.5px] font-black leading-none tabular-nums ${
+                    isMobileFiltersExpanded
+                      ? 'bg-white/20 text-white dark:bg-slate-900/15 dark:text-slate-900'
+                      : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                  }`}
+                >
                   {detailedFiltersActiveCount}
                 </span>
               )}
@@ -251,7 +260,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               <button
                 type="button"
                 onClick={onResetFilters}
-                className={getControlPillClass({ extraClass: 'hover:text-red-500' })}
+                className={getControlPillClass({ extraClass: 'hover:text-brand-red' })}
                 title="모든 필터 초기화"
                 aria-label="모든 필터 초기화"
               >
@@ -391,11 +400,15 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
                         : 'col-span-2 sm:col-span-1 w-full sm:w-auto'
                     } ${
                       tradeTypeFilter === 'high'
-                        ? 'bg-brand-red-light text-brand-red ring-1 ring-inset ring-brand-red/30 font-black shadow-2xs'
-                        : 'bg-elevated hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary font-extrabold'
+                        ? 'dview-spark-badge font-black shadow-2xs'
+                        : 'bg-brand-red-light text-brand-red hover:opacity-90 font-extrabold'
                     }`}
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-red shrink-0" />
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                        tradeTypeFilter === 'high' ? 'bg-white' : 'bg-brand-red'
+                      }`}
+                    />
                     <span>신고가만</span>
                   </button>
 
@@ -405,7 +418,13 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
                       data-testid="timeline-active-tradetype-chip"
                       onClick={() => setTradeTypeFilter('all')}
                       aria-label="선택된 거래 온도 필터 해제"
-                      className="h-[34px] sm:h-[36px] px-2.5 rounded-[10px] bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 ring-1 ring-inset ring-blue-500/25 dark:ring-blue-400/30 text-[12px] sm:text-[12.5px] font-black inline-flex items-center justify-center gap-1 transition-colors cursor-pointer whitespace-nowrap shrink-0 w-full sm:w-auto"
+                      className={`h-[34px] sm:h-[36px] px-2.5 rounded-[10px] text-[12px] sm:text-[12.5px] font-black inline-flex items-center justify-center gap-1 transition-colors cursor-pointer whitespace-nowrap shrink-0 w-full sm:w-auto ${
+                        tradeTypeFilter === 'rising'
+                          ? 'bg-brand-red-light text-brand-red'
+                          : tradeTypeFilter === 'falling'
+                            ? 'bg-brand-blue-light text-brand-blue'
+                            : 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary'
+                      }`}
                     >
                       <span>
                         {tradeTypeFilter === 'rising'
@@ -592,7 +611,7 @@ export const FavoriteOrderEditor = React.memo(function FavoriteOrderEditor({
       <button
         onClick={() => setShowOrderEditor(!showOrderEditor)}
         title="관심 단지 정렬 순서 편집"
-        className="w-9 h-9 flex items-center justify-center bg-elevated hover:bg-[#f2f4f6] dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-blue-600/20 shrink-0"
+        className="w-9 h-9 flex items-center justify-center bg-elevated hover:bg-[#eff1f5] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-slate-900/15 dark:focus:ring-white/20 shrink-0"
       >
         <Settings size={15} />
       </button>
@@ -611,8 +630,8 @@ export const FavoriteOrderEditor = React.memo(function FavoriteOrderEditor({
                 onDragStart={(e) => handleDragStart(e, index)}
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDragEnd={handleDragEnd}
-                className={`flex justify-between items-center px-2.5 py-1.5 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 border border-border/40 rounded-xl cursor-grab active:cursor-grabbing text-[11px] font-bold text-primary select-none transition-colors ${
-                  draggedIndex === index ? "opacity-40 border-dashed border-blue-600" : ""
+                className={`flex justify-between items-center px-2.5 py-1.5 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border/40 rounded-xl cursor-grab active:cursor-grabbing text-[11px] font-bold text-primary select-none transition-colors ${
+                  draggedIndex === index ? "opacity-40 border-dashed border-slate-900 dark:border-slate-100" : ""
                 }`}
               >
                 <span className="truncate pr-2">{getDisplayAptName(fav)}</span>

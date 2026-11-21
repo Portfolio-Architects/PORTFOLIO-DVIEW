@@ -137,25 +137,25 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
 
   const styles = {
     safe: {
-      themeColor: '#2563eb', // Teal-600
-      bgClass: 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30',
+      themeColor: '#059669',
+      bgClass: 'bg-emerald-50/70 dark:bg-emerald-950/25 border border-emerald-200/60 dark:border-emerald-900/40',
       textClass: 'text-emerald-700 dark:text-emerald-400 font-extrabold',
       gaugeClass: 'stroke-emerald-500',
-      icon: <Shield className="text-emerald-500 fill-emerald-500/10" size={26} />
+      icon: <Shield className="text-emerald-600 dark:text-emerald-400 fill-emerald-500/10" size={26} />
     },
     caution: {
-      themeColor: '#dc2626',
-      bgClass: 'bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/30',
-      textClass: 'text-red-800 dark:text-red-400 font-extrabold',
-      gaugeClass: 'stroke-red-500',
-      icon: <AlertTriangle className="text-red-500 fill-red-500/10" size={26} />
+      themeColor: '#ff3b5c',
+      bgClass: 'bg-brand-red-light border border-brand-red/20',
+      textClass: 'text-brand-red font-extrabold',
+      gaugeClass: 'stroke-brand-red',
+      icon: <AlertTriangle className="text-brand-red fill-brand-red/10" size={26} />
     },
     danger: {
-      themeColor: '#ef4444', // Red-500
-      bgClass: 'bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/30',
-      textClass: 'text-red-800 dark:text-red-400 font-extrabold',
-      gaugeClass: 'stroke-red-500',
-      icon: <ShieldAlert className="text-red-500 fill-red-500/10" size={26} />
+      themeColor: '#ff3b5c',
+      bgClass: 'bg-brand-red-light border border-brand-red/25',
+      textClass: 'text-brand-red font-extrabold',
+      gaugeClass: 'stroke-brand-red',
+      icon: <ShieldAlert className="text-brand-red fill-brand-red/10" size={26} />
     }
   }[grade];
 
@@ -209,7 +209,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
           <span className="text-[14px] font-bold text-secondary tracking-tight">보증금 반환 안전성 진단</span>
         </div>
 
-        <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-center gap-6">
+        <div className="bg-elevated rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-center gap-6">
           {/* SVG Progress Ring */}
           <div 
             className="relative flex items-center justify-center shrink-0 w-32 h-32"
@@ -281,8 +281,14 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 tabular-nums">
           {/* 1. 전세가율 */}
-          <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+          <div className="bg-elevated rounded-2xl p-4 flex items-start gap-3">
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+              jeonseRatePercent < 60
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                : jeonseRatePercent >= 80
+                ? 'bg-brand-red-light text-brand-red'
+                : 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary'
+            }`}>
               <CheckCircle2 size={16} strokeWidth={2.5} />
             </div>
             <div className="flex-1 min-w-0">
@@ -290,7 +296,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
                 <span className="text-[12.5px] font-extrabold text-secondary">실거래 전세가율</span>
                 <span className="text-[11.5px] font-black text-primary tabular-nums">{ratioScore} / 50점</span>
               </div>
-              <p className="text-[12px] font-bold text-slate-600 dark:text-slate-400 mt-1 leading-normal break-keep">
+              <p className="text-[12px] font-bold text-secondary mt-1 leading-normal break-keep">
                 전세가율 {jeonseRatePercent.toFixed(1)}% ·{' '}
                 {jeonseRatePercent >= 80
                   ? '고위험 구간'
@@ -302,16 +308,20 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
           </div>
 
           {/* 2. 경매 낙찰 안전마진 */}
-          <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-              <Coins className="text-emerald-600" size={16} />
+          <div className="bg-elevated rounded-2xl p-4 flex items-start gap-3">
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+              safeLatestDeposit < auctionLimit
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                : 'bg-brand-red-light text-brand-red'
+            }`}>
+              <Coins size={16} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[12.5px] font-extrabold text-secondary">경매 낙찰 보장 마진</span>
                 <span className="text-[11.5px] font-black text-primary tabular-nums">{marginScore} / 20점</span>
               </div>
-              <p className="text-[12px] font-bold text-slate-600 dark:text-slate-400 mt-1 leading-normal break-keep">
+              <p className="text-[12px] font-bold text-secondary mt-1 leading-normal break-keep">
                 낙찰기준 {Math.round(auctionLimit).toLocaleString()}만원 ·{' '}
                 {safeLatestDeposit < auctionLimit ? '보증금 안전권' : '유실 주의 구간'}
               </p>
@@ -319,32 +329,32 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
           </div>
 
           {/* 3. 매매 유동성 */}
-          <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-              <TrendingUp className="text-emerald-600" size={16} />
+          <div className="bg-elevated rounded-2xl p-4 flex items-start gap-3">
+            <div className="w-8 h-8 rounded-xl bg-[#eff1f5] dark:bg-[#1e2532] text-secondary flex items-center justify-center shrink-0 mt-0.5">
+              <TrendingUp size={16} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[12.5px] font-extrabold text-secondary">매매 회전 환금성</span>
                 <span className="text-[11.5px] font-black text-primary tabular-nums">{liquidityScore} / 20점</span>
               </div>
-              <p className="text-[12px] font-bold text-slate-600 dark:text-slate-400 mt-1 leading-normal break-keep">
+              <p className="text-[12px] font-bold text-secondary mt-1 leading-normal break-keep">
                 최근 3개월 {safeVolume3M}건 · {safeVolume3M >= 5 ? '환금성 우수' : '회전 정체 주의'}
               </p>
             </div>
           </div>
 
           {/* 4. 단지 신뢰도 */}
-          <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-              <Shield className="text-emerald-600" size={16} />
+          <div className="bg-elevated rounded-2xl p-4 flex items-start gap-3">
+            <div className="w-8 h-8 rounded-xl bg-[#eff1f5] dark:bg-[#1e2532] text-secondary flex items-center justify-center shrink-0 mt-0.5">
+              <Shield size={16} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[12.5px] font-extrabold text-secondary">대단지 신뢰 규모</span>
                 <span className="text-[11.5px] font-black text-primary tabular-nums">{scaleScore} / 10점</span>
               </div>
-              <p className="text-[12px] font-bold text-slate-600 dark:text-slate-400 mt-1 leading-normal break-keep">
+              <p className="text-[12px] font-bold text-secondary mt-1 leading-normal break-keep">
                 총 {safeHouseholdCount.toLocaleString()}세대 ·{' '}
                 {safeHouseholdCount >= 1000
                   ? '대단지 시세 방어 우수'
@@ -359,10 +369,10 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
 
       {/* ─── HUG 반환보증 공식 가이드 안내 배너 ─── */}
       {(grade === 'caution' || grade === 'danger') && (
-        <div className="bg-red-50/60 dark:bg-red-950/25 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="bg-brand-red-light rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex-1 text-center sm:text-left min-w-0">
             <p className="text-[13.5px] font-bold text-primary mb-1 flex items-center gap-1.5 justify-center sm:justify-start">
-              <AlertTriangle size={15} className="text-red-500 shrink-0" />
+              <AlertTriangle size={15} className="text-brand-red shrink-0" />
               <span>임차인 필수: 전세보증금 반환보증보험 가입 요건 확인</span>
             </p>
             <p className="text-[12px] font-medium text-secondary tabular-nums">
@@ -372,7 +382,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
           <button
             type="button"
             onClick={() => window.open('https://www.khug.or.kr/web/ig/dr/igdr000001.jsp', '_blank', 'noopener,noreferrer')}
-            className="shrink-0 bg-surface hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-red-600 dark:text-red-400 font-bold text-[12px] px-3.5 py-2 rounded-[10px] flex items-center gap-1 active:scale-[0.97] transition-colors cursor-pointer border-none"
+            className="shrink-0 bg-surface hover:bg-[#eff1f5] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-primary font-bold text-[12px] px-3.5 py-2 rounded-[10px] flex items-center gap-1 active:scale-[0.97] transition-colors cursor-pointer border-none"
           >
             <span>HUG 공식 기준 확인</span>
             <ChevronRight size={14} strokeWidth={2.5} />

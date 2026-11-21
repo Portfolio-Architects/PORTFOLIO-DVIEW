@@ -113,9 +113,10 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
         <div
           ref={moreMenuRef}
           data-testid="mobile-dock-more-menu"
+          data-scroll-interactive="true"
           role="dialog"
           aria-label="D-VIEW 서비스 안내 및 약관 메뉴"
-          className="md:hidden fixed bottom-[76px] right-3 z-[10001] w-56 max-w-[calc(100vw-24px)] rounded-2xl bg-surface/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 shadow-xl p-3 flex flex-col gap-1.5"
+          className="md:hidden fixed bottom-[calc(env(safe-area-inset-bottom,0px)+76px)] right-3 z-[10001] w-56 max-w-[calc(100vw-24px)] rounded-2xl bg-surface/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 shadow-xl p-3 flex flex-col gap-1"
         >
           <div className="flex items-center justify-between px-2 py-1 border-b border-slate-200/60 dark:border-slate-800">
             <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">
@@ -125,7 +126,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
               type="button"
               onClick={() => setIsMoreOpen(false)}
               aria-label="더보기 메뉴 닫기"
-              className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg cursor-pointer"
+              className="w-7 h-7 inline-flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg cursor-pointer touch-manipulation"
             >
               <X size={14} />
             </button>
@@ -149,14 +150,14 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
                     });
                   }
                 }}
-                className={`flex items-center justify-between px-2.5 py-2.5 rounded-xl text-[13px] font-extrabold transition-colors ${
+                className={`min-h-[42px] flex items-center justify-between px-2.5 py-2.5 rounded-xl text-[13px] font-extrabold transition-colors touch-manipulation ${
                   activeTab === 'lounge'
-                    ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
-                    : 'bg-slate-100/80 dark:bg-slate-800/70 text-slate-800 dark:text-slate-100 hover:bg-blue-50/70 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400'
+                    ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                    : 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary hover:bg-slate-200/80 dark:hover:bg-[#252c3d]'
                 }`}
               >
                 <span className="inline-flex items-center gap-2">
-                  <MessageSquare size={15} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                  <MessageSquare size={15} className="shrink-0" />
                   <span>실시간 입주민 라운지</span>
                 </span>
                 <ChevronRight size={14} className="text-tertiary shrink-0" />
@@ -167,7 +168,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
             href="/about"
             prefetch={false}
             onClick={() => setIsMoreOpen(false)}
-            className="px-2.5 py-2 rounded-xl text-[12.5px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="min-h-[40px] flex items-center px-2.5 py-2 rounded-xl text-[12.5px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors touch-manipulation"
           >
             D-VIEW 소개
           </Link>
@@ -175,7 +176,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
             href="/contact"
             prefetch={false}
             onClick={() => setIsMoreOpen(false)}
-            className="px-2.5 py-2 rounded-xl text-[12.5px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="min-h-[40px] flex items-center px-2.5 py-2 rounded-xl text-[12.5px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors touch-manipulation"
           >
             고객지원 및 문의하기
           </Link>
@@ -183,7 +184,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
             href="/terms"
             prefetch={false}
             onClick={() => setIsMoreOpen(false)}
-            className="px-2.5 py-2 rounded-xl text-[12.5px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="min-h-[40px] flex items-center px-2.5 py-2 rounded-xl text-[12.5px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors touch-manipulation"
           >
             서비스 이용약관
           </Link>
@@ -191,27 +192,32 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
             href="/privacy"
             prefetch={false}
             onClick={() => setIsMoreOpen(false)}
-            className="px-2.5 py-2 rounded-xl text-[12.5px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="min-h-[40px] flex items-center px-2.5 py-2 rounded-xl text-[12.5px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors touch-manipulation"
           >
             개인정보처리방침
           </Link>
         </div>
       )}
-      <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-[10000] bg-surface/85 backdrop-blur-xl shadow-[0_-8px_32px_rgba(0,0,0,0.06)] rounded-t-[24px] px-2.5 pt-2 pb-[calc(env(safe-area-inset-bottom)+10px)] flex items-center justify-between border-t border-border/40 transition-transform transition-opacity duration-300 ease-out transform-gpu ${
+      <nav
+        aria-label="모바일 하단 내비게이션"
+        data-scroll-interactive="true"
+        className={`md:hidden fixed bottom-0 left-0 right-0 z-[10000] bg-surface/90 backdrop-blur-xl shadow-[0_-8px_32px_rgba(0,0,0,0.06)] rounded-t-[24px] px-2 pt-2 pb-[calc(env(safe-area-inset-bottom,0px)+10px)] flex items-center justify-between border-t border-border/40 transition-[transform,opacity] duration-300 ease-out transform-gpu ${
         shouldHide ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
       }`}>
         {/* 5개 핵심 탭 + 더보기 버튼 */}
         <div className="flex items-center justify-between w-full min-w-0 gap-0.5">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id || (tab.id === 'imjang' && activeTab === 'explore');
-            const activeTextColor = 'text-blue-600 dark:text-blue-400';
-            const activeBgClass = 'bg-blue-50/90 dark:bg-blue-950/50 border border-blue-200/40 dark:border-blue-800/40';
+            const activeTextColor = 'text-primary font-black';
+            const activeBgClass = 'bg-[#eff1f5] dark:bg-[#1e2532]';
 
             return (
               <Link
                 key={tab.id}
                 href={tab.href}
                 prefetch={false}
+                aria-label={tab.label}
+                aria-current={isActive ? 'page' : undefined}
                 onClick={(e) => {
                   setIsMoreOpen(false);
                   if (isModifiedNavigationClick(e)) return;
@@ -232,7 +238,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
                     } catch (err) {}
                   }
                 }}
-                className={`group flex flex-1 min-w-0 flex-col items-center justify-center min-h-[48px] rounded-[18px] transition-[transform,color,background-color] duration-200 ease-out active:scale-[0.94] transform-gpu select-none touch-manipulation relative ${
+                className={`group flex flex-1 min-w-0 overflow-hidden px-0.5 flex-col items-center justify-center min-h-[48px] rounded-[18px] transition-[transform,color,background-color] duration-200 ease-out active:scale-[0.94] transform-gpu select-none touch-manipulation relative ${
                   isActive ? activeTextColor : 'text-tertiary hover:text-secondary'
                 }`}
               >
@@ -240,7 +246,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
                    <div className={`absolute inset-0 rounded-[18px] transition-[transform,opacity] duration-200 ease-out transform-gpu animate-in zoom-in-95 ${activeBgClass}`} />
                 )}
                 <tab.icon size={17} strokeWidth={isActive ? 2.5 : 2} className={`mb-0.5 relative z-10 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] sm:w-[19px] sm:h-[19px] ${isActive ? 'scale-110' : 'group-hover:scale-105'}`} />
-                <span className="text-[9.5px] xs:text-[10.5px] font-bold tracking-tight relative z-10 whitespace-nowrap">{tab.label}</span>
+                <span className="max-w-full truncate text-[9.5px] min-[390px]:text-[10.5px] font-bold tracking-tight relative z-10 whitespace-nowrap leading-tight">{tab.label}</span>
               </Link>
             );
           })}
@@ -251,17 +257,15 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
             aria-label="더보기 및 라운지 메뉴"
             aria-expanded={isMoreOpen}
             onClick={() => setIsMoreOpen((prev) => !prev)}
-            className={`group flex shrink-0 px-1.5 flex-col items-center justify-center min-h-[48px] rounded-[18px] transition-[transform,color,background-color] duration-200 ease-out active:scale-[0.94] transform-gpu select-none touch-manipulation relative cursor-pointer ${
-              isMoreActive ? 'text-blue-600 dark:text-blue-400' : 'text-tertiary hover:text-secondary'
+            className={`group flex shrink-0 min-w-[44px] px-1.5 flex-col items-center justify-center min-h-[48px] rounded-[18px] transition-[transform,color,background-color] duration-200 ease-out active:scale-[0.94] transform-gpu select-none touch-manipulation relative cursor-pointer ${
+              isMoreActive ? 'text-primary font-black' : 'text-tertiary hover:text-secondary'
             }`}
           >
             {activeTab === 'lounge' && !isMoreOpen && (
-              <div className={`absolute inset-0 rounded-[18px] transition-[transform,opacity] duration-200 ease-out transform-gpu ${
-                'bg-blue-50/90 dark:bg-blue-950/50 border border-blue-200/40 dark:border-blue-800/40'
-              }`} />
+              <div className="absolute inset-0 rounded-[18px] transition-[transform,opacity] duration-200 ease-out transform-gpu bg-[#eff1f5] dark:bg-[#1e2532]" />
             )}
             <MoreHorizontal size={17} strokeWidth={isMoreActive ? 2.5 : 2} className="mb-0.5 relative z-10 sm:w-[19px] sm:h-[19px]" />
-            <small className="text-[9.5px] xs:text-[10.5px] font-bold tracking-tight relative z-10 leading-none">더보기</small>
+            <small className="text-[9.5px] min-[390px]:text-[10.5px] font-bold tracking-tight relative z-10 leading-tight whitespace-nowrap">더보기</small>
           </button>
         </div>
       </nav>

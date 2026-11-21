@@ -115,7 +115,7 @@ export const GuideMorningAlertRetentionCard = React.memo(
       void handleToggleFavorite(selectedCanonical);
       if (nextIsFavorite) {
         showToast?.(
-          `${selectedDisplay} 로그인 없이 관심단지에 찜했습니다 · 평일 07시 실거래 알림도 켜보세요`
+          `${selectedDisplay} 로그인 없이 관심단지에 찜했습니다 · 매일 오전 7시대 실거래 알림도 켜보세요`
         );
       }
     }, [
@@ -159,21 +159,17 @@ export const GuideMorningAlertRetentionCard = React.memo(
         id={sectionId}
         data-testid="guide-morning-alert-retention-card"
         aria-label="오전 7시 실거래 알림 및 관심단지 저장"
-        className="scroll-mt-40 md:scroll-mt-48 w-full min-h-[132px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-4 sm:p-5 space-y-3.5 transition-colors box-border"
+        className="scroll-mt-40 md:scroll-mt-48 w-full min-h-[132px] rounded-2xl bg-elevated border border-border/60 p-4 sm:p-5 space-y-3.5 transition-colors box-border"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2 min-w-0">
-            <span className={getVisualSignalPillClass('down', 'tabular-nums')}>
-              <DviewIcon name="bell-ring" size={11} />
-              <span>평일 07:00</span>
-            </span>
-            <span className={getVisualSignalPillClass('safe')}>
+            <h3 className="text-sm sm:text-[15px] font-black text-primary tracking-tight">
+              매일 오전 7시대 동탄 실거래 요약 받기
+            </h3>
+            <span className={getVisualSignalPillClass('neutral')}>
               <DviewIcon name="star" size={11} />
               <span>비로그인 1초 찜</span>
             </span>
-            <h3 className="text-sm sm:text-[15px] font-black text-primary tracking-tight">
-              실거래 신고 즉시 오전 7시 알림 받기
-            </h3>
           </div>
           <span className="text-[11.5px] font-bold text-secondary tabular-nums">
             05:38~06:38 국토부 동기화 직후 브리핑
@@ -209,13 +205,13 @@ export const GuideMorningAlertRetentionCard = React.memo(
                   className={getToggleBtnClass({
                     active: isSelected,
                     size: 'sm',
-                    tone: 'blue',
+                    tone: 'neutral',
                     extraClass: 'tabular-nums',
                   })}
                 >
                   <span>{apt.displayName || apt.name}</span>
                   {priceChip && (
-                    <span className="text-[10.5px] font-extrabold text-emerald-700 dark:text-emerald-400">
+                    <span className="text-[10.5px] font-extrabold text-secondary">
                       {priceChip}
                     </span>
                   )}
@@ -231,7 +227,7 @@ export const GuideMorningAlertRetentionCard = React.memo(
               <span>{selectedDisplay}</span>
               {selectedDong ? <span className="text-tertiary"> · {selectedDong}</span> : null}
               {verifiedPriceLabel ? (
-                <span className="text-emerald-700 dark:text-emerald-400">
+                <span className="text-primary">
                   {' '}
                   · 최근 실거래 {verifiedPriceLabel}
                 </span>
@@ -241,7 +237,7 @@ export const GuideMorningAlertRetentionCard = React.memo(
               data-testid="guide-retention-summary-copy"
               className="text-[11.5px] font-semibold text-secondary sm:truncate tabular-nums"
             >
-              로그인 없이 관심단지 저장 · 평일 07시 매매·전세 변동 요약 발송
+              로그인 없이 관심단지 저장 · 매일 오전 7시대 매매 실거래 요약 발송
             </p>
           </div>
 
@@ -256,13 +252,13 @@ export const GuideMorningAlertRetentionCard = React.memo(
                     onClick={handleWatchlistClick}
                     className={
                       isFavorite
-                        ? 'min-h-[38px] py-2 px-2.5 sm:px-3.5 flex-1 sm:flex-initial min-w-0 whitespace-nowrap justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 leading-snug transition-colors cursor-pointer'
-                        : 'min-h-[38px] py-2 px-2.5 sm:px-3.5 flex-1 sm:flex-initial min-w-0 whitespace-nowrap justify-center rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200 dark:border-slate-700 text-secondary hover:text-blue-600 dark:hover:text-blue-400 text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 leading-snug transition-colors cursor-pointer'
+                        ? 'min-h-[38px] py-2 px-2.5 sm:px-3.5 flex-1 sm:flex-initial min-w-0 whitespace-nowrap justify-center rounded-xl bg-[#eff1f5] dark:bg-[#1e2532] hover:bg-slate-200/80 dark:hover:bg-slate-700/80 border border-slate-900/20 dark:border-white/25 text-primary text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 leading-snug transition-colors cursor-pointer'
+                        : 'min-h-[38px] py-2 px-2.5 sm:px-3.5 flex-1 sm:flex-initial min-w-0 whitespace-nowrap justify-center rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border text-secondary hover:text-primary text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 leading-snug transition-colors cursor-pointer'
                     }
                   >
                     {isFavorite ? (
                       <>
-                        <DviewIcon name="check" size={14} className="text-emerald-600 dark:text-emerald-400" />
+                        <DviewIcon name="check" size={14} className="text-primary" />
                         <span className="truncate">관심 저장됨</span>
                       </>
                     ) : (
@@ -279,7 +275,7 @@ export const GuideMorningAlertRetentionCard = React.memo(
                       data-testid="guide-ios-a2hs-shortcut-btn"
                       aria-label="아이폰·아이패드 홈 화면 추가 안내 열기"
                       onClick={handleOpenIosA2hs}
-                      className="min-h-[38px] py-2 px-2.5 sm:px-3.5 flex-1 sm:flex-initial min-w-0 whitespace-nowrap justify-center rounded-xl bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 leading-snug transition-colors cursor-pointer"
+                      className="min-h-[38px] py-2 px-2.5 sm:px-3.5 flex-1 sm:flex-initial min-w-0 whitespace-nowrap justify-center rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border text-primary text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 leading-snug transition-colors cursor-pointer"
                     >
                       <Smartphone size={14} className="shrink-0" />
                       <span className="sm:hidden truncate">홈 추가</span>
@@ -293,15 +289,15 @@ export const GuideMorningAlertRetentionCard = React.memo(
                   data-testid="guide-morning-7am-push-btn"
                   data-post-favorite-nudge={isFavorite ? 'true' : 'false'}
                   onClick={handleOpenPushModal}
-                  className={`min-h-[38px] py-2 px-3 sm:px-4 w-full sm:w-auto min-w-0 whitespace-nowrap justify-center rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 leading-snug text-center transition-colors cursor-pointer shadow-2xs tabular-nums ${
-                    isFavorite ? 'ring-2 ring-blue-500/30' : ''
+                  className={`min-h-[38px] py-2 px-3 sm:px-4 w-full sm:w-auto min-w-0 whitespace-nowrap justify-center rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 leading-snug text-center transition-colors cursor-pointer shadow-2xs tabular-nums ${
+                    isFavorite ? 'ring-2 ring-slate-900/25 dark:ring-white/30' : ''
                   }`}
                 >
                   <DviewIcon name="bell-ring" size={14} />
                   <span className="truncate">
                     {isFavorite
-                      ? '관심 저장됨 · 평일 07시 변동 알림 켜기'
-                      : '이 단지 실거래 신고 즉시 오전 7시 알림 받기'}
+                      ? '관심 저장됨 · 매일 오전 7시대 실거래 알림 켜기'
+                      : '동탄 전체 · 이 단지 실거래 알림 받기'}
                   </span>
                 </button>
               </>
@@ -316,7 +312,7 @@ export const GuideMorningAlertRetentionCard = React.memo(
                     data-testid="guide-ios-a2hs-shortcut-btn"
                     aria-label="아이폰·아이패드 홈 화면 추가 안내 열기"
                     onClick={handleOpenIosA2hs}
-                    className="min-h-[38px] py-2 px-2 sm:px-3.5 shrink-0 whitespace-nowrap justify-center rounded-xl bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1 leading-snug transition-colors cursor-pointer"
+                    className="min-h-[38px] py-2 px-2 sm:px-3.5 shrink-0 whitespace-nowrap justify-center rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border text-primary text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1 leading-snug transition-colors cursor-pointer"
                   >
                     <Smartphone size={14} className="shrink-0" />
                     <span className="sm:hidden">홈 추가</span>
@@ -328,10 +324,10 @@ export const GuideMorningAlertRetentionCard = React.memo(
                   type="button"
                   data-testid="guide-morning-7am-push-btn"
                   onClick={handleOpenPushModal}
-                  className="min-h-[38px] py-2 px-3 sm:px-4 flex-1 sm:flex-initial min-w-0 whitespace-nowrap justify-center rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 leading-snug text-center transition-colors cursor-pointer shadow-2xs"
+                  className="min-h-[38px] py-2 px-3 sm:px-4 flex-1 sm:flex-initial min-w-0 whitespace-nowrap justify-center rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 leading-snug text-center transition-colors cursor-pointer shadow-2xs"
                 >
                   <DviewIcon name="bell-ring" size={14} />
-                  <span className="truncate">실거래 신고 즉시 오전 7시 알림 받기</span>
+                  <span className="truncate">매일 오전 7시대 동탄 실거래 알림 받기</span>
                 </button>
               </div>
             )}

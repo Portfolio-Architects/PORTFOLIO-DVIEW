@@ -120,13 +120,14 @@ export function GpsVerificationModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="gps-modal-heading"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
+      data-scroll-interactive="true"
+      className="fixed inset-0 z-[10020] flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overscroll-none transition-opacity animate-in fade-in duration-150"
     >
-      <div className="relative w-full max-w-md bg-surface dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden text-primary">
+      <div className="relative w-full max-w-md max-h-[90dvh] overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom,0px)] bg-surface dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col text-primary">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/80 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <Navigation className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <Navigation className="w-5 h-5 text-primary" />
             <h2 id="gps-modal-heading" className="text-base sm:text-lg font-black tracking-tight">
               입주민 GPS 위치 인증
             </h2>
@@ -135,7 +136,7 @@ export function GpsVerificationModal({
             type="button"
             onClick={onClose}
             aria-label="닫기"
-            className="p-1 rounded-lg text-tertiary hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-1 rounded-lg text-tertiary hover:text-primary hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -144,7 +145,7 @@ export function GpsVerificationModal({
         {/* Body Content */}
         <div className="p-5 space-y-4">
           {/* Target Complex Information */}
-          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+          <div className="p-3.5 rounded-xl bg-elevated border border-border flex items-center justify-between">
             <div>
               <span className="text-[11px] font-bold text-tertiary block">인증 대상 단지</span>
               <span className="text-sm font-black text-primary">
@@ -168,13 +169,13 @@ export function GpsVerificationModal({
           {isVirtual && (
             <div
               data-testid="gps-virtual-guidance"
-              className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/60 text-blue-900 dark:text-blue-100 space-y-1.5 text-xs sm:text-sm font-medium"
+              className="p-4 rounded-xl bg-elevated border border-border text-primary space-y-1.5 text-xs sm:text-sm font-medium"
             >
-              <div className="flex items-center gap-2 font-black text-blue-700 dark:text-blue-300">
-                <AlertCircle className="w-4 h-4 shrink-0" />
+              <div className="flex items-center gap-2 font-black text-primary">
+                <AlertCircle className="w-4 h-4 shrink-0 text-secondary" />
                 <span>위치 인증 비대상 타이틀</span>
               </div>
-              <p className="text-[12px] leading-relaxed text-blue-800 dark:text-blue-200/90">
+              <p className="text-[12px] leading-relaxed text-secondary">
                 동탄 예비입주민 타이틀은 특정 단지 위치 인증 대상이 아닙니다. 인증 뱃지 없이도 자유롭게 글과 댓글을 작성하실 수 있습니다.
               </p>
             </div>
@@ -184,10 +185,10 @@ export function GpsVerificationModal({
           {isUnmapped && (
             <div
               data-testid="gps-unmapped-guidance"
-              className="p-4 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 space-y-1.5 text-xs sm:text-sm font-medium"
+              className="p-4 rounded-xl bg-elevated border border-border text-primary space-y-1.5 text-xs sm:text-sm font-medium"
             >
-              <div className="flex items-center gap-2 font-black text-slate-900 dark:text-slate-100">
-                <AlertCircle className="w-4 h-4 shrink-0 text-slate-500" />
+              <div className="flex items-center gap-2 font-black text-primary">
+                <AlertCircle className="w-4 h-4 shrink-0 text-tertiary" />
                 <span>위치 좌표 미등록 단지</span>
               </div>
               <p className="text-[12px] leading-relaxed text-secondary">
@@ -205,9 +206,9 @@ export function GpsVerificationModal({
 
               {/* Status Display Area */}
               {(status === 'locating' || status === 'verifying') && (
-                <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/60 flex items-center gap-3">
-                  <Loader2 className="w-5 h-5 text-blue-600 animate-spin shrink-0" />
-                  <span className="text-xs sm:text-sm font-bold text-blue-800 dark:text-blue-200">
+                <div className="p-4 rounded-xl bg-elevated border border-border flex items-center gap-3">
+                  <Loader2 className="w-5 h-5 text-primary animate-spin shrink-0" />
+                  <span className="text-xs sm:text-sm font-bold text-primary">
                     {resultMessage}
                   </span>
                 </div>
@@ -233,14 +234,14 @@ export function GpsVerificationModal({
               {status === 'failure' && (
                 <div
                   data-testid="gps-failure-banner"
-                  className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-900 dark:text-red-100 space-y-1 animate-in zoom-in-95 duration-150"
+                  className="p-4 rounded-xl bg-brand-red-light border border-brand-red/30 text-brand-red space-y-1 animate-in zoom-in-95 duration-150"
                 >
-                  <div className="flex items-center gap-2 font-black text-red-700 dark:text-red-300">
-                    <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+                  <div className="flex items-center gap-2 font-black text-brand-red">
+                    <AlertCircle className="w-5 h-5 text-brand-red shrink-0" />
                     <span>{resultMessage}</span>
                   </div>
                   {distanceMeters !== null && distanceMeters > 300 && (
-                    <p className="text-[12px] text-red-700 dark:text-red-300/90 tabular-nums">
+                    <p className="text-[12px] text-brand-red/90 tabular-nums">
                       현재 확인된 거리: 약 {distanceMeters}m (기준 300m 초과)
                     </p>
                   )}
@@ -252,7 +253,7 @@ export function GpsVerificationModal({
                 type="button"
                 onClick={handleStartVerification}
                 disabled={status === 'locating' || status === 'verifying'}
-                className="w-full py-3 rounded-xl font-extrabold text-xs sm:text-sm text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3 rounded-xl font-extrabold text-xs sm:text-sm bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 shadow-xs transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {status === 'locating' || status === 'verifying' ? (
                   <>
@@ -270,8 +271,8 @@ export function GpsVerificationModal({
           )}
 
           {/* Privacy Guarantee Statement */}
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800 flex items-start gap-2 text-[11px] text-tertiary">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+          <div className="p-3 rounded-xl bg-elevated border border-border flex items-start gap-2 text-[11px] text-tertiary">
+            <ShieldCheck className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
             <p className="leading-relaxed">
               <strong className="text-secondary font-bold">개인정보 보호 수칙:</strong> 사용자의 실시간 GPS 좌표는 서버에 저장되지 않습니다. 300m 거리 판정 연산 즉시 메모리에서 영구 파기됩니다.
             </p>

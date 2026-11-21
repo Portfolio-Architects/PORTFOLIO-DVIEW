@@ -160,8 +160,8 @@ function writeYearlyTransactionChunks(outDirData, transactionsAll) {
  * @param {Object} data - 생성할 데이터 객체
  */
 function writeSummaryFiles(paths, data) {
-  const { summaryPath, recentTxPath, macroTrendPath } = paths;
-  const { summary, recent7DaysVolume, recentTransactions, dongtanMacroTrend } = data;
+  const { summaryPath, recentTxPath, macroTrendPath, macroTrendSeriesPath } = paths;
+  const { summary, recent7DaysVolume, recentTransactions, dongtanMacroTrend, granularMacroTrend } = data;
 
   if (summaryPath) {
     const summaryDir = path.dirname(summaryPath);
@@ -192,6 +192,15 @@ function writeSummaryFiles(paths, data) {
     }
     safeWriteFileSync(macroTrendPath, JSON.stringify(dongtanMacroTrend, null, 2));
     console.log(`📁 파일 생성: ${macroTrendPath}`);
+  }
+
+  if (macroTrendSeriesPath && granularMacroTrend) {
+    const seriesDir = path.dirname(macroTrendSeriesPath);
+    if (!fs.existsSync(seriesDir)) {
+      fs.mkdirSync(seriesDir, { recursive: true });
+    }
+    safeWriteFileSync(macroTrendSeriesPath, JSON.stringify(granularMacroTrend));
+    console.log(`📁 파일 생성: ${macroTrendSeriesPath}`);
   }
 
   const { period1yPath, period3yPath, periodAllPath } = paths;

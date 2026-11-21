@@ -307,7 +307,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
   }, [aptName, jsonLdElements, data, isLoading, error]);
 
   return (
-    <div ref={containerRef} className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5 mt-6">
+    <div ref={containerRef} className="bg-elevated rounded-2xl p-5 mt-6">
       {jsonLd && (
         <script
           type="application/ld+json"
@@ -341,7 +341,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
           </p>
           <button
             onClick={(e) => { e.preventDefault(); mutateVote(); }}
-            className="px-3.5 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-600/25 text-[11.5px] font-black rounded-lg transition-all active:scale-95"
+            className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[11.5px] font-black rounded-lg transition-all active:scale-95 border-none cursor-pointer"
           >
             다시 시도
           </button>
@@ -355,17 +355,17 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
             <button
               onClick={(e) => handleVote(e, 'buy')}
               disabled={isSubmitting}
-              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-bold text-[13px] transition-colors bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/35 dark:hover:bg-emerald-950/55 text-emerald-700 dark:text-emerald-300 active:scale-[0.98] border-none cursor-pointer relative"
+              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-bold text-[13px] transition-opacity bg-brand-red-light hover:opacity-90 text-brand-red active:scale-[0.98] border-none cursor-pointer relative"
             >
-              <ThumbsUp size={14} className="fill-emerald-600/10" />
+              <ThumbsUp size={14} className="text-brand-red" />
               <span>지금 사야 한다</span>
             </button>
             <button
               onClick={(e) => handleVote(e, 'wait')}
               disabled={isSubmitting}
-              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-bold text-[13px] transition-colors bg-surface hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary active:scale-[0.98] border-none cursor-pointer relative"
+              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-bold text-[13px] transition-opacity bg-brand-blue-light hover:opacity-90 text-brand-blue active:scale-[0.98] border-none cursor-pointer relative"
             >
-              <HelpCircle size={14} className="fill-slate-700/10" />
+              <HelpCircle size={14} className="text-brand-blue" />
               <span>더 기다려야 한다</span>
             </button>
           </div>
@@ -382,10 +382,10 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          <div className="w-full h-8 bg-black/5 dark:bg-surface/10 rounded-xl overflow-hidden flex relative tabular-nums">
+          <div className="w-full h-8 bg-[#eff1f5] dark:bg-[#1e2532] rounded-xl overflow-hidden flex relative tabular-nums">
             <div
               style={{ width: `${animatedBuyPercent}%` }}
-              className="h-full bg-emerald-600 flex items-center pl-3"
+              className="h-full bg-brand-red flex items-center pl-3"
             >
               <span className="text-[11.5px] font-bold text-white whitespace-nowrap">
                 매수 {animatedBuyPercent}%
@@ -393,7 +393,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
             </div>
             <div
               style={{ width: `${animatedWaitPercent}%` }}
-              className="h-full bg-slate-500 flex items-center justify-end pr-3"
+              className="h-full bg-brand-blue flex items-center justify-end pr-3"
             >
               <span className="text-[11.5px] font-bold text-white whitespace-nowrap">
                 관망 {animatedWaitPercent}%
@@ -403,20 +403,20 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
 
           <div className="flex items-center justify-between text-[11px] font-semibold text-tertiary px-1 tabular-nums">
             <span className="flex items-center gap-1">
-              {userVote === 'buy' && <Check size={12} className="text-emerald-600" />}
+              {userVote === 'buy' && <Check size={12} className="text-brand-red" />}
               매수 {buyCount}명
             </span>
             <span className="text-center text-[10.5px] font-medium text-secondary">
               {userVote === 'buy' ? '"지금 사야 한다"에 투표하셨습니다.' : '"더 기다려야 한다"에 투표하셨습니다.'}
             </span>
             <span className="flex items-center gap-1">
-              {userVote === 'wait' && <Check size={12} className="text-slate-600" />}
+              {userVote === 'wait' && <Check size={12} className="text-brand-blue" />}
               관망 {waitCount}명
             </span>
           </div>
 
           {/* 시세-심리 참고 요약 */}
-          <div className="mt-2 p-4 rounded-xl bg-surface dark:bg-[#202027] text-left">
+          <div className="mt-2 p-4 rounded-xl bg-surface dark:bg-[#1e2532] text-left">
             <div className="text-[12px] font-bold text-primary mb-1.5">
               적정가 · 매수 심리 참고
             </div>

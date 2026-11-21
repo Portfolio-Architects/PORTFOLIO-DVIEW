@@ -85,10 +85,11 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
 
   return createPortal(
     <>
-      {/* Backdrop */}
+      {/* Backdrop (Elevated above MobileDock z-[10000]) */}
       <button 
         type="button"
-        className="fixed inset-0 bg-black/40 z-[9999] backdrop-blur-sm transition-opacity border-none cursor-default"
+        data-scroll-interactive="true"
+        className="fixed inset-0 bg-black/40 z-[10020] backdrop-blur-sm transition-opacity border-none cursor-default"
         onClick={() => setShowCustomA2HSModal(false)}
         aria-label="앱 설치 유도 창 닫기"
       />
@@ -96,17 +97,21 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
       {/* Bottom Sheet Modal */}
       <div 
         ref={modalRef}
+        data-scroll-interactive="true"
         onKeyDown={handleKeyDown}
         role="dialog"
         aria-modal="true"
         aria-labelledby="a2hs-title"
         aria-describedby="a2hs-desc"
-        className="fixed bottom-0 left-0 right-0 z-[10000] bg-surface rounded-t-[32px] shadow-[0_-12px_40px_rgba(0,0,0,0.08)] transform transition-transform duration-300 ease-out max-w-2xl mx-auto border-t border-border/40 pb-[calc(env(safe-area-inset-bottom)+24px)] animate-in slide-in-from-bottom duration-300"
+        className="fixed bottom-0 left-0 right-0 z-[10021] bg-surface rounded-t-[32px] shadow-[0_-12px_40px_rgba(0,0,0,0.08)] transform transition-transform duration-300 ease-out max-w-2xl mx-auto border-t border-border/40 pb-[calc(env(safe-area-inset-bottom,0px)+24px)] animate-in slide-in-from-bottom duration-300"
       >
-        <div className="px-6 pt-6 pb-2">
+        <div className="w-full pt-3 pb-1 flex justify-center" aria-hidden="true">
+          <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+        </div>
+        <div className="px-5 sm:px-6 pt-3 pb-2">
           <div className="flex justify-between items-start mb-5">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-emerald-50 dark:bg-[#003829]/50 rounded-[18px] flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <div className="w-12 h-12 bg-[#eff1f5] dark:bg-[#1e2532] rounded-[18px] flex items-center justify-center text-primary">
                 <ArrowDownToLine size={22} strokeWidth={2.5} />
               </div>
               <div>
@@ -125,11 +130,11 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
           </div>
 
           {isIOS ? (
-            <div className="bg-[#e8f8f5] dark:bg-[#002f23] rounded-2xl p-5 border border-blue-600/20 text-left mb-6">
-              <div className="flex items-center gap-2 mb-3 bg-blue-50 dark:bg-[#003829]/60 px-3 py-2 rounded-xl text-[12.5px] font-black text-blue-600 dark:text-blue-400 border border-blue-600/20">
+            <div className="bg-[#f7f8fa] dark:bg-[#151a23] rounded-2xl p-5 border border-border/80 text-left mb-6">
+              <div className="flex items-center gap-2 mb-3 bg-[#eff1f5] dark:bg-[#1e2532] px-3 py-2 rounded-xl text-[12.5px] font-black text-primary border border-border/60">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-red opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-red"></span>
                 </span>
                 홈 화면에 추가하여 편리하게 리포트 조회!
               </div>
@@ -155,26 +160,26 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
               </div>
             </div>
           ) : (
-            <div className="bg-body rounded-2xl p-4.5 mb-6 border border-border/40">
+            <div className="bg-[#f7f8fa] dark:bg-[#151a23] rounded-2xl p-4.5 mb-6 border border-border/80">
               {/* 리워드 그로스 배지 */}
-              <div className="flex items-center gap-2 mb-3 bg-blue-50 dark:bg-[#003829]/60 px-3 py-2 rounded-xl text-[12.5px] font-black text-blue-600 dark:text-blue-400 border border-blue-600/20">
+              <div className="flex items-center gap-2 mb-3 bg-[#eff1f5] dark:bg-[#1e2532] px-3 py-2 rounded-xl text-[12.5px] font-black text-primary border border-border/60">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-red opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-red"></span>
                 </span>
                 앱으로 간편하게 관심 단지 실거래가 분석!
               </div>
               <ul className="space-y-2.5 text-[13px] text-secondary font-bold">
                 <li className="flex items-center gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
+                  <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
                   브라우저 주소창 없이 전체화면으로 넓게 보기
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
+                  <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
                   클릭 한 번으로 관심 아파트 실시간 접속
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
+                  <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
                   네이티브 앱 수준의 빠르고 부드러운 속도
                 </li>
               </ul>
@@ -184,14 +189,14 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
           <div className="flex gap-3">
             <button
               onClick={() => setShowCustomA2HSModal(false)}
-              className="flex-1 py-3.5 px-4 bg-body text-secondary font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-[13.5px]"
+              className="flex-1 py-3.5 px-4 bg-[#f7f8fa] dark:bg-[#151a23] text-secondary font-bold rounded-2xl hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] transition-colors text-[13.5px]"
             >
               {isIOS ? '닫기' : '나중에 할게요'}
             </button>
             {!isIOS && (
               <button
                 onClick={handleInstall}
-                className="flex-1 py-3.5 px-4 bg-blue-600 dark:bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 dark:hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md text-[13.5px]"
+                className="flex-1 py-3.5 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl hover:bg-slate-800 dark:hover:bg-slate-100 active:scale-[0.98] transition-all text-[13.5px]"
               >
                 지금 추가하기
               </button>

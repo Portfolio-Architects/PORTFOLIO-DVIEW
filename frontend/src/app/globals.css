@@ -3,44 +3,53 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * DVIEW — Ad Money Design System (v4.0)
- * Purpose: Google AdSense Monetization Yield (RPM, eCPM, CTR, Active Viewability) Maximization
- * Concept: Native Content-Ad Isomorphism + High-CPC Trust Blue (#2563eb / #3b82f6) + Eye-Comfort Slate Canvas (#f8fafc) + Zero-CLS Geometry
+ * DVIEW — Ad Money v6.0 "Live Spark" Design System
+ * Purpose: 90% Clean Neutral Stage + 10% Calibrated 2-Color Dopamine Spark (Hot Coral-Crimson & Electric Cobalt)
+ * Concept: Native Content-Ad Isomorphism + Zero-CLS Geometry + High-Engagement Real-Estate Dopamine Signals
  */
 :root {
-  /* Eye-Comfort Soft Slate Canvas & Pure White Elevated Cards */
+  /* Live Spark Stage (90% Clean Neutral Canvas & Soft Surface) */
   --bg-body: #ffffff;
   --bg-surface: #ffffff;
-  --bg-elevated: #f9fafb;
-  --border-color: #f2f4f6;
-  --border-hairline: #f2f4f6;
-  
-  /* Comfortable High-Legibility Text Hierarchy */
-  --text-primary: #191f28;
-  --text-secondary: #4e5968;
-  --text-tertiary: #8b95a1;
-  --text-disabled: #d1d6db;
-  
-  /* Comfortable Trust Blue (Universally Preferred & Eye-Friendly Primary Theme) */
-  --brand-primary: #3182f6;
-  --brand-primary-light: #e8f3ff;
-  --brand-primary-hover: #1b64da;
+  --bg-elevated: #f7f8fa;
+  --border-color: #eef0f4;
+  --border-hairline: #eef0f4;
 
-  /* Semantic Accents (Korean Real-Estate & Fintech Standard) */
-  --brand-red: #f04452;
-  --brand-red-light: #ffeeee;
-  --brand-blue: #3182f6;
-  --brand-blue-light: #e8f3ff;
+  /* Live Spark Ink Hierarchy */
+  --text-primary: #14181f;
+  --text-secondary: #4e5968;
+  --text-tertiary: #7b8696;
+  --text-disabled: #cbd5e1;
+
+  /* Live Spark Neutral Brand Control (Zero Conflict with Market Direction Colors) */
+  --brand-primary: #14181f;
+  --brand-primary-light: #eff1f5;
+  --brand-primary-hover: #2c3440;
+
+  /* Calibrated 2-Color Dopamine Spark Signals (10% Focus) */
+  --brand-red: #ff3b5c;
+  --brand-red-light: #fff1f3;
+  --brand-blue: #2f6bff;
+  --brand-blue-light: #ebf2ff;
+
+  /* Jackpot Highlight Tokens (New High / Overheat Events ONLY) */
+  --spark-hot-from: #ff3b5c;
+  --spark-hot-to: #ff6b4a;
+  --spark-surface: #fff7f8;
+  --spark-border: #ffd6de;
+  --spark-glow: 0 2px 12px rgba(255, 59, 92, 0.10);
+
+  /* Restricted Safety Accent (Calculators & Jeonse/DSR Safety Diagnostics ONLY) */
   --brand-green: #059669;
   --brand-green-light: #ecfdf5;
-  
+
   /* Soft Ergonomic Elevation Tokens (No Harsh Shadows) */
-  --shadow-xs: 0 1px 3px rgba(15, 23, 42, 0.03), 0 1px 2px rgba(15, 23, 42, 0.02);
-  --shadow-sm: 0 2px 8px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03);
-  --shadow-md: 0 6px 16px -4px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
-  --shadow-lg: 0 12px 28px -6px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
-  --shadow-inner: inset 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-  
+  --shadow-xs: 0 1px 3px rgba(20, 24, 31, 0.04), 0 1px 2px rgba(20, 24, 31, 0.02);
+  --shadow-sm: 0 2px 8px -2px rgba(20, 24, 31, 0.06), 0 1px 3px rgba(20, 24, 31, 0.03);
+  --shadow-md: 0 6px 16px -4px rgba(20, 24, 31, 0.07), 0 2px 6px -1px rgba(20, 24, 31, 0.03);
+  --shadow-lg: 0 12px 28px -6px rgba(20, 24, 31, 0.09), 0 4px 10px -2px rgba(20, 24, 31, 0.04);
+  --shadow-inner: inset 0 1px 2px 0 rgba(20, 24, 31, 0.04);
+
   /* Soft Modernist Radius Scale */
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -48,16 +57,16 @@
   --radius-xl: 20px;
   --radius-full: 9999px;
 
-  /* Global Control & Toggle System Tokens (Ad Money v5.0) */
+  /* Global Control & Toggle System Tokens (Ad Money v6.0 Live Spark) */
   --control-height-sm: 32px;
   --control-height-md: 36px;
   --control-radius-track: 10px;
   --control-radius-item: 7px;
   --control-font-size: 12.5px;
-  --control-track-bg: #f2f4f6;
+  --control-track-bg: #eff1f5;
   --control-active-bg: #ffffff;
-  --control-surface-bg: #f9fafb;
-  --control-surface-hover: #f2f4f6;
+  --control-surface-bg: #f7f8fa;
+  --control-surface-hover: #eff1f5;
 
   /* Hardware-Accelerated Motion Curves */
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
@@ -66,37 +75,44 @@
 }
 
 .dark {
-  --bg-body: #101013;
-  --bg-surface: #101013;
-  --bg-elevated: #17171c;
-  --border-color: #202027;
-  --border-hairline: #202027;
-  
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-tertiary: #94a3b8;
-  --text-disabled: #475569;
-  
-  --brand-primary: #3b82f6;
-  --brand-primary-light: rgba(59, 130, 246, 0.16);
-  --brand-primary-hover: #60a5fa;
+  --bg-body: #0e1117;
+  --bg-surface: #0e1117;
+  --bg-elevated: #151a23;
+  --border-color: #1e2532;
+  --border-hairline: #1e2532;
 
-  --brand-red: #ff5c6a;
-  --brand-red-light: rgba(255, 92, 106, 0.15);
-  --brand-blue: #3b82f6;
-  --brand-blue-light: rgba(59, 130, 246, 0.16);
+  --text-primary: #f4f6fa;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #8b96a8;
+  --text-disabled: #475569;
+
+  --brand-primary: #f4f6fa;
+  --brand-primary-light: #1e2532;
+  --brand-primary-hover: #e2e8f0;
+
+  --brand-red: #ff4d6d;
+  --brand-red-light: rgba(255, 77, 109, 0.16);
+  --brand-blue: #60a5fa;
+  --brand-blue-light: rgba(96, 165, 250, 0.16);
+
+  --spark-hot-from: #ff4d6d;
+  --spark-hot-to: #ff7a59;
+  --spark-surface: #1c151f;
+  --spark-border: rgba(255, 77, 109, 0.36);
+  --spark-glow: 0 0 16px rgba(255, 77, 109, 0.16);
+
   --brand-green: #10b981;
   --brand-green-light: rgba(16, 185, 129, 0.15);
-  
+
   --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.25);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.45);
   --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.55);
   --shadow-inner: inset 0 1px 2px 0 rgba(0, 0, 0, 0.35);
-  --control-track-bg: #202027;
-  --control-active-bg: #2c2c35;
-  --control-surface-bg: #202027;
-  --control-surface-hover: #2c2c35;
+  --control-track-bg: #1e2532;
+  --control-active-bg: #252c3d;
+  --control-surface-bg: #1e2532;
+  --control-surface-hover: #252c3d;
 }
 
 @theme inline {
@@ -123,6 +139,8 @@
   --color-toss-blue-light: var(--brand-blue-light);
   --color-toss-green: var(--brand-green);
   --color-toss-red: var(--brand-red);
+  --color-spark-surface: var(--spark-surface);
+  --color-spark-border: var(--spark-border);
   
   --shadow-xs: var(--shadow-xs);
   --shadow-sm: var(--shadow-sm);
@@ -263,14 +281,14 @@ body {
 
   .dview-toggle-btn-active {
     background-color: var(--control-active-bg, #ffffff);
-    color: #2563eb;
+    color: var(--text-primary, #14181f);
     box-shadow: var(--shadow-xs);
     font-weight: 900;
   }
 
   .dark .dview-toggle-btn-active {
-    background-color: var(--control-active-bg, #2c2c35);
-    color: #60a5fa;
+    background-color: var(--control-active-bg, #252c3d);
+    color: var(--text-primary, #f4f6fa);
   }
 
   .dview-toggle-btn-active-emerald {
@@ -281,7 +299,7 @@ body {
   }
 
   .dark .dview-toggle-btn-active-emerald {
-    background-color: var(--control-active-bg, #2c2c35);
+    background-color: var(--control-active-bg, #252c3d);
     color: #34d399;
   }
 
@@ -293,7 +311,7 @@ body {
   }
 
   .dark .dview-toggle-btn-active-neutral {
-    background-color: var(--control-active-bg, #2c2c35);
+    background-color: var(--control-active-bg, #252c3d);
   }
 
   .dview-toggle-btn-inactive {
@@ -409,18 +427,44 @@ body {
   }
 
   .dview-control-pill-active {
-    background-color: #2563eb;
+    background-color: #14181f;
     color: #ffffff;
     box-shadow: var(--shadow-xs);
   }
 
   .dview-control-pill-active:hover {
-    background-color: #1d4ed8;
+    background-color: #2c3440;
     color: #ffffff;
   }
 
   .dark .dview-control-pill-active {
-    background-color: #3b82f6;
+    background-color: #f4f6fa;
+    color: #0e1117;
+  }
+
+  .dark .dview-control-pill-active:hover {
+    background-color: #ffffff;
+    color: #0e1117;
+  }
+
+  /* Live Spark v6.0 Jackpot Highlight Primitives (Rare High-Dopamine Events: New High / Peak Heat) */
+  .dview-spark-badge {
+    background-image: linear-gradient(135deg, var(--spark-hot-from, #ff3b5c), var(--spark-hot-to, #ff6b4a));
+    color: #ffffff;
+  }
+
+  .dview-spark-card {
+    background-color: var(--spark-surface, #fff7f8);
+    border: 1px solid var(--spark-border, #ffd6de);
+    box-shadow: var(--spark-glow, 0 2px 12px rgba(255, 59, 92, 0.10));
+  }
+
+  .dview-spark-card:hover {
+    background-color: #fff0f3;
+  }
+
+  .dark .dview-spark-card:hover {
+    background-color: #241928;
   }
 
   /* Progressive SEO Disclosure Accordion (Ad Money v5.1 — Native <details>/<summary> Zero-JS Crawlable Contract) */
@@ -598,9 +642,42 @@ body {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-@media (max-width: 768px) {
-  .recharts-wrapper {
-    touch-action: pan-y;
+@layer base {
+  @media (max-width: 767px) {
+    a,
+    button,
+    summary,
+    select,
+    input:not([type="range"]),
+    label {
+      touch-action: manipulation;
+    }
+
+    input[type="range"] {
+      touch-action: pan-x;
+    }
+
+    .recharts-wrapper {
+      touch-action: pan-y;
+    }
+  }
+}
+
+/* Prevent iOS Safari auto-zoom on text/select input focus while keeping WCAG pinch-to-zoom enabled */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 767px) {
+    input:not([type]),
+    input[type="text"],
+    input[type="search"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="password"],
+    input[type="url"],
+    select,
+    textarea {
+      font-size: 16px;
+    }
   }
 }
 
@@ -613,10 +690,38 @@ body.is-scrolling * {
   pointer-events: none !important;
 }
 
-/* Keep overlay drawer fixed chrome, dismiss controls, and backdrop immediately interactive during scroll */
-body.is-scrolling [data-scroll-interactive="true"],
+/* Inherit pointer-events inside interactive subtrees so .pointer-events-none suppresses descendants naturally */
 body.is-scrolling [data-scroll-interactive="true"] * {
+  pointer-events: inherit !important;
+}
+
+/* Keep visible fixed chrome, dismiss controls, and backdrop immediately interactive during scroll */
+body.is-scrolling [data-scroll-interactive="true"],
+body.is-scrolling [data-scroll-interactive="true"].pointer-events-auto,
+body.is-scrolling [data-scroll-interactive="true"] .pointer-events-auto {
   pointer-events: auto !important;
+}
+
+/* Prevent nested [data-scroll-interactive="true"] inside a .pointer-events-none ancestor from resurrecting clicks unless explicitly .pointer-events-auto */
+body.is-scrolling .pointer-events-none [data-scroll-interactive="true"]:not(.pointer-events-auto):not(.pointer-events-none) {
+  pointer-events: inherit !important;
+}
+
+/* Re-suppress pointer-events on hidden/passthrough (.pointer-events-none), disabled, and inline pointer-events:none elements and their descendants during scroll */
+body.is-scrolling [data-scroll-interactive="true"].pointer-events-none,
+body.is-scrolling [data-scroll-interactive="true"] .pointer-events-none,
+body.is-scrolling [data-scroll-interactive="true"] .disabled\:pointer-events-none:disabled,
+body.is-scrolling [data-scroll-interactive="true"][style*="pointer-events: none" i],
+body.is-scrolling [data-scroll-interactive="true"][style*="pointer-events:none" i],
+body.is-scrolling [data-scroll-interactive="true"] [style*="pointer-events: none" i],
+body.is-scrolling [data-scroll-interactive="true"] [style*="pointer-events:none" i] {
+  pointer-events: none !important;
+}
+
+@media (max-width: 767px) {
+  .dview-safe-sticky-top-12 {
+    top: calc(env(safe-area-inset-top, 0px) + 48px);
+  }
 }
 
 body.is-scrolling,
@@ -838,10 +943,12 @@ body.is-scrolling [class*="backdrop-blur"] {
     text-decoration-color: #334155;
   }
   .dview-explore-tbl tbody td:first-child:not([colspan]) a:hover {
-    color: #2563eb;
+    color: var(--text-primary);
+    text-decoration-color: var(--text-primary);
   }
   .dark .dview-explore-tbl tbody td:first-child:not([colspan]) a:hover {
-    color: #60a5fa;
+    color: var(--text-primary);
+    text-decoration-color: var(--text-primary);
   }
   .dview-explore-tbl tbody td:nth-child(n+3) {
     text-align: right;
@@ -858,35 +965,35 @@ body.is-scrolling [class*="backdrop-blur"] {
     color: #64748b;
   }
   .dview-explore-tbl tbody td:last-child:not([colspan])[data-ratio="1"] {
-    font-weight: 600;
-    color: #047857;
+    font-weight: 700;
+    color: var(--text-primary);
   }
   .dark .dview-explore-tbl tbody td:last-child:not([colspan])[data-ratio="1"] {
-    color: #34d399;
+    color: var(--text-primary);
   }
 
-  /* Compact GuideAptPreviewCard classes (preserves exact Slate/Emerald/Blue Ad Money v5.1 styling; bg-* utilities live on element so cascade layer never breaks dark/hover) */
+  /* Compact GuideAptPreviewCard classes (Ad Money v6.0 Live Spark Neutral Ink Stage) */
   .dview-gcard {
     position: relative;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     border-radius: 1rem;
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    border: 1px solid var(--border-color);
     padding: 1rem;
     text-decoration: none;
     transition: all 200ms ease;
     box-shadow: var(--shadow-xs);
   }
   .dview-gcard:hover {
-    border-color: rgba(16, 185, 129, 0.4);
+    border-color: rgba(20, 24, 31, 0.22);
     box-shadow: var(--shadow-sm);
   }
   .dark .dview-gcard {
-    border-color: #1e293b;
+    border-color: #1e2532;
   }
   .dark .dview-gcard:hover {
-    border-color: rgba(16, 185, 129, 0.4);
+    border-color: rgba(244, 246, 250, 0.25);
   }
   .dview-gcard-dong {
     display: inline-flex;
@@ -894,16 +1001,16 @@ body.is-scrolling [class*="backdrop-blur"] {
     gap: 0.375rem;
     font-size: 11px;
     font-weight: 800;
-    color: #047857;
-    background-color: #ecfdf5;
-    border: 1px solid rgba(167, 243, 208, 0.8);
+    color: var(--text-secondary);
+    background-color: var(--control-track-bg, #eff1f5);
+    border: 1px solid transparent;
     padding: 0.125rem 0.625rem;
     border-radius: 0.5rem;
   }
   .dark .dview-gcard-dong {
-    color: #34d399;
-    background-color: rgba(2, 44, 34, 0.5);
-    border-color: rgba(6, 95, 70, 0.6);
+    color: #cbd5e1;
+    background-color: #1e2532;
+    border-color: transparent;
   }
   .dview-gcard-flag {
     display: inline-flex;
@@ -911,14 +1018,15 @@ body.is-scrolling [class*="backdrop-blur"] {
     gap: 0.25rem;
     font-size: 10.5px;
     font-weight: 800;
-    color: #047857;
-    background-color: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.25);
+    color: var(--text-primary);
+    background-color: var(--control-track-bg, #eff1f5);
+    border: 1px solid transparent;
     padding: 0.125rem 0.5rem;
     border-radius: 0.375rem;
   }
   .dark .dview-gcard-flag {
-    color: #6ee7b7;
+    color: #f4f6fa;
+    background-color: #1e2532;
   }
   .dview-gcard-live {
     display: inline-flex;
@@ -926,16 +1034,16 @@ body.is-scrolling [class*="backdrop-blur"] {
     gap: 0.25rem;
     font-size: 11px;
     font-weight: 700;
-    color: #1d4ed8;
-    background-color: #eff6ff;
-    border: 1px solid rgba(191, 219, 254, 0.7);
+    color: var(--text-secondary);
+    background-color: var(--control-track-bg, #eff1f5);
+    border: 1px solid transparent;
     padding: 0.125rem 0.5rem;
     border-radius: 0.375rem;
   }
   .dark .dview-gcard-live {
-    color: #60a5fa;
-    background-color: rgba(23, 37, 84, 0.4);
-    border-color: rgba(30, 64, 175, 0.5);
+    color: #cbd5e1;
+    background-color: #1e2532;
+    border-color: transparent;
   }
   .dview-gcard-arrow {
     display: inline-flex;
@@ -944,30 +1052,35 @@ body.is-scrolling [class*="backdrop-blur"] {
     width: 1.75rem;
     height: 1.75rem;
     border-radius: 0.75rem;
-    background-color: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    color: #047857;
+    background-color: var(--control-track-bg, #eff1f5);
+    border: 1px solid transparent;
+    color: var(--text-primary);
     flex-shrink: 0;
     transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
   }
   .dark .dview-gcard-arrow {
-    background-color: rgba(16, 185, 129, 0.2);
-    color: #6ee7b7;
+    background-color: #1e2532;
+    color: #f4f6fa;
   }
   .dview-gcard:hover .dview-gcard-arrow {
-    background-color: #059669;
-    border-color: #059669;
+    background-color: #14181f;
+    border-color: #14181f;
     color: #ffffff;
+  }
+  .dark .dview-gcard:hover .dview-gcard-arrow {
+    background-color: #f4f6fa;
+    border-color: #f4f6fa;
+    color: #0e1117;
   }
   .dview-gcard-m {
     border-radius: 0.75rem;
     background-color: #ffffff;
-    border: 1px solid rgba(226, 232, 240, 0.6);
+    border: 1px solid var(--border-color);
     padding: 0.5rem 0.75rem;
   }
   .dark .dview-gcard-m {
-    background-color: rgba(15, 23, 42, 0.9);
-    border-color: rgba(30, 41, 59, 0.7);
+    background-color: #151a23;
+    border-color: #1e2532;
   }
   .dview-gcard-cta {
     display: inline-flex;
@@ -975,19 +1088,26 @@ body.is-scrolling [class*="backdrop-blur"] {
     gap: 0.25rem;
     padding: 0.25rem 0.625rem;
     border-radius: 0.5rem;
-    background-color: #059669;
+    background-color: #14181f;
     color: #ffffff;
     font-size: 11px;
     font-weight: 800;
     flex-shrink: 0;
     transition: background-color 150ms ease;
   }
+  .dark .dview-gcard-cta {
+    background-color: #f4f6fa;
+    color: #0e1117;
+  }
   .dview-gcard:hover .dview-gcard-cta {
-    background-color: #047857;
+    background-color: #2c3440;
+  }
+  .dark .dview-gcard:hover .dview-gcard-cta {
+    background-color: #ffffff;
   }
   .dview-gcard-ret {
     border-radius: 0.75rem;
-    background-color: #f9fafb;
+    background-color: var(--bg-elevated, #f7f8fa);
     padding: 0.5rem 0.75rem;
     display: flex;
     flex-wrap: wrap;
@@ -997,12 +1117,12 @@ body.is-scrolling [class*="backdrop-blur"] {
     min-width: 0;
   }
   .dark .dview-gcard-ret {
-    background-color: #17171c;
+    background-color: #151a23;
   }
   .dview-gcard-t {
     font-size: 15px;
     font-weight: 900;
-    color: #0f172a;
+    color: var(--text-primary);
     line-height: 1.375;
     word-break: keep-all;
     transition: color 150ms ease;
@@ -1013,13 +1133,13 @@ body.is-scrolling [class*="backdrop-blur"] {
     }
   }
   .dark .dview-gcard-t {
-    color: #f8fafc;
+    color: #f4f6fa;
   }
   .dview-gcard:hover .dview-gcard-t {
-    color: #059669;
+    color: var(--text-primary);
   }
   .dark .dview-gcard:hover .dview-gcard-t {
-    color: #34d399;
+    color: #ffffff;
   }
   .dview-gcard-sub {
     margin-left: 0.375rem;
@@ -1035,11 +1155,11 @@ body.is-scrolling [class*="backdrop-blur"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.625rem;
     padding-top: 0.625rem;
-    border-top: 1px solid rgba(226, 232, 240, 0.7);
+    border-top: 1px solid var(--border-color);
     font-size: 0.75rem;
   }
   .dark .dview-gcard-dl {
-    border-top-color: rgba(30, 41, 59, 0.8);
+    border-top-color: #1e2532;
   }
   .dview-gcard-k {
     font-size: 11px;
@@ -1063,14 +1183,14 @@ body.is-scrolling [class*="backdrop-blur"] {
   }
   .dview-gcard-v1 {
     font-weight: 900;
-    color: #047857;
+    color: var(--text-primary);
   }
   .dark .dview-gcard-v1 {
-    color: #34d399;
+    color: #f4f6fa;
   }
   .dview-gcard-v2 {
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text-primary);
   }
   .dark .dview-gcard-v2 {
     color: #f1f5f9;
@@ -1088,7 +1208,7 @@ body.is-scrolling [class*="backdrop-blur"] {
   .dview-gcard-ft {
     margin-top: 0.75rem;
     padding-top: 0.625rem;
-    border-top: 1px solid rgba(226, 232, 240, 0.6);
+    border-top: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1096,7 +1216,7 @@ body.is-scrolling [class*="backdrop-blur"] {
     font-size: 11px;
   }
   .dark .dview-gcard-ft {
-    border-top-color: rgba(30, 41, 59, 0.7);
+    border-top-color: #1e2532;
   }
   .dview-gcard-dt {
     display: inline-flex;
@@ -1113,7 +1233,7 @@ body.is-scrolling [class*="backdrop-blur"] {
     color: #94a3b8;
   }
 
-  /* Compact QuickNonLoginRetentionAction button classes (25x/guide page) */
+  /* Compact QuickNonLoginRetentionAction button classes (Live Spark Ink) */
   .dview-ret-btn {
     display: inline-flex;
     align-items: center;
@@ -1150,64 +1270,73 @@ body.is-scrolling [class*="backdrop-blur"] {
   }
   .dview-ret-fav {
     background-color: var(--bg-surface);
-    border: 1px solid rgba(226, 232, 240, 0.9);
+    border: 1px solid var(--border-color);
     color: var(--text-primary);
   }
   .dview-ret-fav:hover {
-    background-color: #eff6ff;
-    color: #2563eb;
+    background-color: var(--control-track-bg, #eff1f5);
+    color: var(--text-primary);
   }
   .dark .dview-ret-fav {
-    background-color: #202027;
-    border-color: #334155;
+    background-color: #1e2532;
+    border-color: #252c3d;
   }
   .dark .dview-ret-fav:hover {
-    background-color: rgba(23, 37, 84, 0.4);
-    color: #60a5fa;
+    background-color: #252c3d;
+    color: #ffffff;
   }
   .dview-ret-fav-on {
-    background-color: #ecfdf5;
-    border: 1px solid #a7f3d0;
-    color: #047857;
+    background-color: var(--control-track-bg, #eff1f5);
+    border: 1px solid rgba(20, 24, 31, 0.2);
+    color: var(--text-primary);
   }
   .dview-ret-fav-on:hover {
-    background-color: #d1fae5;
+    background-color: #e2e6ed;
   }
   .dark .dview-ret-fav-on {
-    background-color: rgba(2, 44, 34, 0.5);
-    border-color: rgba(6, 95, 70, 0.6);
-    color: #6ee7b7;
+    background-color: #252c3d;
+    border-color: rgba(244, 246, 250, 0.25);
+    color: #f4f6fa;
   }
   .dark .dview-ret-fav-on:hover {
-    background-color: rgba(6, 78, 59, 0.6);
+    background-color: #2f384d;
   }
   .dview-ret-7am {
-    background-color: #2563eb;
+    background-color: #14181f;
     color: #ffffff;
     border: 1px solid transparent;
     font-variant-numeric: tabular-nums;
   }
   .dview-ret-7am:hover {
-    background-color: #1d4ed8;
+    background-color: #2c3440;
+  }
+  .dark .dview-ret-7am {
+    background-color: #f4f6fa;
+    color: #0e1117;
+  }
+  .dark .dview-ret-7am:hover {
+    background-color: #ffffff;
   }
   .dview-ret-7am-on {
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+    box-shadow: 0 0 0 2px rgba(20, 24, 31, 0.22);
   }
 
-  /* Compact Guide inline links, shortcut pills & recommendation cards */
+  /* Compact Guide inline links, shortcut pills & recommendation cards (Live Spark Ink) */
   .dview-g-ilink {
     font-weight: 800;
-    color: #047857;
+    color: var(--text-primary);
     text-decoration: underline;
-    text-decoration-color: rgba(16, 185, 129, 0.4);
+    text-decoration-color: rgba(20, 24, 31, 0.3);
     text-underline-offset: 4px;
-    transition: color 150ms ease;
+    transition: color 150ms ease, text-decoration-color 150ms ease;
   }
   .dview-g-ilink:hover {
-    color: #059669;
+    color: var(--brand-blue);
+    text-decoration-color: var(--brand-blue);
   }
   .dark .dview-g-ilink {
-    color: #34d399;
+    color: #f4f6fa;
+    text-decoration-color: rgba(244, 246, 250, 0.35);
   }
   .dview-g-pill {
     display: inline-flex;
@@ -1216,23 +1345,24 @@ body.is-scrolling [class*="backdrop-blur"] {
     padding: 0.375rem 0.75rem;
     border-radius: 0.75rem;
     background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-color);
     font-size: 0.75rem;
     font-weight: 700;
-    color: #1e293b;
-    transition: border-color 150ms ease;
+    color: var(--text-primary);
+    transition: border-color 150ms ease, background-color 150ms ease;
   }
   .dview-g-pill:hover {
-    border-color: rgba(16, 185, 129, 0.6);
+    border-color: rgba(20, 24, 31, 0.25);
+    background-color: var(--bg-elevated);
   }
   .dark .dview-g-pill {
-    background-color: rgba(30, 41, 59, 0.9);
-    border-color: #334155;
-    color: #f1f5f9;
+    background-color: #151a23;
+    border-color: #1e2532;
+    color: #f4f6fa;
   }
   .dview-g-rcard {
     background-color: var(--bg-surface);
-    border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+    border: 1px solid var(--border-color);
     border-radius: 1rem;
     padding: 1.25rem;
     box-shadow: var(--shadow-xs);
@@ -1242,14 +1372,14 @@ body.is-scrolling [class*="backdrop-blur"] {
     transition: border-color 200ms ease, box-shadow 200ms ease;
   }
   .dview-g-rcard:hover {
-    border-color: rgba(16, 185, 129, 0.4);
+    border-color: rgba(20, 24, 31, 0.22);
     box-shadow: var(--shadow-md);
   }
 
   /* Compact apartment SSR peer cards & tables */
   .dview-apt-peer {
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background-color: var(--bg-elevated, #f7f8fa);
+    border: 1px solid var(--border-color, #eef0f4);
     border-radius: 1rem;
     padding: 1rem;
     display: flex;
@@ -1259,14 +1389,14 @@ body.is-scrolling [class*="backdrop-blur"] {
     transition: border-color 150ms ease;
   }
   .dview-apt-peer:hover {
-    border-color: #6ee7b7;
+    border-color: rgba(20, 24, 31, 0.25);
   }
   .dark .dview-apt-peer {
-    background-color: rgba(30, 41, 59, 0.6);
-    border-color: rgba(51, 65, 85, 0.6);
+    background-color: #151a23;
+    border-color: #1e2532;
   }
   .dark .dview-apt-peer:hover {
-    border-color: #047857;
+    border-color: rgba(244, 246, 250, 0.25);
   }
   .dview-apt-tbl tbody td,
   .dview-apt-tbl tbody th {
@@ -1291,5 +1421,23 @@ body.is-scrolling [class*="backdrop-blur"] {
   }
   .dark .dview-apt-pyeong-tbl tbody tr:hover {
     background-color: rgba(255, 255, 255, 0.03);
+  }
+
+  /* Touch-friendly mobile range slider (22px thumb + pan-x gesture isolation) */
+  .dview-range-slider {
+    touch-action: pan-x;
+    min-height: 28px;
+  }
+  .dview-range-slider::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 9999px;
+    cursor: pointer;
+  }
+  .dview-range-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 9999px;
+    cursor: pointer;
   }
 }

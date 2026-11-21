@@ -1,9 +1,15 @@
 import {
   processMacroTrendData,
   formatXAxisTick,
+  formatTooltipPeriodLabel,
   calculateMacroGapAndRatio,
   buildApartmentMacroChartData,
+  buildApartmentGranularChartData,
   filterChartTimeframe,
+  filterChartTimeframeByGranularity,
+  parseMacroTrendSeriesPayload,
+  resolveGranularityForTimeframe,
+  computeNonOverlappingXTicks,
   extractYearMonth,
 } from './macroChartTransform';
 
@@ -524,6 +530,101 @@ describe('macroChartTransform utilities', () => {
     it('preserves recent slice order', () => {
       const threeM = filterChartTimeframe(mockData, '3M');
       expect(threeM.map((d) => d.name)).toEqual(['point-45', 'point-46', 'point-47']);
+    });
+  });
+
+  describe('Granular Dongtan Macro Trend Helpers (daily / weekly / monthly + tx counts)', () => {
+    it('formats daily, weekly (including year boundary), and monthly tooltip labels accurately', () => {
+      expect(formatTooltipPeriodLabel('26.11', 'monthly')).toBe('26년 11월');
+      expect(formatTooltipPeriodLabel('26.11.18', 'daily')).toBe('26년 11월 18일 (수)');
+      expect(formatTooltipPeriodLabel('26.11.09', 'weekly')).toBe('26.11.09 ~ 11.15 (주간)');
+      expect(formatTooltipPeriodLabel('25.12.29', 'weekly')).toBe('25.12.29 ~ 26.01.04 (주간)');
+      expect(formatXAxisTick('26.11.18', 'daily')).toBe('26.11.18');
+    });
+
+    it('parses compact macro-trend-series payload with saleCount and rentCount', () => {
+      const parsed = parseMacroTrendSeriesPayload({
+        version: 1,
+        generatedAt: '2026-11-21T00:00:00.000Z',
+        latestContractDate: '20261118',
+        fields: ['name', 'sale', 'rent', 'saleCount', 'rentCount'],
+        daily: [['26.11.18', 8.59, 4.83, 15, 22]],
+        weekly: [['26.11.09', 9.19, 4.94, 93, 107]],
+        monthly: [['26.11', 9.02, 4.83, 230, 248]],
+      });
+
+      expect(parsed).not.toBeNull();
+      expect(parsed!.daily).toEqual([
+        { name: '26.11.18', '동탄 아파트 전체': 8.59, '동탄 아파트 전세 평균': 4.83, saleCount: 15, rentCount: 22 },
+      ]);
+      expect(parsed!.weekly[0].saleCount).toBe(93);
+      expect(parsed!.monthly[0].rentCount).toBe(248);
+    });
+
+    it('filters daily and weekly points by exact calendar window relative to latest date', () => {
+      const dailyPoints = [
+        { name: '25.01.10' },
+        { name: '26.06.01' },
+        { name: '26.09.01' },
+        { name: '26.11.18' },
+      ];
+      expect(filterChartTimeframeByGranularity(dailyPoints, '3M', 'daily').map((d) => d.name)).toEqual([
+        '26.09.01',
+        '26.11.18',
+      ]);
+      expect(filterChartTimeframeByGranularity(dailyPoints, '6M', 'daily').map((d) => d.name)).toEqual([
+        '26.06.01',
+        '26.09.01',
+        '26.11.18',
+      ]);
+      expect(filterChartTimeframeByGranularity(dailyPoints, 'ALL', 'daily')).toHaveLength(4);
+    });
+
+    it('builds individual apartment granular daily/weekly/monthly series with true transaction counts (never faking zero-tx months)', () => {
+      const txs = [
+        { contractYm: '202609', contractDay: '02', dealType: '매매', price: 150000 },
+        { contractYm: '202609', contractDay: '02', dealType: '매매', price: 160000 },
+        { contractYm: '202609', contractDay: '04', dealType: '전세', deposit: 70000 },
+        { contractYm: '202611', contractDay: '10', dealType: '매매', price: 170000 },
+        { contractYm: '202611', contractDay: '11', dealType: '매매', price: 999999, cancelDate: '20261112' },
+      ];
+
+      const daily = buildApartmentGranularChartData(txs, 'daily');
+      expect(daily.map((d) => d.name)).toEqual(['26.09.02', '26.09.04', '26.11.10']);
+      expect(daily[0]['동탄 아파트 전체']).toBe(15.5);
+      expect(daily[0].saleCount).toBe(2);
+      expect(daily[1].rentCount).toBe(1);
+      expect(daily[2].saleCount).toBe(1);
+
+      const weekly = buildApartmentGranularChartData(txs, 'weekly');
+      // 2026-09-02 (Wed) & 2026-09-04 (Fri) share week Monday 2026-08-31
+      expect(weekly.map((w) => w.name)).toEqual(['26.08.31', '26.11.09']);
+      expect(weekly[0].saleCount).toBe(2);
+      expect(weekly[0].rentCount).toBe(1);
+
+      const monthly = buildApartmentGranularChartData(txs, 'monthly');
+      expect(monthly.map((m) => m.name)).toEqual(['26.09', '26.10', '26.11']);
+      expect(monthly[0].saleCount).toBe(2);
+      expect(monthly[1].saleCount).toBe(0); // forward-filled price, but TRUE 0 count
+      expect(monthly[1]['동탄 아파트 전체']).toBe(15.5);
+      expect(monthly[2].saleCount).toBe(1);
+    });
+
+    it('resolves weekly granularity up to 1Y (3M/6M/1Y) and monthly from 3Y onward (3Y/5Y/ALL)', () => {
+      expect(resolveGranularityForTimeframe('3M')).toBe('weekly');
+      expect(resolveGranularityForTimeframe('6M')).toBe('weekly');
+      expect(resolveGranularityForTimeframe('1Y')).toBe('weekly');
+      expect(resolveGranularityForTimeframe('3Y')).toBe('monthly');
+      expect(resolveGranularityForTimeframe('5Y')).toBe('monthly');
+      expect(resolveGranularityForTimeframe('ALL')).toBe('monthly');
+    });
+
+    it('computes non-overlapping X ticks preserving endpoints cleanly', () => {
+      const pts = Array.from({ length: 30 }, (_, i) => ({ name: `d-${i}` }));
+      const ticks = computeNonOverlappingXTicks(pts, 6);
+      expect(ticks[0]).toBe('d-0');
+      expect(ticks[ticks.length - 1]).toBe('d-29');
+      expect(ticks.length).toBeLessThanOrEqual(7);
     });
   });
 });

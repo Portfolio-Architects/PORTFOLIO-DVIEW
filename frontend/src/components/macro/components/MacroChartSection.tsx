@@ -35,6 +35,8 @@ export interface MacroChartSectionProps {
   onHoverApt?: (name: string) => void;
   timeframe: '3M' | '6M' | '1Y' | '3Y' | '5Y' | 'ALL';
   setTimeframe: (tf: '3M' | '6M' | '1Y' | '3Y' | '5Y' | 'ALL') => void;
+  isGranularLoading?: boolean;
+  isSplitMode?: boolean;
   isAptTxLoading: boolean;
   aptRealTxData: any[] | null;
   mainLineData: any[];
@@ -91,6 +93,8 @@ export const MacroChartSection = React.memo(function MacroChartSection({
   onHoverApt,
   timeframe,
   setTimeframe,
+  isGranularLoading = false,
+  isSplitMode = false,
   isAptTxLoading,
   aptRealTxData,
   mainLineData,
@@ -591,8 +595,8 @@ export const MacroChartSection = React.memo(function MacroChartSection({
         onClick={() => handleSelectApartment(apt, opts?.isCrossDong)}
         className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl text-left cursor-pointer transition-colors ${
           isHighlightedRow
-            ? 'bg-blue-50/90 dark:bg-blue-950/40'
-            : 'hover:bg-[#f9fafb] dark:hover:bg-[#202027]'
+            ? 'bg-[#eff1f5] dark:bg-[#1e2532]'
+            : 'hover:bg-[#f7f8fa] dark:hover:bg-[#151a23]'
         }`}
       >
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -604,7 +608,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
               seg.highlighted ? (
                 <span
                   key={idx}
-                  className="text-blue-600 dark:text-blue-400 font-black"
+                  className="text-primary underline decoration-brand-red/60 underline-offset-2 font-black"
                 >
                   {seg.text}
                 </span>
@@ -613,17 +617,17 @@ export const MacroChartSection = React.memo(function MacroChartSection({
               )
             )}
           </span>
-          <span className="px-1.5 py-0.5 rounded-md bg-[#f2f4f6] dark:bg-[#202027] text-[10.5px] font-bold text-secondary shrink-0">
+          <span className="px-1.5 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-[10.5px] font-bold text-secondary shrink-0">
             {apt.dong}
           </span>
           {isCurrentlySelected && (
-            <Check size={12} className="text-blue-600 dark:text-blue-400 shrink-0" />
+            <Check size={12} className="text-primary shrink-0" />
           )}
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
           {apt.realPriceLabel ? (
-            <span className="text-[11.5px] font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">
+            <span className="text-[11.5px] font-extrabold text-primary tabular-nums">
               {apt.realPriceLabel}
             </span>
           ) : apt.householdCount ? (
@@ -646,14 +650,14 @@ export const MacroChartSection = React.memo(function MacroChartSection({
               });
               effectiveToggleFavorite(apt.name);
             }}
-            className="p-0.5 rounded-md text-tertiary hover:text-blue-600 dark:hover:text-blue-400 hover:bg-[#f2f4f6] dark:hover:bg-[#2c2c35] transition-colors cursor-pointer"
+            className="p-0.5 rounded-md text-tertiary hover:text-primary hover:bg-[#eff1f5] dark:hover:bg-[#252c3d] transition-colors cursor-pointer"
           >
             <Star
               size={12}
               className={
                 isRowFavorite
-                  ? 'fill-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'text-tertiary hover:text-blue-500'
+                  ? 'fill-slate-900 text-slate-900 dark:fill-white dark:text-white'
+                  : 'text-tertiary hover:text-primary'
               }
             />
           </button>
@@ -674,31 +678,70 @@ export const MacroChartSection = React.memo(function MacroChartSection({
     );
   };
 
+  const periodTxSummary = useMemo(() => {
+    if (!Array.isArray(mainLineData) || mainLineData.length === 0) {
+      return { hasCount: false, saleTotal: 0, rentTotal: 0 };
+    }
+    let hasCount = false;
+    let saleTotal = 0;
+    let rentTotal = 0;
+    for (let i = 0; i < mainLineData.length; i++) {
+      const pt = mainLineData[i];
+      if (typeof pt?.saleCount === 'number' && Number.isFinite(pt.saleCount)) {
+        hasCount = true;
+        saleTotal += pt.saleCount;
+      }
+      if (typeof pt?.rentCount === 'number' && Number.isFinite(pt.rentCount)) {
+        rentTotal += pt.rentCount;
+      }
+    }
+    return { hasCount, saleTotal, rentTotal };
+  }, [mainLineData]);
+
   const idlePlaceholder = selectedTimelineApt
     ? `${getDisplayAptName(selectedTimelineApt)} · 단지명/초성 검색`
-    : '전체 추이 보기 · 단지명/초성 검색';
+    : '동탄 전체 아파트 · 단지명/초성 검색';
+
+  const outerHeightClass = isSplitMode
+    ? 'lg:h-[526px]'
+    : 'lg:h-[600px] xl:h-[640px]';
+
+  const chartAreaMinHeightClass = isSplitMode
+    ? 'min-h-[240px] md:min-h-[280px]'
+    : 'min-h-[300px] md:min-h-[340px] lg:min-h-[430px] xl:min-h-[470px]';
 
   return (
-    <div className={`w-full flex flex-col gap-4 min-w-0 lg:h-[526px] box-border ${className || ''}`}>
+    <div
+      data-testid="macro-chart-section-root"
+      className={`w-full flex flex-col gap-4 min-w-0 ${outerHeightClass} box-border ${className || ''}`}
+    >
       {/* Right Panel: Interactive Market Feed & Trend */}
-      <div className="w-full flex flex-col bg-surface pb-2 flex-1 lg:h-[526px] min-h-[420px] min-w-0 box-border justify-between">
-        <div className="flex-1 flex flex-col min-h-[260px] md:min-h-[300px]">
-          {/* Header Row: Title & Action + Timeframe (relative z-20 so Zero-CLS combobox popover floats cleanly over chart) */}
-          <div className="relative z-20 flex flex-col gap-3 mb-4 pb-3.5 border-b border-border/40 w-full min-w-0">
+      <div className={`w-full flex flex-col bg-surface pb-2 flex-1 ${outerHeightClass} min-h-[430px] min-w-0 box-border justify-between`}>
+        <div className="flex-1 flex flex-col min-h-[260px] md:min-h-[320px]">
+          {/* Header Row: Title & Action + Granularity & Timeframe (relative z-20 so Zero-CLS combobox popover floats cleanly over chart) */}
+          <div className="relative z-20 flex flex-col gap-3 mb-3.5 pb-3.5 border-b border-border/40 w-full min-w-0">
             <div className="flex justify-between items-center w-full gap-2 flex-wrap">
               {/* Title & Detail CTA */}
               <div className="flex items-center gap-2 min-w-0 flex-wrap">
                 <h3 className="text-[14.5px] sm:text-[15.5px] font-black text-primary tracking-tight flex items-center gap-1.5 break-keep">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shrink-0" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-primary shrink-0" />
                   <span>
                     {selectedTimelineApt
                       ? `${getDisplayAptName(selectedTimelineApt)} 시세 추이`
-                      : '동탄 아파트 시세 추이'}
+                      : '동탄 전체 아파트 실거래 시세 추이'}
                   </span>
                 </h3>
 
                 {selectedTimelineApt && !isDefaultAptSettingUp && (
                   <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                    <button
+                      type="button"
+                      data-testid="chart-header-reset-all-cta"
+                      onClick={handleSelectMacroAll}
+                      className="px-2.5 py-1 bg-[#eff1f5] hover:bg-slate-200/80 text-secondary hover:text-primary dark:bg-[#1e2532] dark:hover:bg-[#252c3d] border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-2xs"
+                    >
+                      동탄 전체
+                    </button>
                     <button
                       type="button"
                       data-testid="chart-header-favorite-cta"
@@ -716,8 +759,8 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                       }}
                       className={`px-2.5 py-1 border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-2xs ${
                         isSelectedAptFavorite
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                          : 'bg-slate-100 hover:bg-blue-50 text-secondary hover:text-blue-600 dark:bg-slate-800 dark:hover:bg-blue-950/40 dark:hover:text-blue-400'
+                          ? 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white'
+                          : 'bg-[#eff1f5] hover:bg-slate-200/80 text-secondary hover:text-primary dark:bg-[#1e2532] dark:hover:bg-[#252c3d]'
                       }`}
                     >
                       <Star
@@ -731,7 +774,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                         type="button"
                         data-testid="chart-header-mortgage-cta"
                         onClick={() => onOpenMortgageModal(selectedTimelineApt)}
-                        className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 dark:text-emerald-400 border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-2xs"
+                        className="px-2.5 py-1 bg-[#eff1f5] hover:bg-slate-200/80 text-primary dark:bg-[#1e2532] dark:hover:bg-[#252c3d] border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-2xs"
                       >
                         대출·한도 계산
                       </button>
@@ -742,7 +785,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                       onClick={() => onSelectApt && onSelectApt(selectedTimelineApt, currentAptObj?.dong)}
                       onMouseEnter={() => onHoverApt && onHoverApt(selectedTimelineApt)}
                       onTouchStart={() => onHoverApt && onHoverApt(selectedTimelineApt)}
-                      className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 dark:text-blue-400 border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-xs"
+                      className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-xs"
                     >
                       <span>상세 리포트 보기</span>
                       <ArrowRight size={11} strokeWidth={2.5} className="shrink-0" />
@@ -751,7 +794,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                 )}
               </div>
 
-              {/* Timeframe Selector (3M, 6M, 1Y, 3Y, 5Y, ALL) */}
+              {/* Timeframe Selector (3M/6M/1Y: 주차별, 3Y/5Y/ALL: 월별 자동 집계) */}
               <TimeframeSelector
                 timeframe={timeframe}
                 setTimeframe={setTimeframe}
@@ -887,7 +930,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                           <ChevronDown
                             size={14}
                             className={`transition-transform duration-150 ${
-                              isDropdownOpen ? 'rotate-180 text-blue-600 dark:text-blue-400' : ''
+                              isDropdownOpen ? 'rotate-180 text-primary' : ''
                             }`}
                           />
                         </button>
@@ -958,27 +1001,27 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                               onClick={handleSelectMacroAll}
                               className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl text-left cursor-pointer transition-colors ${
                                 activeIndex === (navIndexByKey.get('macro-all') ?? 0)
-                                  ? 'bg-blue-50/90 dark:bg-blue-950/40'
-                                  : 'hover:bg-[#f9fafb] dark:hover:bg-[#202027]'
+                                  ? 'bg-[#eff1f5] dark:bg-[#1e2532]'
+                                  : 'hover:bg-[#f7f8fa] dark:hover:bg-[#151a23]'
                               }`}
                             >
                               <div className="flex items-center gap-1.5 min-w-0">
-                                <span className="text-[12.5px] font-extrabold text-blue-600 dark:text-blue-400 truncate">
+                                <span className="text-[12.5px] font-extrabold text-primary truncate">
                                   전체 추이 보기 (동탄 매크로 평균)
                                 </span>
                               </div>
                               {selectedTimelineApt === null && (
                                 <Check
                                   size={12}
-                                  className="text-blue-600 dark:text-blue-400 shrink-0"
+                                  className="text-primary shrink-0"
                                 />
                               )}
                             </div>
 
                             {/* Saved Favorite Apartments */}
                             {selectedDong === 'all' && favoriteResolvedApts.length > 0 && (
-                              <div className="pt-1 border-t border-[#f2f4f6] dark:border-[#202027]">
-                                <div className="px-2.5 py-1 text-[10.5px] font-extrabold text-blue-600 dark:text-blue-400 flex items-center justify-between tabular-nums">
+                              <div className="pt-1 border-t border-[#eff1f5] dark:border-[#1e2532]">
+                                <div className="px-2.5 py-1 text-[10.5px] font-extrabold text-primary flex items-center justify-between tabular-nums">
                                   <span>내 관심단지 ({favoriteResolvedApts.length})</span>
                                 </div>
                                 {favoriteResolvedApts.map((apt) =>
@@ -1039,30 +1082,61 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                       </div>
                     )}
                   </div>
+
+                  {/* 3. Inline Chart Legend & Real Transaction Count Summary */}
+                  <div
+                    data-testid="chart-period-tx-summary"
+                    className="flex items-center gap-2.5 sm:gap-3 text-[11.5px] font-bold text-secondary shrink-0 tabular-nums flex-wrap"
+                  >
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-brand-blue shrink-0" />
+                      <span>매매가</span>
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-slate-500 shrink-0" />
+                      <span>전세가</span>
+                    </span>
+                    {periodTxSummary.hasCount && (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-[#f7f8fa] dark:bg-[#151a23] text-primary">
+                        <span className="w-2 h-2 rounded-[2px] bg-slate-400/35 border border-slate-500/50 shrink-0" />
+                        <span className="text-tertiary font-bold">매매</span>
+                        <span className="font-black text-primary">
+                          {periodTxSummary.saleTotal.toLocaleString()}건
+                        </span>
+                        {periodTxSummary.rentTotal > 0 && (
+                          <>
+                            <span className="text-tertiary/50 font-normal">·</span>
+                            <span className="text-tertiary font-bold">전세</span>
+                            <span className="font-extrabold text-secondary">
+                              {periodTxSummary.rentTotal.toLocaleString()}건
+                            </span>
+                          </>
+                        )}
+                      </span>
+                    )}
+                  </div>
                 </div>
             )}
           </div>
 
-          <div className="w-full flex-1 min-h-[240px] md:min-h-[280px] relative z-10 overflow-hidden mt-2 sm:mt-0">
-            {isDefaultAptSettingUp || (isAptTxLoading && !aptRealTxData && !!selectedTimelineApt) ? (
-              <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-slate-50/30 dark:bg-slate-900/10 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
-                <div className="absolute w-[180px] h-[180px] rounded-full bg-blue-50/60 blur-[60px] top-1/2 left-1/3 -translate-y-1/2 pointer-events-none" />
-                <div className="absolute w-[180px] h-[180px] rounded-full bg-emerald-500/5 blur-[60px] top-1/2 right-1/3 -translate-y-1/2 pointer-events-none" />
-
+          <div className={`w-full flex-1 ${chartAreaMinHeightClass} relative z-10 overflow-hidden mt-1.5 sm:mt-0`}>
+            {isDefaultAptSettingUp ||
+            (isAptTxLoading && !aptRealTxData && !!selectedTimelineApt) ||
+            (isGranularLoading && !selectedTimelineApt) ? (
+              <div className="w-full h-full min-h-[260px] flex flex-col items-center justify-center bg-[#f7f8fa]/60 dark:bg-[#151a23]/60 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
                 <div className="flex items-center gap-1.5 mb-3.5 flex-none">
-                  <div className="w-1.5 h-6 bg-blue-600/30 rounded-full animate-bounce duration-500 delay-100" />
-                  <div className="w-1.5 h-10 bg-blue-600/40 rounded-full animate-bounce duration-500 delay-200" />
-                  <div className="w-1.5 h-14 bg-blue-600/60 rounded-full animate-bounce duration-500 delay-300" />
-                  <div className="w-1.5 h-10 bg-emerald-500/50 rounded-full animate-bounce duration-500 delay-400" />
-                  <div className="w-1.5 h-12 bg-emerald-500/60 rounded-full animate-bounce duration-500 delay-500" />
-                  <div className="w-1.5 h-8 bg-emerald-500/40 rounded-full animate-bounce duration-500 delay-600" />
+                  <div className="w-1.5 h-6 bg-slate-300 dark:bg-slate-700 rounded-full animate-bounce duration-500 delay-100" />
+                  <div className="w-1.5 h-10 bg-slate-400/70 dark:bg-slate-600 rounded-full animate-bounce duration-500 delay-200" />
+                  <div className="w-1.5 h-14 bg-slate-500/70 dark:bg-slate-500 rounded-full animate-bounce duration-500 delay-300" />
+                  <div className="w-1.5 h-10 bg-slate-400/70 dark:bg-slate-600 rounded-full animate-bounce duration-500 delay-400" />
+                  <div className="w-1.5 h-12 bg-slate-500/70 dark:bg-slate-500 rounded-full animate-bounce duration-500 delay-500" />
+                  <div className="w-1.5 h-8 bg-slate-300 dark:bg-slate-700 rounded-full animate-bounce duration-500 delay-600" />
                 </div>
 
                 <span className="text-secondary text-[12.5px] font-extrabold mb-1.5 tracking-tight">
-                  관심 단지 정보를 분석하고 있습니다...
-                </span>
-                <span className="text-[10px] text-tertiary font-bold opacity-75">
-                  내 자산 가치에 맞춘 전용 리포트를 생성하는 중입니다.
+                  {selectedTimelineApt
+                    ? '단지 실거래 데이터를 불러오는 중입니다'
+                    : '동탄 전체 실거래 데이터를 집계하고 있습니다'}
                 </span>
               </div>
             ) : (

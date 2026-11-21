@@ -111,7 +111,7 @@ export const QuickNonLoginRetentionAction = React.memo(function QuickNonLoginRet
 
       if (nextIsFavorite) {
         showToast?.(
-          `${resolvedDisplay} 로그인 없이 관심단지에 찜했습니다 · 평일 07시 실거래 알림도 켜보세요`
+          `${resolvedDisplay} 로그인 없이 관심단지에 찜했습니다 · 매일 오전 7시대 실거래 알림도 켜보세요`
         );
       }
     },
@@ -179,8 +179,8 @@ export const QuickNonLoginRetentionAction = React.memo(function QuickNonLoginRet
     favUnselectedLabel ?? (isCompact ? '비로그인 찜' : '비로그인 1초 찜');
   const resolvedFavSelected = favSelectedLabel ?? (isCompact ? '찜됨' : '관심 찜됨');
   const resolvedAlertText = isFavorite
-    ? alertPostFavLabel ?? '평일 07시 알림'
-    : alertLabel ?? (isCompact ? '07시 알림' : '평일 07시 알림');
+    ? alertPostFavLabel ?? '매일 07시 알림'
+    : alertLabel ?? (isCompact ? '07시 알림' : '매일 07시 알림');
 
   const sizeCls = isCompact ? 'dview-ret-xs' : 'dview-ret-sm';
 
@@ -204,14 +204,14 @@ export const QuickNonLoginRetentionAction = React.memo(function QuickNonLoginRet
               name="check"
               size={isCompact ? 12 : 13}
               strokeWidth={2.5}
-              className="text-emerald-600 dark:text-emerald-400"
+              className="text-current"
             />
           ) : (
             <DviewIcon
               name="star"
               size={isCompact ? 12 : 13}
               strokeWidth={2.3}
-              className="text-blue-600 dark:text-blue-400"
+              className="text-primary"
             />
           )}
           {isFavorite ? (

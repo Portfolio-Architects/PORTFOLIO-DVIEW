@@ -74,9 +74,6 @@ export default async function NewsPage() {
         className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 py-8 mt-6 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-900/40 rounded-2xl text-slate-700 dark:text-slate-300 tabular-nums"
       >
         <header className="mb-6">
-          <p className="text-[11px] font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1.5">
-            PUBLIC INFRASTRUCTURE &amp; POLICY BRIEFING
-          </p>
           <h1 className="text-[20px] sm:text-[24px] font-black text-slate-900 dark:text-slate-100 tracking-tight">
             D-VIEW 동탄 소식 및 행정 공지
           </h1>

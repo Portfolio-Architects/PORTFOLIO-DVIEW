@@ -331,7 +331,7 @@ export function StatsPageClient({
 
           {/* AdSlot 1: Top Horizontal-Strip */}
           {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
-            <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden empty:hidden">
+            <div className="w-full rounded-2xl bg-elevated border border-border overflow-hidden empty:hidden">
               <AdSlot
                 refreshSlotId="1000000001_stats_top"
                 format="horizontal-strip"
@@ -354,7 +354,7 @@ export function StatsPageClient({
 
               {/* AdSlot 2: Mid In-Feed Slot */}
               {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
-                <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden empty:hidden">
+                <div className="w-full rounded-2xl bg-elevated border border-border overflow-hidden empty:hidden">
                   <AdSlot
                     refreshSlotId="1000000002_stats_mid"
                     format="in-feed"
@@ -379,7 +379,7 @@ export function StatsPageClient({
 
               {/* AdSlot 2: Mid In-Feed Slot */}
               {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
-                <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden empty:hidden">
+                <div className="w-full rounded-2xl bg-elevated border border-border overflow-hidden empty:hidden">
                   <AdSlot
                     refreshSlotId="1000000002_stats_mid"
                     format="in-feed"
@@ -415,7 +415,7 @@ export function StatsPageClient({
 
               {/* AdSlot 2: Mid In-Feed Slot */}
               {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
-                <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden empty:hidden">
+                <div className="w-full rounded-2xl bg-elevated border border-border overflow-hidden empty:hidden">
                   <AdSlot
                     refreshSlotId="1000000002_stats_mid"
                     format="in-feed"
@@ -440,7 +440,7 @@ export function StatsPageClient({
 
           {/* AdSlot 3: Pre-Table Rectangle Slot */}
           {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
-            <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden empty:hidden">
+            <div className="w-full rounded-2xl bg-elevated border border-border overflow-hidden empty:hidden">
               <AdSlot
                 refreshSlotId="1000000003_stats_table"
                 format="rectangle"
@@ -461,7 +461,7 @@ export function StatsPageClient({
 
           {/* AdSlot 4: Bottom Banner Slot */}
           {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
-            <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden empty:hidden">
+            <div className="w-full rounded-2xl bg-elevated border border-border overflow-hidden empty:hidden">
               <AdSlot
                 refreshSlotId="1000000004_stats_bottom"
                 format="banner"
@@ -472,8 +472,8 @@ export function StatsPageClient({
         </>
       ) : (
         /* Upcoming Topic Placeholder */
-        <div className="w-full p-8 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] flex flex-col items-center justify-center text-center min-h-[360px] gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-slate-200/60 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400">
+        <div className="w-full p-8 rounded-2xl bg-elevated border border-border flex flex-col items-center justify-center text-center min-h-[360px] gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#eff1f5] dark:bg-[#1e2532] flex items-center justify-center text-secondary">
             <Clock className="w-6 h-6" />
           </div>
           <span className="text-xs font-bold text-tertiary">
@@ -489,9 +489,9 @@ export function StatsPageClient({
             <button
               type="button"
               onClick={() => handleTopicChange('dongtan-station-distance')}
-              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors"
+              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-xs font-bold transition-colors"
             >
-              Issue #1 동탄역 거리 분석 리포트 보기
+              동탄역 거리 분석 리포트 보기
             </button>
           </div>
         </div>

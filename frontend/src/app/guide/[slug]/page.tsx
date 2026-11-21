@@ -531,7 +531,7 @@ export default async function GuideArticlePage(props: {
               href="/guide"
               prefetch={false}
               aria-label="리포트 목록으로 이동"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-body hover:bg-slate-100 dark:hover:bg-slate-800 border border-border/60 text-emerald-600 dark:text-emerald-400 font-bold text-xs transition-colors shrink-0"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] border border-border/60 text-primary font-bold text-xs transition-colors shrink-0"
             >
               <span>리포트 목록</span>
             </Link>

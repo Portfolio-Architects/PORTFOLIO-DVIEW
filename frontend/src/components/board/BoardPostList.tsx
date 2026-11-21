@@ -53,7 +53,7 @@ export function BoardPostList({
         data-testid="board-post-list-empty"
         className="w-full min-h-[260px] bg-elevated dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 p-8 flex flex-col items-center justify-center text-center space-y-3.5"
       >
-        <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-primary flex items-center justify-center">
           <MessageSquareDashed className="w-6 h-6" />
         </div>
         <div className="space-y-1">
@@ -68,7 +68,7 @@ export function BoardPostList({
           <button
             type="button"
             onClick={onOpenWriteModal}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold text-white bg-blue-600 hover:bg-blue-700 shadow-xs transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 shadow-xs transition-colors"
           >
             <PenSquare className="w-4 h-4" />
             <span>첫 이야기 쓰기</span>

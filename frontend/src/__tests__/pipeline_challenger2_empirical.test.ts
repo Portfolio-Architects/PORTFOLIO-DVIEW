@@ -225,6 +225,67 @@ describe('Pipeline Challenger 2 — Empirical Adversarial Stress Suite', () => {
       const result = filterOutliersRolling(invalidTxs);
       expect(result).toEqual([]);
     });
+
+    it('should recognize step-up brokered new-high rally (temporal continuity + broker upper relaxation) while flagging direct-deal or isolated spikes', () => {
+      // 실제 동탄역 반도유보라 5.0 (전용 59㎡) 2026년 계단식 상승 시나리오 재현
+      const rallyRecords = [
+        { contractYm: '202601', contractDay: '05', price: 89800, area: 59.92, dealType: '중개거래' },
+        { contractYm: '202601', contractDay: '09', price: 90000, area: 59.92, dealType: '중개거래' },
+        { contractYm: '202601', contractDay: '14', price: 91800, area: 59.92, dealType: '중개거래' },
+        { contractYm: '202601', contractDay: '21', price: 95000, area: 59.92, dealType: '중개거래' },
+        { contractYm: '202602', contractDay: '07', price: 95000, area: 59.92, dealType: '중개거래' },
+        { contractYm: '202603', contractDay: '07', price: 96700, area: 59.92, dealType: '중개거래' },
+        { contractYm: '202603', contractDay: '17', price: 98000, area: 59.92, dealType: '매매' },
+        { contractYm: '202604', contractDay: '24', price: 99400, area: 59.92, dealType: '매매' },
+        { contractYm: '202605', contractDay: '04', price: 98000, area: 59.92, dealType: '매매' },
+        { contractYm: '202605', contractDay: '23', price: 102000, area: 59.92, dealType: '매매' },
+        { contractYm: '202605', contractDay: '28', price: 110000, area: 59.92, dealType: '매매' },
+        { contractYm: '202606', contractDay: '03', price: 117000, area: 59.92, dealType: '매매' },
+        { contractYm: '202610', contractDay: '16', price: 125000, area: 59.92, dealType: '중개거래' },
+        { contractYm: '202611', contractDay: '14', price: 134000, area: 59.92, dealType: '중개거래' }, // 계단식 신고가 (정상)
+        { contractYm: '202611', contractDay: '18', price: 152000, area: 59.92, dealType: '중개거래' }, // 13.4억 대비 +13.4% 연속 상승 (정상)
+      ];
+
+      const processed = applyIqrOutlierDetection(rallyRecords);
+      expect(processed.find((r: any) => r.price === 134000).isOutlier).toBe(false);
+      expect(processed.find((r: any) => r.price === 152000).isOutlier).toBe(false);
+
+      // 동일 시세 분포에서 직거래로 연도 엄격 상한(median*1.35)을 넘기면 여전히 이상치로 탐지
+      const withDirectHigh = [
+        ...rallyRecords.slice(0, 12),
+        { contractYm: '202611', contractDay: '14', price: 145000, area: 59.92, dealType: '직거래' },
+      ];
+      const processedDirect = applyIqrOutlierDetection(withDirectHigh);
+      expect(processedDirect.find((r: any) => r.dealType === '직거래').isOutlier).toBe(true);
+
+      // 직전 거래(12.5억) 대비 연속성 없는 단발 급등(18억, +44%)은 중개거래라도 이상치로 탐지
+      const withIsolatedSpike = [
+        ...rallyRecords.slice(0, 13),
+        { contractYm: '202611', contractDay: '14', price: 185000, area: 59.92, dealType: '중개거래' },
+      ];
+      const processedSpike = applyIqrOutlierDetection(withIsolatedSpike);
+      expect(processedSpike.find((r: any) => r.price === 185000).isOutlier).toBe(true);
+    });
+
+    it('should prevent domino false-positives on sparse large units corroborated by peer brokered trades', () => {
+      const sparseLargeUnit = [
+        // 2014~2018 과거 시세 (5억대)
+        { contractYm: '201405', contractDay: '10', price: 48000, area: 117.5, dealType: '매매' },
+        { contractYm: '201506', contractDay: '12', price: 50000, area: 117.5, dealType: '매매' },
+        { contractYm: '201607', contractDay: '15', price: 51000, area: 117.5, dealType: '매매' },
+        { contractYm: '201708', contractDay: '20', price: 52000, area: 117.5, dealType: '매매' },
+        { contractYm: '201809', contractDay: '22', price: 53000, area: 117.5, dealType: '매매' },
+        // 2024~2026 새 시세 레벨 형성 (연도별 4건 미만이지만 ±365일 내 동시세 중개거래 다수)
+        { contractYm: '202409', contractDay: '12', price: 109500, area: 117.5, dealType: '중개거래' },
+        { contractYm: '202503', contractDay: '05', price: 109000, area: 117.5, dealType: '중개거래' },
+        { contractYm: '202511', contractDay: '13', price: 109000, area: 117.5, dealType: '중개거래' },
+        { contractYm: '202603', contractDay: '21', price: 97000, area: 117.5, dealType: '중개거래' },
+      ];
+
+      const processed = applyIqrOutlierDetection(sparseLargeUnit);
+      const recentTrades = processed.filter((r: any) => Number(r.contractYm) >= 202401);
+      expect(recentTrades.every((r: any) => r.isOutlier === false)).toBe(true);
+    });
   });
 
   // ==========================================================================

@@ -67,10 +67,10 @@ describe('MacroTrendChart Adversarial Empirical Challenge Suite', () => {
         expect(polygons.length).toBeGreaterThan(0);
 
         const salePolys = Array.from(polygons).filter(
-          (p) => p.getAttribute('fill') === '#2563eb'
+          (p) => p.getAttribute('fill') === '#2f6bff'
         );
         const rentPolys = Array.from(polygons).filter(
-          (p) => p.getAttribute('fill') === '#059669'
+          (p) => p.getAttribute('fill') === '#64748b'
         );
         expect(salePolys.length).toBe(multiPointData.length);
         expect(rentPolys.length).toBe(multiPointData.length);
@@ -110,10 +110,10 @@ describe('MacroTrendChart Adversarial Empirical Challenge Suite', () => {
       const polygons = container.querySelectorAll('polygon');
       expect(polygons.length).toBe(2);
       expect(
-        Array.from(polygons).some((p) => p.getAttribute('fill') === '#2563eb')
+        Array.from(polygons).some((p) => p.getAttribute('fill') === '#2f6bff')
       ).toBe(true);
       expect(
-        Array.from(polygons).some((p) => p.getAttribute('fill') === '#059669')
+        Array.from(polygons).some((p) => p.getAttribute('fill') === '#64748b')
       ).toBe(true);
     });
 
@@ -239,7 +239,7 @@ describe('MacroTrendChart Adversarial Empirical Challenge Suite', () => {
       );
       const polygons = container.querySelectorAll('polygon');
       expect(polygons.length).toBe(1);
-      expect(polygons[0].getAttribute('fill')).toBe('#2563eb');
+      expect(polygons[0].getAttribute('fill')).toBe('#2f6bff');
     });
 
     it('renders exactly 1 polygon when data contains rent-only single point', () => {
@@ -256,7 +256,7 @@ describe('MacroTrendChart Adversarial Empirical Challenge Suite', () => {
       );
       const polygons = container.querySelectorAll('polygon');
       expect(polygons.length).toBe(1);
-      expect(polygons[0].getAttribute('fill')).toBe('#059669');
+      expect(polygons[0].getAttribute('fill')).toBe('#64748b');
     });
 
     it('handles asymmetric series counts correctly under timeframe "ALL": 1 sale + 3 rents', () => {
@@ -276,7 +276,7 @@ describe('MacroTrendChart Adversarial Empirical Challenge Suite', () => {
       // Sale has 1 point -> renders 1 polygon. Rent has 3 points -> 0 polygons under ALL.
       const polygons = container.querySelectorAll('polygon');
       expect(polygons.length).toBe(1);
-      expect(polygons[0].getAttribute('fill')).toBe('#2563eb');
+      expect(polygons[0].getAttribute('fill')).toBe('#2f6bff');
 
       // Rent has N=3 >= 2, so twoSigmaStats falls back to rent series and renders ReferenceLines!
       const lines = container.querySelectorAll('line.recharts-reference-line-line');
@@ -457,9 +457,9 @@ describe('MacroTrendChart Adversarial Empirical Challenge Suite', () => {
       );
       const salePolys = saleCont.querySelectorAll('polygon');
       expect(salePolys.length).toBe(2);
-      expect(salePolys[0]).toHaveAttribute('fill', '#2563eb');
+      expect(salePolys[0]).toHaveAttribute('fill', '#2f6bff');
       expect(salePolys[0]).toHaveAttribute('stroke-width', '1.5');
-      expect(salePolys[1]).toHaveAttribute('fill', '#2563eb');
+      expect(salePolys[1]).toHaveAttribute('fill', '#2f6bff');
       expect(salePolys[1]).toHaveAttribute('stroke-width', '2');
 
       const { container: rentCont } = render(
@@ -470,9 +470,9 @@ describe('MacroTrendChart Adversarial Empirical Challenge Suite', () => {
       );
       const rentPolys = rentCont.querySelectorAll('polygon');
       expect(rentPolys.length).toBe(2);
-      expect(rentPolys[0]).toHaveAttribute('fill', '#059669');
+      expect(rentPolys[0]).toHaveAttribute('fill', '#64748b');
       expect(rentPolys[0]).toHaveAttribute('stroke-width', '1.5');
-      expect(rentPolys[1]).toHaveAttribute('fill', '#059669');
+      expect(rentPolys[1]).toHaveAttribute('fill', '#64748b');
       expect(rentPolys[1]).toHaveAttribute('stroke-width', '2');
     });
   });

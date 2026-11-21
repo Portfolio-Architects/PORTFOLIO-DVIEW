@@ -15,7 +15,14 @@ import { useSettingsValues } from "@/contexts/SettingsContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocationScores, usePeriodTransactions } from "@/hooks/useStaticData";
 import { BUILD_VERSION } from "@/lib/build-version";
-import { buildApartmentMacroChartData, filterChartTimeframe, type FormattedMacroPoint } from "@/lib/utils/macroChartTransform";
+import {
+  buildApartmentGranularChartData,
+  computeNonOverlappingXTicks,
+  filterChartTimeframeByGranularity,
+  parseMacroTrendSeriesPayload,
+  resolveGranularityForTimeframe,
+  type FormattedMacroPoint,
+} from "@/lib/utils/macroChartTransform";
 
 import {
   useMacroFilters,
@@ -50,7 +57,7 @@ const InlineLoader = ({ text }: { text: string }) => (
   <div className="w-full h-[330px] min-h-[330px] flex flex-col items-center justify-center bg-surface/50 dark:bg-surface/50 border border-border/50 rounded-2xl p-6 gap-3 backdrop-blur-md">
     <div className="relative w-10 h-10 flex items-center justify-center">
       <div className="absolute inset-0 rounded-full border-2 border-toss-blue/20 border-t-toss-blue animate-spin" />
-      <svg className="w-4 h-4 text-toss-blue animate-pulse" viewBox="0 0 24 24" fill="currentColor">
+      <svg className="w-4 h-4 text-primary animate-pulse" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 2L2 12l10 10 10-10L12 2z" />
       </svg>
     </div>
@@ -65,16 +72,14 @@ const MacroTrendChart = dynamic(() => import("@/components/macro/MacroTrendChart
 }), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-slate-50/30 dark:bg-slate-900/10 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
-      <div className="absolute w-[180px] h-[180px] rounded-full bg-blue-50/60 blur-[60px] top-1/2 left-1/3 -translate-y-1/2 pointer-events-none" />
-      <div className="absolute w-[180px] h-[180px] rounded-full bg-emerald-500/5 blur-[60px] top-1/2 right-1/3 -translate-y-1/2 pointer-events-none" />
+    <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-[#f7f8fa]/60 dark:bg-[#151a23]/60 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
       <div className="flex items-center gap-1.5 mb-3.5 flex-none">
-        <div className="w-1.5 h-6 bg-blue-600/30 rounded-full animate-bounce duration-500 delay-100" />
-        <div className="w-1.5 h-10 bg-blue-600/40 rounded-full animate-bounce duration-500 delay-200" />
-        <div className="w-1.5 h-14 bg-blue-600/60 rounded-full animate-bounce duration-500 delay-300" />
-        <div className="w-1.5 h-10 bg-emerald-500/50 rounded-full animate-bounce duration-500 delay-400" />
-        <div className="w-1.5 h-12 bg-emerald-500/60 rounded-full animate-bounce duration-500 delay-500" />
-        <div className="w-1.5 h-8 bg-emerald-500/40 rounded-full animate-bounce duration-500 delay-600" />
+        <div className="w-1.5 h-6 bg-slate-300 dark:bg-slate-700 rounded-full animate-bounce duration-500 delay-100" />
+        <div className="w-1.5 h-10 bg-slate-400/70 dark:bg-slate-600 rounded-full animate-bounce duration-500 delay-200" />
+        <div className="w-1.5 h-14 bg-slate-500/70 dark:bg-slate-500 rounded-full animate-bounce duration-500 delay-300" />
+        <div className="w-1.5 h-10 bg-slate-400/70 dark:bg-slate-600 rounded-full animate-bounce duration-500 delay-400" />
+        <div className="w-1.5 h-12 bg-slate-500/70 dark:bg-slate-500 rounded-full animate-bounce duration-500 delay-500" />
+        <div className="w-1.5 h-8 bg-slate-300 dark:bg-slate-700 rounded-full animate-bounce duration-500 delay-600" />
       </div>
       <span className="text-secondary text-[12.5px] font-extrabold mb-1.5 tracking-tight">관심 단지 시세 데이터 로딩</span>
       <span className="text-[10px] text-tertiary font-bold opacity-75">단지별 실거래 추이 차트 준비 중</span>
@@ -107,6 +112,14 @@ const DEFAULT_TIMELINE_APTS = [
   "동탄역 시범 더샵 센트럴시티",
   "동탄역 시범 한화꿈에그린 프레스티지"
 ];
+
+/** GA4 최근 90일 실측 조회수 상위 4개 심층 리포트 (2열 x 2행 메인 큐레이션) */
+const TOP_VIEWED_GUIDE_SLUGS = [
+  "dongtan-1-vs-2-comparison",
+  "dongtan-budget-tier-ranking",
+  "dongtan-lake-vs-station-comparison",
+  "dongtan-school-zone-top-apartments",
+] as const;
 
 export interface TimelineItem {
   aptName: string;
@@ -359,13 +372,17 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
     ? (item.contractDate.length >= 8 ? `${item.contractDate.slice(4, 6)}.${item.contractDate.slice(6, 8)}` : item.contractDate)
     : '';
 
+  const isNewHigh = item.type === 'high' || Boolean(item.isNewHigh);
+
   return (
     <div
       onMouseEnter={() => onCardHover(item.aptName, item.dong)}
       className={`relative flex flex-col gap-2.5 p-3 sm:p-4 rounded-2xl transition-colors duration-150 ease-out w-full max-w-full box-border ${
         isSelected
-          ? "ring-2 ring-blue-600/30 bg-blue-50/70 dark:bg-blue-950/30"
-          : "bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027]"
+          ? "ring-2 ring-slate-900/20 dark:ring-white/25 bg-[#eff1f5] dark:bg-[#1e2532]"
+          : isNewHigh
+            ? "dview-spark-card"
+            : "bg-elevated hover:bg-[#eff1f5] dark:bg-[#151a23] dark:hover:bg-[#1e2532]"
       } group`}
     >
       {/* Clickable Card Body Button (stretched overlay covers full card; 2-row hierarchy gives full title width) */}
@@ -373,26 +390,26 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
         type="button"
         onClick={() => onCardClick(item.aptName)}
         aria-label={`실거래 분석 아파트 선택: ${item.aptName}, 위치: ${item.dong}, 가격: ${item.priceEok}`}
-        className="w-full flex flex-col gap-2.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 rounded-xl p-0 bg-transparent border-none min-w-0 cursor-pointer after:content-[''] after:absolute after:inset-0 after:rounded-2xl"
+        className="w-full flex flex-col gap-2.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30 dark:focus-visible:ring-white/30 rounded-xl p-0 bg-transparent border-none min-w-0 cursor-pointer after:content-[''] after:absolute after:inset-0 after:rounded-2xl"
       >
-        {/* Row 1: Complex Identity + Flat New-High Pill (reserves space for top-right actions) */}
-        <div className={`flex items-center gap-1 sm:gap-1.5 min-w-0 w-full ${onToggleFavorite ? 'pr-[58px] sm:pr-20' : 'pr-[42px] sm:pr-14'}`}>
+        {/* Row 1: Complex Identity + Jackpot New-High Spark Pill (reserves space for top-right actions) */}
+        <div className={`flex items-center gap-1 sm:gap-1.5 min-w-0 w-full ${onToggleFavorite ? 'pr-[82px] sm:pr-24' : 'pr-[50px] sm:pr-16'}`}>
           <span
             data-testid="timeline-card-title"
-            className="text-[14px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug truncate break-keep min-w-0"
+            className="text-[14px] sm:text-[14.5px] font-extrabold text-primary transition-colors leading-snug truncate break-keep min-w-0"
             title={displayName}
           >
             {displayName}
           </span>
-          {item.type === 'high' && (
-            <span className="px-1.5 py-0.5 rounded-md bg-brand-red-light text-brand-red text-[10px] font-black shrink-0 whitespace-nowrap leading-none">
+          {isNewHigh && (
+            <span className="px-1.5 py-0.5 rounded-md dview-spark-badge text-[10px] font-black shrink-0 whitespace-nowrap leading-none">
               신고가
             </span>
           )}
         </div>
 
         {/* Row 2: Specs (Left/Top on mobile) + Hero Price & Delta Pill (Right/Bottom on mobile) */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2.5 pt-2 border-t border-[#f2f4f6] dark:border-[#202027] min-w-0 w-full tabular-nums">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2.5 pt-2 border-t border-border min-w-0 w-full tabular-nums">
           <div
             data-testid="timeline-card-specs"
             className="flex items-center flex-wrap sm:flex-nowrap gap-x-1 gap-y-0.5 min-w-0 w-full sm:w-auto sm:flex-1 sm:overflow-hidden text-[11px] font-semibold text-tertiary"
@@ -423,13 +440,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
           <div className="flex items-center justify-between sm:justify-end gap-1.5 w-full sm:w-auto shrink-0 whitespace-nowrap tabular-nums">
             <span
               data-testid="timeline-card-price"
-              className={`text-[14.5px] sm:text-[15px] font-black tracking-tight leading-none whitespace-nowrap ${
-                isRising
-                  ? "text-red-600 dark:text-red-400"
-                  : isFalling
-                    ? "text-blue-600 dark:text-blue-400"
-                    : "text-primary"
-              }`}
+              className="text-[14.5px] sm:text-[15px] font-black tracking-tight leading-none whitespace-nowrap text-primary"
             >
               {normalizedPrice}
             </span>
@@ -441,7 +452,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
                   ? "bg-brand-red-light text-brand-red"
                   : isFalling
                     ? "bg-brand-blue-light text-brand-blue"
-                    : "bg-[#f2f4f6] text-secondary dark:bg-[#202027]"
+                    : "bg-[#eff1f5] text-secondary dark:bg-[#1e2532]"
               }`}
             >
               {isRising
@@ -455,7 +466,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
       </button>
 
       {/* Top-Right Actions: Favorite Star + Detail Action Button (z-10 above stretched card button) */}
-      <div className="absolute top-2.5 right-2.5 sm:top-3.5 sm:right-4 z-10 flex items-center justify-center gap-0.5 sm:gap-1 shrink-0">
+      <div className="absolute top-2 right-2 sm:top-3 sm:right-3.5 z-10 flex items-center justify-center gap-1 shrink-0">
         {onToggleFavorite && (
           <button
             type="button"
@@ -471,14 +482,14 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
               });
               onToggleFavorite(item.aptName);
             }}
-            className="p-0.5 sm:p-1 rounded-lg hover:bg-slate-200/70 dark:hover:bg-slate-700 text-tertiary transition-colors cursor-pointer"
+            className="min-w-[32px] min-h-[32px] sm:min-w-[28px] sm:min-h-[28px] inline-flex items-center justify-center rounded-xl hover:bg-slate-200/70 dark:hover:bg-slate-700 text-tertiary transition-colors cursor-pointer touch-manipulation"
           >
             <Star
-              size={13}
+              size={14}
               className={
                 isFavorite
-                  ? 'fill-blue-500 text-blue-600'
-                  : 'text-tertiary hover:text-blue-500'
+                  ? 'fill-slate-900 text-slate-900 dark:fill-slate-100 dark:text-slate-100'
+                  : 'text-tertiary hover:text-primary'
               }
             />
           </button>
@@ -491,7 +502,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
             onDetailsClick(item.aptName);
           }}
           onMouseEnter={() => onDetailsHover(item.aptName, item.dong)}
-          className="px-1.5 sm:px-2.5 py-0.5 sm:py-1 min-h-[24px] sm:min-h-[26px] rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 text-[10.5px] sm:text-[11px] font-extrabold text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150 ease-out active:scale-95 cursor-pointer shrink-0 outline-none focus:ring-2 focus:ring-blue-500/50 whitespace-nowrap"
+          className="px-2.5 py-1 min-h-[30px] sm:min-h-[26px] rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#252c3d] text-[11px] font-extrabold text-secondary hover:text-primary transition-colors duration-150 ease-out active:scale-95 cursor-pointer shrink-0 outline-none focus:ring-2 focus:ring-slate-900/20 whitespace-nowrap touch-manipulation"
         >
           상세
         </button>
@@ -530,12 +541,14 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
   const pyeongPriceMan = Math.round((item.priceVal * 10000) / pyeong);
   const normalizedPrice = formatTimelinePriceText(item.priceEok);
 
+  const isNewHigh = item.type === 'high' || Boolean(item.isNewHigh);
+
   return (
     <div
       data-testid={`timeline-row-${item.aptName}`}
       onMouseEnter={() => onCardHover?.(item.aptName, item.dong)}
-      className={`px-3.5 py-3 flex items-center justify-between gap-2 hover:bg-[#f9fafb] dark:hover:bg-[#17171c] transition-colors cursor-pointer border-b border-[#f2f4f6] dark:border-[#202027] last:border-b-0 ${
-        isSelected ? 'bg-blue-50/60 dark:bg-blue-950/20' : ''
+      className={`px-3.5 py-3 flex items-center justify-between gap-2 hover:bg-elevated dark:hover:bg-[#151a23] transition-colors cursor-pointer border-b border-border last:border-b-0 ${
+        isSelected ? 'bg-[#eff1f5] dark:bg-[#1e2532]' : ''
       }`}
     >
       {/* Left: Apt info */}
@@ -550,8 +563,8 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
             <span className="text-[13px] sm:text-[13.5px] font-extrabold text-primary truncate break-keep min-w-0" title={displayName}>
               {displayName}
             </span>
-            {item.type === 'high' && (
-              <span className="px-1.5 py-0.5 rounded-md bg-brand-red-light text-brand-red text-[9.5px] font-black shrink-0 leading-none">
+            {isNewHigh && (
+              <span className="px-1.5 py-0.5 rounded-md dview-spark-badge text-[9.5px] font-black shrink-0 leading-none">
                 신고가
               </span>
             )}
@@ -571,21 +584,13 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
       {/* Right: Price, Delta, and Details Button */}
       <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 tabular-nums">
         <div className="text-right flex flex-col items-end justify-center gap-0.5">
-          <div
-            className={`text-[13px] sm:text-[14px] font-black leading-tight ${
-              isRising
-                ? 'text-red-600 dark:text-red-400'
-                : isFalling
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-primary'
-            }`}
-          >
+          <div className="text-[13px] sm:text-[14px] font-black leading-tight text-primary">
             {normalizedPrice}
           </div>
           {item.delta !== undefined && item.delta !== 0 ? (
             <div
               className={`text-[10px] font-extrabold flex items-center gap-0.5 ${
-                isRising ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'
+                isRising ? 'text-brand-red' : 'text-brand-blue'
               }`}
             >
               {isRising ? '+' : '-'} {formatDeltaPrice(Math.abs(item.delta))}
@@ -611,14 +616,14 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
               });
               onToggleFavorite(item.aptName);
             }}
-            className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-tertiary transition-colors cursor-pointer"
+            className="min-w-[32px] min-h-[32px] sm:min-w-[28px] sm:min-h-[28px] inline-flex items-center justify-center rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 text-tertiary transition-colors cursor-pointer touch-manipulation"
           >
             <Star
-              size={12}
+              size={14}
               className={
                 isFavorite
-                  ? 'fill-blue-500 text-blue-600'
-                  : 'text-tertiary hover:text-blue-500'
+                  ? 'fill-slate-900 text-slate-900 dark:fill-slate-100 dark:text-slate-100'
+                  : 'text-tertiary hover:text-primary'
               }
             />
           </button>
@@ -631,7 +636,7 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
             onDetailsClick(item.aptName);
           }}
           onMouseEnter={() => onDetailsHover?.(item.aptName, item.dong)}
-          className="px-2.5 py-1 rounded-xl bg-[#f9fafb] hover:bg-blue-50 dark:bg-[#17171c] dark:hover:bg-blue-950/40 text-[10.5px] font-extrabold text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
+          className="px-2.5 py-1 min-h-[30px] sm:min-h-[26px] rounded-xl bg-elevated hover:bg-[#eff1f5] dark:bg-[#151a23] dark:hover:bg-[#1e2532] text-[11px] font-extrabold text-secondary hover:text-primary transition-colors cursor-pointer touch-manipulation"
         >
           상세
         </button>
@@ -765,9 +770,23 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return { railStrategyNotices: rail, tramNotices: tram };
   }, [localNotices]);
 
-  // Zone 4: Top 3 Curated Comparison Guides
+  // Zone 4: Top 4 Most-Viewed Comparison Guides (2x2 Grid)
   const topGuides = useMemo(() => {
-    return GUIDE_ARTICLES.slice(0, 3);
+    const bySlug = new Map(GUIDE_ARTICLES.map((g) => [g.slug, g]));
+    const picked = TOP_VIEWED_GUIDE_SLUGS.map((slug) => bySlug.get(slug)).filter(
+      (g): g is (typeof GUIDE_ARTICLES)[number] => Boolean(g)
+    );
+    if (picked.length < 4) {
+      const pickedSet = new Set(picked.map((g) => g.slug));
+      for (const article of GUIDE_ARTICLES) {
+        if (!pickedSet.has(article.slug)) {
+          picked.push(article);
+          pickedSet.add(article.slug);
+          if (picked.length >= 4) break;
+        }
+      }
+    }
+    return picked.slice(0, 4);
   }, []);
 
   useEffect(() => {
@@ -971,8 +990,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     };
   }, [isQuizOpen]);
 
-  const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>("동탄역 롯데캐슬");
-  const [hasSetDefaultApt, setHasSetDefaultApt] = useState(false);
+  const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>(null);
+  const chartGranularity = useMemo(
+    () => resolveGranularityForTimeframe(timeframe),
+    [timeframe]
+  );
 
   const handleCardHover = useCallback((aptName: string, dong: string) => {
     preloadApartmentTx?.(aptName, dong);
@@ -1253,17 +1275,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     preloadApartmentModal();
   }, [selectedTimelineApt, sheetApartments, preloadApartmentTx]);
 
-  // Set default apartment
-  useEffect(() => {
-    if (!mounted) return;
-    if (hasSetDefaultApt) return;
-
-    if (!selectedTimelineApt) {
-      setSelectedTimelineApt("동탄역 롯데캐슬");
-    }
-    setHasSetDefaultApt(true);
-  }, [mounted, hasSetDefaultApt, selectedTimelineApt]);
-
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hash === "#fit-quiz") {
       setIsQuizOpen(true);
@@ -1384,6 +1395,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       padded.push({
         ...lastPoint,
         name: newName,
+        ...(typeof lastPoint.saleCount === 'number' ? { saleCount: 0 } : {}),
+        ...(typeof lastPoint.rentCount === 'number' ? { rentCount: 0 } : {}),
       });
     }
     
@@ -1449,34 +1462,66 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return JSON.stringify(datasetSchema);
   }, [activeMacroData]);
 
+  const shouldFetchGranularSeries =
+    mounted && !selectedTimelineApt && (chartGranularity === "daily" || chartGranularity === "weekly");
+
+  const { data: rawMacroTrendSeries, isLoading: isMacroTrendSeriesLoading } = useSWR<unknown>(
+    shouldFetchGranularSeries ? `/data/macro-trend-series.json?v=${BUILD_VERSION}` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 3600000,
+    }
+  );
+
+  const parsedMacroTrendSeries = useMemo(
+    () => parseMacroTrendSeriesPayload(rawMacroTrendSeries),
+    [rawMacroTrendSeries]
+  );
+
+  const isGranularLoading =
+    shouldFetchGranularSeries && isMacroTrendSeriesLoading && !parsedMacroTrendSeries;
+
   const selectedAptChartData = useMemo(() => {
     if (!selectedTimelineApt) return null;
     if (!aptRealTxData || !Array.isArray(aptRealTxData) || aptRealTxData.length === 0) {
       return [];
     }
-    return buildApartmentMacroChartData(aptRealTxData, deferredMacroTrendData);
-  }, [selectedTimelineApt, aptRealTxData, deferredMacroTrendData]);
+    return buildApartmentGranularChartData(aptRealTxData, chartGranularity, deferredMacroTrendData);
+  }, [selectedTimelineApt, aptRealTxData, chartGranularity, deferredMacroTrendData]);
 
   const lineData = useMemo(() => {
-    const sourceData: (DongtanMacroTrendPoint | FormattedMacroPoint)[] = selectedTimelineApt
-      ? (selectedAptChartData || [])
-      : (deferredMacroTrendData || []);
-    return filterChartTimeframe<DongtanMacroTrendPoint | FormattedMacroPoint>(sourceData, timeframe);
-  }, [selectedTimelineApt, selectedAptChartData, deferredMacroTrendData, timeframe]);
+    let sourceData: (DongtanMacroTrendPoint | FormattedMacroPoint)[] = [];
+    if (selectedTimelineApt) {
+      sourceData = selectedAptChartData || [];
+    } else if (chartGranularity === "daily") {
+      sourceData = parsedMacroTrendSeries?.daily || [];
+    } else if (chartGranularity === "weekly") {
+      sourceData = parsedMacroTrendSeries?.weekly || [];
+    } else {
+      sourceData =
+        parsedMacroTrendSeries && parsedMacroTrendSeries.monthly.length > 0
+          ? parsedMacroTrendSeries.monthly
+          : deferredMacroTrendData || [];
+    }
+    return filterChartTimeframeByGranularity<DongtanMacroTrendPoint | FormattedMacroPoint>(
+      sourceData,
+      timeframe,
+      chartGranularity
+    );
+  }, [
+    selectedTimelineApt,
+    selectedAptChartData,
+    chartGranularity,
+    parsedMacroTrendSeries,
+    deferredMacroTrendData,
+    timeframe,
+  ]);
 
   const xTicks = useMemo(() => {
-    if (!lineData || lineData.length === 0) return [];
-    if (lineData.length <= 6) return lineData.map((d) => d.name);
-    const step = Math.ceil(lineData.length / 6);
-    const ticks: string[] = [];
-    for (let i = 0; i < lineData.length; i += step) {
-      ticks.push(lineData[i].name);
-    }
-    if (ticks[ticks.length - 1] !== lineData[lineData.length - 1].name) {
-      ticks.push(lineData[lineData.length - 1].name);
-    }
-    return ticks;
-  }, [lineData]);
+    return computeNonOverlappingXTicks(lineData, isSplitMode ? 5 : 7);
+  }, [lineData, isSplitMode]);
 
   const yTicks = useMemo(() => {
     if (!lineData || lineData.length === 0) return [0, 2, 4, 6, 8];
@@ -2171,9 +2216,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         xTicks={xTicks}
         yTicks={yTicks}
         timeframe={timeframe}
+        granularity={chartGranularity}
+        isSplitMode={isSplitMode}
       />
     );
-  }, [trendChartReady, lineData, xTicks, yTicks, timeframe]);
+  }, [trendChartReady, lineData, xTicks, yTicks, timeframe, chartGranularity, isSplitMode]);
 
   const handleHoverApt = useCallback((aptName: string) => {
     if (!sheetApartments) return;
@@ -2395,6 +2442,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               onHoverApt={handleHoverApt}
               timeframe={timeframe}
               setTimeframe={setTimeframe}
+              isGranularLoading={isGranularLoading}
+              isSplitMode={isSplitMode}
               isAptTxLoading={isAptTxLoading}
               aptRealTxData={aptRealTxData}
               mainLineData={lineData}
@@ -2418,33 +2467,28 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
         )}
 
-        {/* ═══ Zone 4B: 심층 비교 리포트 순환(Recirculation) & 7:5 리텐션·커뮤니티 허브 ═══ */}
+        {/* ═══ Zone 4B: 심층 비교 리포트 순환(Recirculation, 2x2 조회수 TOP 4) & 리텐션·커뮤니티 허브 ═══ */}
         <div className="w-full flex flex-col gap-3 mb-6">
           <div className="flex items-center justify-between px-1">
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-[15px] sm:text-[17px] font-black text-primary tracking-tight">
-                  심층 입지 · 단지 비교 리포트
-                </h3>
-                <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-[10px] font-extrabold border border-blue-200/60 dark:border-blue-800/50">
-                  D-VIEW LABS
-                </span>
-              </div>
+              <h3 className="text-[15px] sm:text-[17px] font-black text-primary tracking-tight">
+                심층 입지 · 단지 비교 리포트
+              </h3>
               <p className="text-[11.5px] sm:text-[12px] text-tertiary font-medium mt-0.5">
-                실거래 통계 · 도시계획 데이터 기반 1:1 비교 리포트
+                조회수 상위 인기 리포트 TOP 4 · 국토부 실거래 기반
               </p>
             </div>
             <Link
               href="/guide" prefetch={false}
-              className="text-[11.5px] font-bold text-secondary hover:text-primary inline-flex items-center gap-1 transition-colors shrink-0"
+              className="text-[11.5px] font-bold text-secondary hover:text-primary inline-flex items-center gap-1 transition-colors shrink-0 tabular-nums"
             >
-              <span>전체 리포트</span>
+              <span>전체 {GUIDE_ARTICLES.length}편 리포트</span>
               <ArrowRight size={12} />
             </Link>
           </div>
 
           <div
-            className={`grid grid-cols-1 ${isSplitMode ? '' : 'md:grid-cols-3'} gap-4 transition-all duration-300 ease-out`}
+            className={`grid grid-cols-1 ${isSplitMode ? '' : 'md:grid-cols-2'} gap-4 transition-all duration-300 ease-out`}
             data-testid="curated-guides-grid"
           >
             {topGuides.map((guide) => (
@@ -2458,29 +2502,29 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                     guide_title: guide.title,
                   });
                 }}
-                className="bg-elevated hover:bg-slate-100/80 dark:hover:bg-slate-800/60 rounded-2xl p-4 sm:p-5 flex flex-col justify-between border border-border/50 transition-all duration-150 group shadow-2xs cursor-pointer"
+                className="bg-elevated hover:bg-[#eff1f5] dark:bg-[#151a23] dark:hover:bg-[#1e2532] rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-colors duration-150 group cursor-pointer"
               >
                 <div className="flex flex-col gap-2.5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 text-[10px] font-extrabold truncate">
+                    <span className="px-2 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-secondary text-[10px] font-extrabold truncate">
                       {guide.category}
                     </span>
-                    <span className="flex items-center gap-1 text-[10px] text-tertiary font-bold tabular-nums">
+                    <span className="inline-flex items-center gap-1 text-[10.5px] text-tertiary font-bold tabular-nums shrink-0">
                       <Clock size={11} />
                       {guide.readingTime}
                     </span>
                   </div>
 
-                  <h4 className="text-[13.5px] font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug tracking-tight">
+                  <h4 className="text-[14px] sm:text-[14.5px] font-extrabold text-primary transition-colors line-clamp-2 leading-snug tracking-tight break-keep">
                     {guide.title}
                   </h4>
 
-                  <p className="text-[11.5px] text-secondary/80 line-clamp-2 leading-relaxed">
+                  <p className="text-[12px] text-secondary/85 line-clamp-2 leading-relaxed break-keep">
                     {truncateToCopyBudget(guide.description, 'cardDescription')}
                   </p>
                 </div>
 
-                <div className="pt-3 mt-3 border-t border-border/30 flex items-center justify-between text-secondary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <div className="pt-3 mt-3 border-t border-border flex items-center justify-between text-secondary group-hover:text-primary transition-colors">
                   <span className="text-[11px] font-extrabold">심층 리포트 보기</span>
                   <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
                 </div>
@@ -2550,16 +2594,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             >
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap min-[400px]:flex-nowrap justify-between items-center border-b border-slate-200/70 dark:border-slate-800/80 pb-3 gap-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="bg-blue-600/10 dark:bg-blue-600/25 text-blue-700 dark:text-blue-400 font-extrabold text-[10.5px] px-2 sm:px-2.5 py-0.5 rounded-[8px] shrink-0">
-                      입주민 커뮤니티
-                    </span>
-                    <h4 className="text-[14px] font-extrabold text-primary tracking-tight truncate">
-                      동탄 실시간 입주민 라운지
-                    </h4>
-                  </div>
-                  <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md shrink-0">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <h4 className="text-[14px] font-extrabold text-primary tracking-tight truncate min-w-0">
+                    동탄 입주민 라운지
+                  </h4>
+                  <span className="flex items-center gap-1 text-[11px] font-bold text-primary bg-[#eff1f5] dark:bg-[#1e2532] px-2 py-0.5 rounded-md shrink-0">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-red animate-pulse" />
                     실시간 토론 중
                   </span>
                 </div>
@@ -2570,11 +2609,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
                 <div className="flex flex-col gap-2 pt-0.5">
                   <div className="flex items-center gap-2 p-2.5 rounded-xl bg-surface text-[12px] text-tertiary">
-                    <MessageSquare size={14} className="text-blue-500 shrink-0" />
+                    <MessageSquare size={14} className="text-secondary shrink-0" />
                     <span className="font-semibold text-primary break-keep line-clamp-2 min-[360px]:line-clamp-none min-[360px]:truncate">“동탄역 대장단지 vs 1동탄 대형평수 실거주 비교”</span>
                   </div>
                   <div className="flex items-center gap-2 p-2.5 rounded-xl bg-surface text-[12px] text-tertiary">
-                    <MessageSquare size={14} className="text-emerald-500 shrink-0" />
+                    <MessageSquare size={14} className="text-secondary shrink-0" />
                     <span className="font-semibold text-primary break-keep line-clamp-2 min-[360px]:line-clamp-none min-[360px]:truncate">“인동선 및 트램 착공 구간별 실질 수혜 단지 정리”</span>
                   </div>
                 </div>
@@ -2587,7 +2626,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 <Link
                   href="/lounge" prefetch={false}
                   data-testid="lounge-link-btn"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-bold transition-all active:scale-95 cursor-pointer shrink-0 ml-auto"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[12px] font-bold transition-all active:scale-95 cursor-pointer shrink-0 ml-auto"
                 >
                   <span>라운지 입장하기</span>
                   <ArrowRight size={13} />

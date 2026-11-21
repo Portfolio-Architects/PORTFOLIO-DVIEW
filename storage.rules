@@ -43,23 +43,59 @@ service firebase.storage {
       allow delete: if isSignedIn() && (request.auth.uid == uid || isAdmin());
     }
 
-    // Service upload folders used by storage.service.ts (field_reports, user_reviews, user_pending_photos)
+    // Existing production public image prefixes verified in bucket portfolio-dtdls.firebasestorage.app
+    match /lounge_images/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /report_images/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /thumbnails/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Service upload folders with UID path isolation (field_reports, user_reviews, user_pending_photos)
+    match /field_reports/{uid}/{fileName} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.auth.uid == uid && isValidImageUpload();
+      allow update: if isAdmin();
+      allow delete: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+    }
+
+    // Legacy flat field_reports path: preserve public reads for existing images, lock writes to admin
     match /field_reports/{fileName} {
       allow read: if true;
-      allow create: if isSignedIn() && isValidImageUpload();
-      allow update, delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
+    match /user_reviews/{uid}/{fileName} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.auth.uid == uid && isValidImageUpload();
+      allow update: if isAdmin();
+      allow delete: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+    }
+
+    // Legacy flat user_reviews path: preserve public reads for existing images, lock writes to admin
     match /user_reviews/{fileName} {
       allow read: if true;
-      allow create: if isSignedIn() && isValidImageUpload();
+      allow write: if isAdmin();
+    }
+
+    // Pre-moderation photo intake queue: authenticated uploader-scoped create/read only; admin manages moderation
+    match /user_pending_photos/{uid}/{fileName} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == uid && isValidImageUpload();
       allow update, delete: if isAdmin();
     }
 
+    // Legacy flat pending path locked down to admins (blocks unauthenticated 10MB public uploads)
     match /user_pending_photos/{fileName} {
-      allow read: if true;
-      allow create: if isValidImageUpload();
-      allow update, delete: if isAdmin();
+      allow read, write: if isAdmin();
     }
 
     // Default rule: Restrict reads and writes to authenticated admins for undefined paths

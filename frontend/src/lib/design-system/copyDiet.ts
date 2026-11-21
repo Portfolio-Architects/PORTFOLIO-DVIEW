@@ -369,7 +369,7 @@ export function truncateToCopyBudget(
   return `${finalHead}${resolvedEllipsis}`;
 }
 
-export type VisualSignalTone = 'up' | 'down' | 'safe' | 'neutral';
+export type VisualSignalTone = 'up' | 'down' | 'safe' | 'neutral' | 'jackpot';
 export type VisualSignalSize = 'xs' | 'sm';
 
 export const DVIEW_VISUAL_SIGNAL_CLASSES = {
@@ -382,7 +382,8 @@ export const DVIEW_VISUAL_SIGNAL_CLASSES = {
     up: 'bg-brand-red-light text-brand-red',
     down: 'bg-brand-blue-light text-brand-blue',
     safe: 'bg-brand-green-light text-brand-green',
-    neutral: 'bg-[#f2f4f6] dark:bg-[#202027] text-secondary',
+    neutral: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary',
+    jackpot: 'dview-spark-badge text-white',
   },
 } as const;
 

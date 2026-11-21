@@ -66,7 +66,7 @@ export function MBTIQuizStepper({ onComplete, onCancel, className = '' }: MBTIQu
             <span>{currentStep === 0 ? '처음으로' : '이전 질문'}</span>
           </button>
 
-          <div className="flex items-center px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-500/20">
+          <div className="flex items-center px-3 py-1 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-primary font-bold text-xs border border-border/60 tabular-nums">
             <span>Q{currentQuestion.id} / {totalQuestions}</span>
           </div>
 
@@ -84,7 +84,7 @@ export function MBTIQuizStepper({ onComplete, onCancel, className = '' }: MBTIQu
         {/* Dynamic Progress Bar */}
         <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
           <div
-            className="h-full bg-emerald-600 transition-all duration-300 ease-out"
+            className="h-full bg-slate-900 dark:bg-white transition-all duration-300 ease-out"
             style={{ width: `${progressPercent}%` }}
             role="progressbar"
             aria-valuenow={progressPercent}
@@ -96,7 +96,7 @@ export function MBTIQuizStepper({ onComplete, onCancel, className = '' }: MBTIQu
 
       {/* Question Body */}
       <div className="p-6 sm:p-8 lg:p-10 flex flex-col items-center text-center">
-        <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 mb-3">
+        <span className="text-xs font-bold uppercase tracking-wider text-secondary bg-[#eff1f5] dark:bg-[#1e2532] px-3 py-1 rounded-full border border-border/60 mb-3">
           {currentQuestion.theme}
         </span>
 
@@ -119,12 +119,12 @@ export function MBTIQuizStepper({ onComplete, onCancel, className = '' }: MBTIQu
             onClick={() => handleSelectOption('A')}
             className={`group w-full text-left p-5 sm:p-6 rounded-2xl border-2 transition-all duration-200 cursor-pointer relative overflow-hidden active:scale-[0.98] ${
               selectedAnim === 'A'
-                ? 'border-emerald-500 bg-emerald-500/10 shadow-sm ring-2 ring-emerald-400'
-                : 'border-border/80 hover:border-emerald-500/60 bg-body hover:bg-emerald-500/[0.04] shadow-2xs'
+                ? 'border-slate-900 dark:border-white bg-[#eff1f5] dark:bg-[#1e2532] shadow-sm ring-2 ring-slate-900/15 dark:ring-white/20'
+                : 'border-border/80 hover:border-slate-400 dark:hover:border-slate-500 bg-body hover:bg-[#f7f8fa] dark:hover:bg-[#151a23] shadow-2xs'
             }`}
           >
             <div className="flex items-start gap-4">
-              <span className="flex items-center justify-center w-8 h-8 rounded-xl font-black text-sm shrink-0 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+              <span className="flex items-center justify-center w-8 h-8 rounded-xl font-black text-sm shrink-0 bg-[#eff1f5] dark:bg-[#1e2532] text-primary group-hover:bg-slate-900 group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-slate-900 transition-colors">
                 A
               </span>
               <div className="flex flex-col">
@@ -147,12 +147,12 @@ export function MBTIQuizStepper({ onComplete, onCancel, className = '' }: MBTIQu
             onClick={() => handleSelectOption('B')}
             className={`group w-full text-left p-5 sm:p-6 rounded-2xl border-2 transition-all duration-200 cursor-pointer relative overflow-hidden active:scale-[0.98] ${
               selectedAnim === 'B'
-                ? 'border-emerald-500 bg-emerald-500/10 shadow-sm ring-2 ring-emerald-400'
-                : 'border-border/80 hover:border-emerald-500/60 bg-body hover:bg-emerald-500/[0.04] shadow-2xs'
+                ? 'border-slate-900 dark:border-white bg-[#eff1f5] dark:bg-[#1e2532] shadow-sm ring-2 ring-slate-900/15 dark:ring-white/20'
+                : 'border-border/80 hover:border-slate-400 dark:hover:border-slate-500 bg-body hover:bg-[#f7f8fa] dark:hover:bg-[#151a23] shadow-2xs'
             }`}
           >
             <div className="flex items-start gap-4">
-              <span className="flex items-center justify-center w-8 h-8 rounded-xl font-black text-sm shrink-0 bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+              <span className="flex items-center justify-center w-8 h-8 rounded-xl font-black text-sm shrink-0 bg-[#eff1f5] dark:bg-[#1e2532] text-primary group-hover:bg-slate-900 group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-slate-900 transition-colors">
                 B
               </span>
               <div className="flex flex-col">

@@ -510,7 +510,7 @@ export default function InlineMortgageDsrBridge({
     <div
       data-testid="inline-mortgage-dsr-bridge"
       data-surface={surface}
-      className={`w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] ${
+      className={`w-full rounded-2xl bg-elevated ${
         compact ? 'p-3 sm:p-3.5' : 'p-3.5 sm:p-4'
       } space-y-2.5 min-h-[68px]`}
     >
@@ -519,7 +519,7 @@ export default function InlineMortgageDsrBridge({
         <div className="flex flex-col gap-2 min-w-0">
           {/* Controls Row */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[11px] font-extrabold tabular-nums">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-primary text-[11px] font-extrabold tabular-nums">
               <DviewIcon name="calculator" size={12} />
               <span>
                 {isUsingVerifiedPrice
@@ -547,7 +547,7 @@ export default function InlineMortgageDsrBridge({
                     className={getToggleBtnClass({
                       active: isUsingVerifiedPrice,
                       size: 'sm',
-                      tone: 'emerald',
+                      tone: 'neutral',
                       extraClass: 'tabular-nums',
                     })}
                   >
@@ -598,7 +598,7 @@ export default function InlineMortgageDsrBridge({
                   className={getToggleBtnClass({
                     active: ltvPercent === ltv,
                     size: 'sm',
-                    tone: 'blue',
+                    tone: 'neutral',
                     extraClass: 'tabular-nums',
                   })}
                 >
@@ -624,7 +624,7 @@ export default function InlineMortgageDsrBridge({
                   className={getToggleBtnClass({
                     active: annualIncomeManwon === inc.value,
                     size: 'sm',
-                    tone: 'emerald',
+                    tone: 'neutral',
                     extraClass: 'tabular-nums',
                   })}
                 >
@@ -645,21 +645,21 @@ export default function InlineMortgageDsrBridge({
             <span className="text-tertiary">·</span>
             <span>
               월 상환{' '}
-              <strong className="font-black text-blue-600 dark:text-blue-400">
+              <strong className="font-black text-primary">
                 약 {calcMetrics.monthlyPaymentManwon.toLocaleString('ko-KR')}만원
               </strong>
             </span>
             <span className="text-tertiary">·</span>
             <span className="inline-flex items-center gap-1">
               <span>DSR 40% 한도</span>
-              <strong className="font-black text-emerald-700 dark:text-emerald-300">
+              <strong className="font-black text-primary">
                 {formatManwonLabel(calcMetrics.dsrMaxLoanManwon)}
               </strong>
               <span
                 className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10.5px] font-extrabold ${
                   calcMetrics.isWithinDsr
                     ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                    : 'bg-red-500/10 text-red-600 dark:text-red-400'
+                    : 'bg-brand-red-light text-brand-red'
                 }`}
               >
                 {calcMetrics.isWithinDsr ? (
@@ -691,8 +691,8 @@ export default function InlineMortgageDsrBridge({
             onClick={handlePrimaryMortgageCta}
             className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-extrabold transition-colors cursor-pointer whitespace-nowrap ${
               defaultFocus === 'tax'
-                ? 'bg-surface dark:bg-[#202027] hover:bg-slate-100 dark:hover:bg-[#2c2c35] text-primary'
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                ? 'bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary border border-border'
+                : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900'
             }`}
           >
             <DviewIcon name="calculator" size={13} />
@@ -711,8 +711,8 @@ export default function InlineMortgageDsrBridge({
             onClick={handleSecondaryTaxCta}
             className={`inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl text-xs font-extrabold transition-colors cursor-pointer whitespace-nowrap ${
               defaultFocus === 'tax'
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                : 'bg-surface dark:bg-[#202027] hover:bg-slate-100 dark:hover:bg-[#2c2c35] text-secondary hover:text-primary'
+                ? 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900'
+                : 'bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-secondary hover:text-primary border border-border'
             }`}
           >
             <DviewIcon name="landmark" size={13} />
@@ -730,7 +730,7 @@ export default function InlineMortgageDsrBridge({
               type="button"
               data-testid="inline-jeonse-safety-open-btn"
               onClick={handleJeonseSafetyCta}
-              className="inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl text-xs font-extrabold transition-colors cursor-pointer whitespace-nowrap bg-surface dark:bg-[#202027] hover:bg-slate-100 dark:hover:bg-[#2c2c35] text-secondary hover:text-primary"
+              className="inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl text-xs font-extrabold transition-colors cursor-pointer whitespace-nowrap bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-secondary hover:text-primary border border-border"
             >
               <DviewIcon name="shield-check" size={13} />
               <span>전세 안전진단</span>
@@ -743,7 +743,7 @@ export default function InlineMortgageDsrBridge({
       {isDrawerOpen && (!onOpenMortgage || !onOpenTaxCalculator) && (
         <div
           data-testid="inline-precision-calc-drawer"
-          className="rounded-xl bg-surface dark:bg-[#202027] p-3.5 sm:p-4 space-y-3 tabular-nums"
+          className="rounded-xl bg-surface border border-border p-3.5 sm:p-4 space-y-3 tabular-nums"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div role="group" aria-label="정밀 계산기 모드 전환" className={getToggleTrackClass()}>
@@ -753,7 +753,7 @@ export default function InlineMortgageDsrBridge({
                 className={getToggleBtnClass({
                   active: activeDrawerTab === 'mortgage',
                   size: 'sm',
-                  tone: 'blue',
+                  tone: 'neutral',
                 })}
               >
                 주담대 · 스트레스 DSR
@@ -764,7 +764,7 @@ export default function InlineMortgageDsrBridge({
                 className={getToggleBtnClass({
                   active: activeDrawerTab === 'tax',
                   size: 'sm',
-                  tone: 'emerald',
+                  tone: 'neutral',
                 })}
               >
                 취득세 · 생애최초 감면
@@ -776,7 +776,7 @@ export default function InlineMortgageDsrBridge({
               prefetch={false}
               data-testid="inline-calc-deep-link-cta"
               onClick={handleDeepLinkClick}
-              className="inline-flex items-center gap-1 text-[11.5px] font-extrabold text-blue-600 dark:text-blue-400 hover:underline"
+              className="inline-flex items-center gap-1 text-[11.5px] font-extrabold text-primary hover:underline"
             >
               <span>
                 {isUsingVerifiedPrice && apartmentName
@@ -791,10 +791,10 @@ export default function InlineMortgageDsrBridge({
             <div className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 {/* Interest Rate Control */}
-                <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-2.5 space-y-1.5">
+                <div className="rounded-xl bg-elevated p-2.5 space-y-1.5">
                   <div className="flex items-center justify-between text-[11px] font-bold text-secondary">
                     <span>대출 금리 (연)</span>
-                    <strong className="text-blue-600 dark:text-blue-400 font-black">
+                    <strong className="text-primary font-black">
                       {annualRatePct.toFixed(1)}%
                     </strong>
                   </div>
@@ -806,7 +806,7 @@ export default function InlineMortgageDsrBridge({
                     step="0.1"
                     value={annualRatePct}
                     onChange={(e) => setAnnualRatePct(parseFloat(e.target.value))}
-                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-900 dark:accent-slate-100"
                   />
                   <div className="text-[10.5px] text-tertiary font-semibold">
                     스트레스 금리 {calcMetrics.dsrStressRatePct.toFixed(1)}% 적용
@@ -814,7 +814,7 @@ export default function InlineMortgageDsrBridge({
                 </div>
 
                 {/* Maturity Years Control */}
-                <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-2.5 space-y-1.5">
+                <div className="rounded-xl bg-elevated p-2.5 space-y-1.5">
                   <div className="text-[11px] font-bold text-secondary">대출 만기</div>
                   <div className={getToggleTrackClass('w-full grid grid-cols-3')}>
                     {MATURITY_YEARS_OPTIONS.map((yr) => (
@@ -825,7 +825,7 @@ export default function InlineMortgageDsrBridge({
                         className={getToggleBtnClass({
                           active: maturityYears === yr,
                           size: 'sm',
-                          tone: 'blue',
+                          tone: 'neutral',
                         })}
                       >
                         {yr}년
@@ -835,7 +835,7 @@ export default function InlineMortgageDsrBridge({
                 </div>
 
                 {/* Repayment Type Control */}
-                <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-2.5 space-y-1.5">
+                <div className="rounded-xl bg-elevated p-2.5 space-y-1.5">
                   <div className="text-[11px] font-bold text-secondary">상환 방식</div>
                   <div className={getToggleTrackClass('w-full grid grid-cols-2')}>
                     <button
@@ -844,7 +844,7 @@ export default function InlineMortgageDsrBridge({
                       className={getToggleBtnClass({
                         active: repaymentType === 'EQUAL_PRINCIPAL_AND_INTEREST',
                         size: 'sm',
-                        tone: 'blue',
+                        tone: 'neutral',
                       })}
                     >
                       원리금균등
@@ -855,7 +855,7 @@ export default function InlineMortgageDsrBridge({
                       className={getToggleBtnClass({
                         active: repaymentType === 'EQUAL_PRINCIPAL',
                         size: 'sm',
-                        tone: 'blue',
+                        tone: 'neutral',
                       })}
                     >
                       원금균등
@@ -865,25 +865,25 @@ export default function InlineMortgageDsrBridge({
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-2.5">
+                <div className="rounded-xl bg-elevated p-2.5">
                   <div className="text-[10.5px] font-bold text-tertiary">초회 월 상환액</div>
-                  <div className="mt-0.5 text-sm font-black text-blue-600 dark:text-blue-400">
+                  <div className="mt-0.5 text-sm font-black text-primary">
                     {calcMetrics.monthlyPaymentManwon.toLocaleString('ko-KR')}만원
                   </div>
                 </div>
-                <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-2.5">
+                <div className="rounded-xl bg-elevated p-2.5">
                   <div className="text-[10.5px] font-bold text-tertiary">스트레스 DSR 한도</div>
-                  <div className="mt-0.5 text-sm font-black text-emerald-700 dark:text-emerald-300">
+                  <div className="mt-0.5 text-sm font-black text-primary">
                     {formatManwonLabel(calcMetrics.dsrMaxLoanManwon)}
                   </div>
                 </div>
-                <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-2.5">
+                <div className="rounded-xl bg-elevated p-2.5">
                   <div className="text-[10.5px] font-bold text-tertiary">최소 필요 현금</div>
                   <div className="mt-0.5 text-sm font-black text-primary">
                     {formatManwonLabel(calcMetrics.requiredCashManwon)}
                   </div>
                 </div>
-                <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-2.5">
+                <div className="rounded-xl bg-elevated p-2.5">
                   <div className="text-[10.5px] font-bold text-tertiary">만기 총 이자</div>
                   <div className="mt-0.5 text-sm font-black text-secondary">
                     {formatManwonLabel(calcMetrics.totalInterestManwon)}
@@ -921,7 +921,7 @@ export default function InlineMortgageDsrBridge({
                         className={getToggleBtnClass({
                           active: taxTier === opt.id,
                           size: 'sm',
-                          tone: 'emerald',
+                          tone: 'neutral',
                           extraClass: 'tabular-nums',
                         })}
                       >
@@ -945,7 +945,7 @@ export default function InlineMortgageDsrBridge({
                     className={getToggleBtnClass({
                       active: !areaOver85,
                       size: 'sm',
-                      tone: 'blue',
+                      tone: 'neutral',
                       extraClass: 'tabular-nums',
                     })}
                   >
@@ -960,7 +960,7 @@ export default function InlineMortgageDsrBridge({
                     className={getToggleBtnClass({
                       active: areaOver85,
                       size: 'sm',
-                      tone: 'blue',
+                      tone: 'neutral',
                       extraClass: 'tabular-nums',
                     })}
                   >
@@ -970,24 +970,24 @@ export default function InlineMortgageDsrBridge({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-2.5">
+                <div className="rounded-xl bg-elevated p-2.5">
                   <div className="text-[10.5px] font-bold text-tertiary">취득 기준가</div>
                   <div className="mt-0.5 text-sm font-black text-primary tabular-nums">
                     {formatManwonLabel(effectivePriceManwon)}
                   </div>
                 </div>
-                <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-2.5">
+                <div className="rounded-xl bg-elevated p-2.5">
                   <div className="text-[10.5px] font-bold text-tertiary">적용 실효세율 (교육세 포함)</div>
-                  <div className="mt-0.5 text-sm font-black text-blue-600 dark:text-blue-400 tabular-nums">
+                  <div className="mt-0.5 text-sm font-black text-primary tabular-nums">
                     {calcMetrics.acqEffectiveRatePct}%
                   </div>
                 </div>
-                <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-2.5">
+                <div className="rounded-xl bg-elevated p-2.5">
                   <div className="text-[10.5px] font-bold text-tertiary">예상 납부 취득세</div>
-                  <div className="mt-0.5 text-sm font-black text-emerald-700 dark:text-emerald-300 tabular-nums">
+                  <div className="mt-0.5 text-sm font-black text-primary tabular-nums">
                     {calcMetrics.acqTaxManwon.toLocaleString('ko-KR')}만원
                     {calcMetrics.firstHomeSavedManwon > 0 && (
-                      <span className="ml-1 text-[11px] font-bold text-secondary tabular-nums">
+                      <span className="ml-1 text-[11px] font-bold text-brand-blue tabular-nums">
                         (-{calcMetrics.firstHomeSavedManwon}만 감면)
                       </span>
                     )}

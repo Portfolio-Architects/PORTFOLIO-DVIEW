@@ -32,15 +32,15 @@ const CLUSTER_TAG_META: Record<
 > = {
   SAME_DONG: {
     label: '동일 법정동 권역',
-    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    badgeClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary border-border',
   },
   SAME_PRICE_BAND: {
     label: '유사 실거래 가격대',
-    badgeClass: 'bg-blue-50 text-blue-600 border-blue-200',
+    badgeClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary border-border',
   },
   TOP_VOLUME: {
     label: '거래량 상위 단지',
-    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200',
+    badgeClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary border-border',
   },
 };
 
@@ -105,10 +105,10 @@ export function TerminalRecirculationHub(props: TerminalRecirculationHubProps) {
       id="chapter-08-recirculation-hub"
       data-testid="terminal-recirculation-hub"
       aria-label="비슷한 단지 더 보기"
-      className="mt-4 min-h-[320px] sm:min-h-[340px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-5 sm:p-6"
+      className="mt-4 min-h-[320px] sm:min-h-[340px] rounded-2xl bg-elevated p-5 sm:p-6"
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1.5 pb-4 border-b border-[#f2f4f6] dark:border-[#202027]">
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1.5 pb-4 border-b border-border">
         <h4 className="text-[16px] sm:text-[18px] font-extrabold text-primary tracking-tight">
           비슷한 단지 더 보기
         </h4>
@@ -134,7 +134,7 @@ export function TerminalRecirculationHub(props: TerminalRecirculationHubProps) {
               key={`${target.aptName}-${idx}`}
               data-testid={`recirc-target-card-${idx}`}
               data-cluster-tag={target.clusterTag}
-              className="group flex flex-col justify-between rounded-xl bg-surface dark:bg-[#202027] p-4 transition-colors"
+              className="group flex flex-col justify-between rounded-xl bg-surface dark:bg-[#1e2532] p-4 transition-colors"
             >
               <div>
                 <div className="flex items-center justify-between gap-1.5 mb-1.5">
@@ -150,12 +150,12 @@ export function TerminalRecirculationHub(props: TerminalRecirculationHubProps) {
                   className="w-full text-left border-none bg-transparent p-0 cursor-pointer transition-colors"
                 >
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-[14px] font-bold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
+                    <span className="text-[14px] font-bold text-primary group-hover:text-primary truncate">
                       {target.aptName}
                     </span>
                     <ArrowUpRight
                       size={14}
-                      className="shrink-0 text-tertiary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
+                      className="shrink-0 text-tertiary group-hover:text-primary transition-colors"
                     />
                   </div>
                   <div className="flex items-center gap-1 mt-0.5 text-[11px] font-medium text-tertiary">
@@ -165,7 +165,7 @@ export function TerminalRecirculationHub(props: TerminalRecirculationHubProps) {
                 </button>
               </div>
 
-              <div className="mt-3 pt-2.5 border-t border-[#f2f4f6] dark:border-[#2c2c35] flex items-center justify-between text-[11px]">
+              <div className="mt-3 pt-2.5 border-t border-border flex items-center justify-between text-[11px]">
                 <div>
                   <span className="text-tertiary font-medium block">최근 실거래</span>
                   <span className="text-[13.5px] font-extrabold text-primary tabular-nums">
@@ -185,7 +185,7 @@ export function TerminalRecirculationHub(props: TerminalRecirculationHubProps) {
                   type="button"
                   data-testid={`recirc-card-explore-${idx}`}
                   onClick={() => validated.onSelectApartment(target.aptName)}
-                  className="inline-flex items-center justify-center gap-1 rounded-lg bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-[#2c2c35] dark:hover:bg-slate-700 px-2.5 py-1.5 text-[11.5px] font-semibold text-primary border-none cursor-pointer transition-colors"
+                  className="inline-flex items-center justify-center gap-1 rounded-lg bg-[#eff1f5] hover:bg-[#e4e8ef] dark:bg-[#252c3d] dark:hover:bg-slate-700 px-2.5 py-1.5 text-[11.5px] font-semibold text-primary border-none cursor-pointer transition-colors"
                 >
                   <Building2 size={12} />
                   <span>상세 보기</span>
@@ -194,7 +194,7 @@ export function TerminalRecirculationHub(props: TerminalRecirculationHubProps) {
                   type="button"
                   data-testid={`recirc-card-compare-${idx}`}
                   onClick={() => validated.onOpenCompare(validated.currentAptName, target.aptName)}
-                  className="inline-flex items-center justify-center gap-1 rounded-lg bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#2c2c35] px-2.5 py-1.5 text-[11.5px] font-semibold text-secondary hover:text-primary border-none cursor-pointer transition-colors"
+                  className="inline-flex items-center justify-center gap-1 rounded-lg bg-elevated hover:bg-[#eff1f5] dark:bg-[#151a23] dark:hover:bg-[#252c3d] px-2.5 py-1.5 text-[11.5px] font-semibold text-secondary hover:text-primary border-none cursor-pointer transition-colors"
                 >
                   <ArrowRightLeft size={12} />
                   <span>1:1 비교</span>
@@ -216,10 +216,10 @@ export function TerminalRecirculationHub(props: TerminalRecirculationHubProps) {
               primaryTarget ? primaryTarget.aptName : ''
             )
           }
-          className="flex items-center justify-between rounded-xl bg-surface hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] px-4 py-3 text-left transition-colors border-none cursor-pointer"
+          className="flex items-center justify-between rounded-xl bg-surface hover:bg-[#eff1f5] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] px-4 py-3 text-left transition-colors border-none cursor-pointer"
         >
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f2f4f6] dark:bg-[#2c2c35] text-secondary">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#eff1f5] dark:bg-[#252c3d] text-secondary">
               <ArrowRightLeft size={15} />
             </div>
             <div className="min-w-0">
@@ -240,10 +240,10 @@ export function TerminalRecirculationHub(props: TerminalRecirculationHubProps) {
           onClick={() =>
             validated.onOpenMortgage(validated.currentAptName, validated.currentPriceWon)
           }
-          className="flex items-center justify-between rounded-xl bg-surface hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] px-4 py-3 text-left transition-colors border-none cursor-pointer"
+          className="flex items-center justify-between rounded-xl bg-surface hover:bg-[#eff1f5] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] px-4 py-3 text-left transition-colors border-none cursor-pointer"
         >
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f2f4f6] dark:bg-[#2c2c35] text-secondary">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#eff1f5] dark:bg-[#252c3d] text-secondary">
               <Calculator size={15} />
             </div>
             <div className="min-w-0">
@@ -263,7 +263,7 @@ export function TerminalRecirculationHub(props: TerminalRecirculationHubProps) {
       {relatedGuides.length > 0 && (
         <div
           data-testid="recirc-related-guides"
-          className="mt-4 pt-4 border-t border-[#f2f4f6] dark:border-[#202027] space-y-2.5"
+          className="mt-4 pt-4 border-t border-border space-y-2.5"
         >
           <div className="flex items-center justify-between gap-2">
             <h5 className="text-[12.5px] font-bold text-secondary flex items-center gap-1.5">
@@ -289,13 +289,13 @@ export function TerminalRecirculationHub(props: TerminalRecirculationHubProps) {
                 key={guide.slug}
                 href={`/guide/${guide.slug}`}
                 prefetch={false}
-                className="group flex items-center justify-between gap-2 rounded-xl bg-surface hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] px-3.5 py-2.5 transition-colors"
+                className="group flex items-center justify-between gap-2 rounded-xl bg-surface hover:bg-[#eff1f5] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] px-3.5 py-2.5 transition-colors"
               >
                 <div className="min-w-0">
                   <span className="text-[10.5px] font-semibold text-tertiary block">
                     {guide.category}
                   </span>
-                  <span className="text-[12px] font-bold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate block transition-colors">
+                  <span className="text-[12px] font-bold text-primary group-hover:text-primary truncate block transition-colors">
                     {guide.title}
                   </span>
                 </div>

@@ -46,7 +46,7 @@ export const ComparePriceHistoryChart = React.memo(function ComparePriceHistoryC
     <div className="space-y-4">
       <div className="flex items-center justify-between px-1 flex-wrap gap-3">
         <h3 className="text-[14px] font-extrabold text-primary flex items-center gap-1.5">
-          <TrendingUp size={16} className="text-toss-blue" />
+          <TrendingUp size={16} className="text-secondary" />
           <span>실거래 시계열 가격 트렌드 (월별 평균 거래가)</span>
         </h3>
 
@@ -157,20 +157,20 @@ export const ComparePriceHistoryChart = React.memo(function ComparePriceHistoryC
                     type="monotone"
                     dataKey={apt1Label}
                     name={apt1Label}
-                    stroke="#2563eb"
+                    stroke="#2f6bff"
                     strokeWidth={3}
-                    dot={{ r: 3, fill: '#2563eb', strokeWidth: 2 }}
-                    activeDot={{ r: 6, fill: '#2563eb' }}
+                    dot={{ r: 3, fill: '#2f6bff', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: '#2f6bff' }}
                     connectNulls
                   />
                   <Line
                     type="monotone"
                     dataKey={apt2Label}
                     name={apt2Label}
-                    stroke="#3b82f6"
+                    stroke="#ff3b5c"
                     strokeWidth={3}
-                    dot={{ r: 3, fill: '#3b82f6', strokeWidth: 2 }}
-                    activeDot={{ r: 6, fill: '#3b82f6' }}
+                    dot={{ r: 3, fill: '#ff3b5c', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: '#ff3b5c' }}
                     connectNulls
                   />
                 </LineChart>

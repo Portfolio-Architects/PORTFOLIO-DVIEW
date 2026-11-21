@@ -117,12 +117,12 @@ const ApartmentSpecsSection = React.memo(function ApartmentSpecsSection({
                   else if (y > 0) ageStr = `${y}년차`;
                   else ageStr = `${m}개월차`;
                 }
-                return <>{year}년 {month}월 <span className="block text-body-sm text-toss-blue font-medium mt-0.5 apt-spec-label">({ageStr})</span></>;
+                return <>{year}년 {month}월 <span className="block text-body-sm text-secondary font-medium mt-0.5 apt-spec-label">({ageStr})</span></>;
               }
               
               const year = parseInt(ybStr);
               const age = currentYear - year + 1;
-              return <>{year}년 <span className="block text-body-sm text-toss-blue font-medium mt-0.5 apt-spec-label">({age}년차)</span></>;
+              return <>{year}년 <span className="block text-body-sm text-secondary font-medium mt-0.5 apt-spec-label">({age}년차)</span></>;
             })() : '-',
             className: ''
           },
@@ -159,7 +159,7 @@ const ApartmentSpecsSection = React.memo(function ApartmentSpecsSection({
         ].map((spec) => (
           <div 
             key={`apt-spec-card-${spec.key}`} 
-            className={`bg-[#f9fafb] dark:bg-[#17171c] p-4 rounded-2xl ${spec.className}`}
+            className={`bg-elevated p-4 rounded-2xl ${spec.className}`}
           >
             <p className="text-[11.5px] text-tertiary font-semibold mb-1.5 whitespace-nowrap apt-spec-label">{spec.label}</p>
             <div className="text-[14.5px] text-primary font-bold tabular-nums apt-spec-value">

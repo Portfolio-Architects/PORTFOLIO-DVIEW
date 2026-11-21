@@ -346,16 +346,16 @@ export function StatsOverviewSection({
         <div className="flex flex-wrap items-center justify-between gap-y-1.5 gap-x-3 px-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 min-w-0">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0" />
-              <h2 className="text-[15px] sm:text-[16px] font-bold text-slate-900 dark:text-slate-100 tracking-tight truncate">
+              <span className="w-2.5 h-2.5 rounded-full bg-slate-900 dark:bg-slate-100 shrink-0" />
+              <h2 className="text-[15px] sm:text-[16px] font-bold text-primary tracking-tight truncate">
                 동탄 실거래 통계 지표 & 하이퍼로컬 인사이트
               </h2>
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10.5px] sm:text-[11px] font-bold text-slate-600 dark:text-slate-300 shrink-0">
-              실거래 표본: <span className="text-emerald-600 dark:text-emerald-400 font-extrabold tabular-nums">{statsData.totalVolume.toLocaleString()}건</span>
+            <span className="px-2 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-[10.5px] sm:text-[11px] font-bold text-secondary shrink-0">
+              실거래 표본: <span className="text-primary font-extrabold tabular-nums">{statsData.totalVolume.toLocaleString()}건</span>
             </span>
           </div>
-          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium hidden lg:inline-block shrink-0">
+          <span className="text-[11px] text-tertiary font-medium hidden lg:inline-block shrink-0">
             182개 단지 전수 실거래 기반 5차원 심층 통계 및 실시간 시장 분석
           </span>
         </div>
@@ -384,20 +384,20 @@ export function StatsOverviewSection({
             className="p-4 sm:p-5 rounded-2xl border border-border/60 bg-surface shadow-xs flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">총 거래량</span>
+              <span className="text-xs font-bold text-tertiary">총 거래량</span>
               {statsData.volumeChangeMoM !== 0 && (
                 <span
-                  className={`text-[11px] font-extrabold px-1.5 py-0.5 rounded-md ${
+                  className={`text-[11px] font-extrabold px-1.5 py-0.5 rounded-md tabular-nums ${
                     statsData.volumeChangeMoM > 0
-                      ? 'bg-red-50 text-red-600 dark:bg-red-950/40'
-                      : 'bg-blue-50 text-blue-600 dark:bg-blue-950/40'
+                      ? 'bg-brand-red-light text-brand-red'
+                      : 'bg-brand-blue-light text-brand-blue'
                   }`}
                 >
                   전월대비 {statsData.volumeChangeMoM > 0 ? `+${statsData.volumeChangeMoM}%` : `${statsData.volumeChangeMoM}%`}
                 </span>
               )}
             </div>
-            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-2">
+            <p className="text-xl sm:text-2xl font-black tabular-nums text-primary mt-2">
               {statsData.totalVolume}건
             </p>
           </div>
@@ -407,8 +407,8 @@ export function StatsOverviewSection({
             data-testid="kpi-avg-sale-price"
             className="p-4 sm:p-5 rounded-2xl border border-border/60 bg-surface shadow-xs flex flex-col justify-between"
           >
-            <span className="text-xs font-bold text-slate-400">평균 매매가</span>
-            <p className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 mt-2">
+            <span className="text-xs font-bold text-tertiary">평균 매매가</span>
+            <p className="text-xl sm:text-2xl font-black tabular-nums text-primary mt-2">
               {statsData.avgSalePrice > 0 ? `${statsData.avgSalePrice.toLocaleString()}만원` : '-'}
             </p>
           </div>
@@ -418,8 +418,8 @@ export function StatsOverviewSection({
             data-testid="kpi-avg-pyeong-price"
             className="p-4 sm:p-5 rounded-2xl border border-border/60 bg-surface shadow-xs flex flex-col justify-between"
           >
-            <span className="text-xs font-bold text-slate-400">평당가</span>
-            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-2">
+            <span className="text-xs font-bold text-tertiary">평당가</span>
+            <p className="text-xl sm:text-2xl font-black tabular-nums text-primary mt-2">
               {statsData.avgPyeongPrice > 0
                 ? `${statsData.avgPyeongPrice.toLocaleString()}만원/평`
                 : '-'}
@@ -431,8 +431,8 @@ export function StatsOverviewSection({
             data-testid="kpi-avg-jeonse-ratio"
             className="p-4 sm:p-5 rounded-2xl border border-border/60 bg-surface shadow-xs flex flex-col justify-between"
           >
-            <span className="text-xs font-bold text-slate-400">평균 전세가율</span>
-            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-2">
+            <span className="text-xs font-bold text-tertiary">평균 전세가율</span>
+            <p className="text-xl sm:text-2xl font-black tabular-nums text-primary mt-2">
               {statsData.avgJeonseRatio > 0 ? `${statsData.avgJeonseRatio}%` : '-'}
             </p>
           </div>

@@ -116,32 +116,22 @@ describe('Milestone 3 — Zone 5 Implementation (SSR Market Editorial & Zero-CLS
       }
     });
 
-    it('preserves core hub navigation links (/explore, /guide, /guide/stress-dsr-valuation-guide, /stats, /lounge, /#notification) without 404 dead links', async () => {
+    it('preserves deduplicated hub links (/explore, /guide/stress-dsr-valuation-guide) without 404 dead links or duplicate footer policy nav', async () => {
       const HomeJsx = await HomePage();
       const { container } = render(HomeJsx);
 
       const editorial = container.querySelector('#home-ssr-market-editorial');
       expect(editorial).not.toBeNull();
-      expect(editorial?.querySelector('#notification')).not.toBeNull();
 
-      const requiredHubLinks = [
-        '/explore',
-        '/guide',
-        '/guide/stress-dsr-valuation-guide',
-        '/stats',
-        '/lounge',
-        '/#notification',
-        '/technovalley',
-        '/news',
-        '/about',
-        '/privacy',
-        '/terms',
-      ];
+      // Core contextual links preserved without duplicating global GNB / Footer policy bars
+      expect(editorial?.querySelector('a[href="/explore"]')).not.toBeNull();
+      expect(editorial?.querySelector('a[href="/guide/stress-dsr-valuation-guide"]')).not.toBeNull();
+      expect(container.querySelector('#home-engagement-editorial-hub a[href="/guide"]')).not.toBeNull();
 
-      for (const href of requiredHubLinks) {
-        const link = editorial?.querySelector(`a[href="${href}"]`);
-        expect(link).not.toBeNull();
-      }
+      // Global <Footer /> is the single SSOT for policy links (/privacy, /terms, /about)
+      expect(editorial?.querySelector('a[href="/privacy"]')).toBeNull();
+      expect(editorial?.querySelector('a[href="/terms"]')).toBeNull();
+      expect(editorial?.querySelector('a[href="/about"]')).toBeNull();
 
       const deadLinks = ['/map', '/compare', '/calculator', '/complex-ranking', '/subscription', '/mbti'];
       for (const deadHref of deadLinks) {

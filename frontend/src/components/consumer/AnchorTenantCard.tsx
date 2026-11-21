@@ -42,7 +42,7 @@ const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardP
       id: 'starbucks',
       name: '스타벅스', 
       distance: props.distanceToStarbucks, 
-      color: '#00704A', 
+      color: '', 
       metaName: props.starbucksName,
       metaAddress: props.starbucksAddress,
       metaCoordinates: props.starbucksCoordinates
@@ -51,7 +51,7 @@ const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardP
       id: 'oliveyoung', 
       name: '올리브영', 
       distance: props.distanceToOliveYoung, 
-      color: '#9db44f', 
+      color: '', 
       metaName: props.oliveYoungName,
       metaAddress: props.oliveYoungAddress,
       metaCoordinates: props.oliveYoungCoordinates
@@ -60,7 +60,7 @@ const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardP
       id: 'daiso', 
       name: '다이소', 
       distance: props.distanceToDaiso, 
-      color: '#E02020', 
+      color: '', 
       metaName: props.daisoName,
       metaAddress: props.daisoAddress,
       metaCoordinates: props.daisoCoordinates
@@ -69,7 +69,7 @@ const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardP
       id: 'mcdonalds', 
       name: '배스킨라빈스', 
       distance: props.distanceToMcDonalds, 
-      color: '#FF6699', 
+      color: '', 
       metaName: props.mcdonaldsName,
       metaAddress: props.mcdonaldsAddress,
       metaCoordinates: props.mcdonaldsCoordinates
@@ -82,7 +82,7 @@ const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardP
   const TRACK_MAX_DISTANCE = 2000;
 
   return (
-    <div className="pt-6 border-t border-[#f2f4f6] dark:border-[#202027]">
+    <div className="pt-6 border-t border-border">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight">
@@ -90,7 +90,7 @@ const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardP
         </h2>
       </div>
 
-      {/* Anchor List - Ad Money v5.1 Soft Surface Grid */}
+      {/* Anchor List - Ad Money v6.0 Live Spark Soft Surface Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         {anchors.map((anchor) => {
           if (anchor.distance == null) return null;
@@ -98,12 +98,12 @@ const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardP
           const percent = Math.min((anchor.distance / 1000) * 100, 100);
           
           return (
-            <div key={anchor.id} className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 flex flex-col justify-between transition-colors min-h-[168px] relative overflow-hidden">
+            <div key={anchor.id} className="bg-elevated rounded-2xl p-4 flex flex-col justify-between transition-colors min-h-[168px] relative overflow-hidden">
               
               {/* Top Info: Category & Distance */}
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: anchor.color }}></div>
+                  <div className="w-1.5 h-1.5 rounded-full shrink-0 bg-primary"></div>
                   <span className="text-[12.5px] font-bold text-secondary">{anchor.name}</span>
                 </div>
                 <div className="flex items-baseline gap-0.5 text-right tabular-nums">
@@ -128,20 +128,19 @@ const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardP
                 )}
               </div>
 
-              {/* Toss-style Distance Gauge Bar */}
-              <div className="mt-1 w-full bg-slate-200/70 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden relative mb-3">
+              {/* Distance Gauge Bar */}
+              <div className="mt-1 w-full bg-[#eff1f5] dark:bg-[#1e2532] h-1.5 rounded-full overflow-hidden relative mb-3">
                 <div 
-                  className="h-full rounded-full transition-all duration-500 ease-out"
+                  className="h-full rounded-full transition-all duration-500 ease-out bg-slate-900 dark:bg-slate-100"
                   style={{ 
-                    width: `${percent}%`,
-                    backgroundColor: anchor.color
+                    width: `${percent}%`
                   }}
                 />
               </div>
               
               {/* Bottom Actions: Walking Time & Map link */}
-              <div className="flex items-center justify-between pt-2.5 border-t border-[#f2f4f6] dark:border-[#202027]">
-                <span className="text-[12px] font-bold text-blue-600 dark:text-blue-400 shrink-0 whitespace-nowrap tabular-nums">
+              <div className="flex items-center justify-between pt-2.5 border-t border-border">
+                <span className="text-[12px] font-bold text-primary shrink-0 whitespace-nowrap tabular-nums">
                   도보 {walkingTime}분
                 </span>
                 
@@ -150,7 +149,7 @@ const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardP
                     href={`https://www.google.com/maps/search/?api=1&query=${anchor.metaCoordinates}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-secondary hover:text-primary bg-surface hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] px-2 py-1 rounded-[10px] transition-colors flex items-center justify-center gap-1 shrink-0"
+                    className="text-secondary hover:text-primary bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] px-2 py-1 rounded-[10px] transition-colors flex items-center justify-center gap-1 shrink-0"
                     title={`${anchor.metaName} 지도에서 보기`}
                   >
                     <MapPin size={12} strokeWidth={2.2} className="shrink-0" />

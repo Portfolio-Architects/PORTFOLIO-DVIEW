@@ -47,17 +47,17 @@ export const CompareRadarChart = React.memo(function CompareRadarChart({
           <Radar
             name={apt1Name}
             dataKey={key1}
-            stroke="#2563eb"
-            fill="#2563eb"
-            fillOpacity={0.4}
+            stroke="#2f6bff"
+            fill="#2f6bff"
+            fillOpacity={0.3}
             strokeWidth={2}
           />
           <Radar
             name={apt2Name}
             dataKey={key2}
-            stroke="#3b82f6"
-            fill="#3b82f6"
-            fillOpacity={0.35}
+            stroke="#ff3b5c"
+            fill="#ff3b5c"
+            fillOpacity={0.28}
             strokeWidth={2}
           />
           <Tooltip

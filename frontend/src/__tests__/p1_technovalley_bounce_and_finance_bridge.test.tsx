@@ -1048,7 +1048,7 @@ describe('P1 Track 2: InlineMortgageDsrBridge & /guide/* + /apartment/* Conversi
     const priceInputOpen1 = screen.getByPlaceholderText('예: 75,000') as HTMLInputElement;
     expect(priceInputOpen1.value).toBe('90,000');
     const over85BtnOpen1 = screen.getByRole('button', { name: '전용 85㎡ 초과 (농특별세 0.2%)' });
-    expect(over85BtnOpen1.className).toContain('border-blue-600');
+    expect(over85BtnOpen1.className).toContain('border-slate-900/30');
 
     // Close modal (!isOpen) and reopen with initialAreaOver85={undefined} & no price
     taxRender.rerender(
@@ -1094,8 +1094,8 @@ describe('P1 Track 2: InlineMortgageDsrBridge & /guide/* + /apartment/* Conversi
     const over85BtnReopen = screen.getByRole('button', {
       name: '전용 85㎡ 초과 (농특별세 0.2%)',
     });
-    expect(under85BtnReopen.className).toContain('border-blue-600');
-    expect(over85BtnReopen.className).not.toContain('border-blue-600');
+    expect(under85BtnReopen.className).toContain('border-slate-900/30');
+    expect(over85BtnReopen.className).not.toContain('border-slate-900/30');
 
     // Also verify explicit initialAreaOver85={false} overrides cached quiz answers
     window.localStorage.setItem(
@@ -1135,7 +1135,7 @@ describe('P1 Track 2: InlineMortgageDsrBridge & /guide/* + /apartment/* Conversi
     await waitFor(() => {
       expect(
         screen.getByRole('button', { name: '전용 85㎡ 이하 (농특별세 면제)' }).className
-      ).toContain('border-blue-600');
+      ).toContain('border-slate-900/30');
     });
 
     taxRender.unmount();
@@ -1405,7 +1405,7 @@ describe('P1 Track 2: InlineMortgageDsrBridge & /guide/* + /apartment/* Conversi
       expect(priceInput.value).toBe('148,000');
       expect(
         screen.getByRole('button', { name: '전용 85㎡ 초과 (농특별세 0.2%)' }).className
-      ).toContain('border-blue-600');
+      ).toContain('border-slate-900/30');
     });
 
     exploreRender.unmount();
@@ -1524,7 +1524,7 @@ describe('P1 Track 2: InlineMortgageDsrBridge & /guide/* + /apartment/* Conversi
       expect(priceInput.value).toBe('85,000');
       expect(
         screen.getByRole('button', { name: '전용 85㎡ 이하 (농특별세 면제)' }).className
-      ).toContain('border-blue-600');
+      ).toContain('border-slate-900/30');
     });
 
     exploreRender.unmount();
@@ -1655,7 +1655,7 @@ describe('P1 Track 2: InlineMortgageDsrBridge & /guide/* + /apartment/* Conversi
 
     fireEvent.click(await screen.findByTestId('mortgage-jump-step4-btn'));
     const maturity40Btn = await screen.findByRole('button', { name: '40년' });
-    expect(maturity40Btn.className).toContain('bg-blue-600');
+    expect(maturity40Btn.className).toContain('bg-slate-900');
 
     // Re-targeting initialPriceManwon while Step 4 is open resets modal back to STEP 1 / 4
     calcRender.rerender(

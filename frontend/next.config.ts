@@ -64,27 +64,27 @@ const nextConfig: NextConfig = {
       {
         source: '/map',
         destination: '/explore',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/compare',
         destination: '/guide',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/calculator',
         destination: '/guide/stress-dsr-valuation-guide',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/complex-ranking',
         destination: '/explore',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/subscription',
         destination: '/',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/board',
@@ -99,17 +99,17 @@ const nextConfig: NextConfig = {
       {
         source: '/techno',
         destination: '/',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/mbti',
         destination: '/',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/mbti/:path*',
         destination: '/',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/overview',

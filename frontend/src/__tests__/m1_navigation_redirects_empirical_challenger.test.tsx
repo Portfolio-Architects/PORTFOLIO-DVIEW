@@ -162,7 +162,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       let tab4 = screen.getByRole('link', { name: /분석 리포트/i });
       let tab5 = screen.getByRole('link', { name: /테크노밸리 랩/i });
 
-      expect(tab1).toHaveClass('text-blue-600');
+      expect(tab1).toHaveClass('text-primary');
       expect(tab1).toHaveClass('bg-white');
       expect(tab2).not.toHaveClass('bg-white');
       expect(tab3).not.toHaveClass('bg-white');
@@ -177,7 +177,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab4 = screen.getByRole('link', { name: /분석 리포트/i });
       tab5 = screen.getByRole('link', { name: /테크노밸리 랩/i });
 
-      expect(tab2).toHaveClass('text-blue-600');
+      expect(tab2).toHaveClass('text-primary');
       expect(tab2).toHaveClass('bg-white');
       expect(tab1).not.toHaveClass('bg-white');
       expect(tab3).not.toHaveClass('bg-white');
@@ -192,7 +192,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab4 = screen.getByRole('link', { name: /분석 리포트/i });
       tab5 = screen.getByRole('link', { name: /테크노밸리 랩/i });
 
-      expect(tab3).toHaveClass('text-blue-600');
+      expect(tab3).toHaveClass('text-primary');
       expect(tab3).toHaveClass('bg-white');
       expect(tab1).not.toHaveClass('bg-white');
       expect(tab2).not.toHaveClass('bg-white');
@@ -207,7 +207,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab4 = screen.getByRole('link', { name: /분석 리포트/i });
       tab5 = screen.getByRole('link', { name: /테크노밸리 랩/i });
 
-      expect(tab4).toHaveClass('text-blue-600');
+      expect(tab4).toHaveClass('text-primary');
       expect(tab4).toHaveClass('bg-white');
       expect(tab1).not.toHaveClass('bg-white');
       expect(tab2).not.toHaveClass('bg-white');
@@ -222,7 +222,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab4 = screen.getByRole('link', { name: /분석 리포트/i });
       tab5 = screen.getByRole('link', { name: /테크노밸리 랩/i });
 
-      expect(tab5).toHaveClass('text-blue-600');
+      expect(tab5).toHaveClass('text-primary');
       expect(tab5).toHaveClass('bg-white');
       expect(tab1).not.toHaveClass('bg-white');
       expect(tab2).not.toHaveClass('bg-white');
@@ -407,11 +407,16 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       expect(technovalleyRule).toBeUndefined();
     });
 
-    it('has a 307 temporary redirect rule for /techno -> /', () => {
+    it('has a 308 permanent redirect rule for /techno -> / and /mbti -> /', () => {
       const technoRule = redirects.find((r: any) => r.source === '/techno');
       expect(technoRule).toBeDefined();
       expect(technoRule.destination).toBe('/');
-      expect(technoRule.permanent).toBe(false); // 307 temporary redirect
+      expect(technoRule.permanent).toBe(true); // 308 permanent redirect for GSC cleanup
+
+      const mbtiRule = redirects.find((r: any) => r.source === '/mbti');
+      expect(mbtiRule).toBeDefined();
+      expect(mbtiRule.destination).toBe('/');
+      expect(mbtiRule.permanent).toBe(true);
     });
 
     it('has a 307 redirect rule for /overview with query param tab=office -> /', () => {

@@ -35,7 +35,7 @@ export interface TodayUpdatePillBadgeProps {
  * TodayUpdatePillBadge
  * Live status pulse badge representing today's newly registered transactions from MOLIT.
  * Adheres strictly to:
- * - Ad Money Design System v5.0 (Value Emerald tokens)
+ * - Ad Money Design System v6.0 (Live Spark neutral ink pill + calibrated spark dot)
  * - Zero-CLS Bounding Box Invariant (fixed h-[26px] height footprint)
  * - Strict Real Data Only Rule (truthful 0-count neutral state on weekends/holidays)
  */
@@ -119,7 +119,7 @@ export function TodayUpdatePillBadge({
       }
     : {};
 
-  // Case A: Today's new transactions registered (Value Emerald Live Pulse)
+  // Case A: Today's new transactions registered (Live Spark Neutral Ink Pill)
   if (metrics.isTodayUpdated && metrics.todayRegisteredCount > 0) {
     const syncTimeHm = extractSyncTimeHm(metrics.lastSyncTimeLabel);
     const mainText =
@@ -128,6 +128,7 @@ export function TodayUpdatePillBadge({
         : syncTimeHm
           ? `오늘 신규 ${metrics.todayRegisteredCount}건 등록 (${syncTimeHm} 반영)`
           : `오늘 신규 ${metrics.todayRegisteredCount}건 등록`;
+    const dotBgClass = metrics.todayNewHighCount > 0 ? 'bg-brand-red' : 'bg-primary';
 
     return (
       <div
@@ -140,13 +141,13 @@ export function TodayUpdatePillBadge({
             ? `오늘 ${syncTimeHm} 갱신, 신규 실거래 ${metrics.todayRegisteredCount}건 등록`
             : `오늘 신규 실거래 ${metrics.todayRegisteredCount}건 등록`
         }
-        className={`h-[26px] inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 text-[11px] sm:text-xs font-bold sm:font-extrabold tracking-tight tabular-nums select-none shrink-0 transition-colors ${
-          isClickable ? 'cursor-pointer hover:bg-emerald-100/70 dark:hover:bg-emerald-900/50' : ''
+        className={`h-[26px] inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-primary border border-border/80 text-[11px] sm:text-xs font-bold sm:font-extrabold tracking-tight tabular-nums select-none shrink-0 transition-colors ${
+          isClickable ? 'cursor-pointer hover:bg-slate-200/70 dark:hover:bg-slate-700/70' : ''
         } ${className}`}
       >
         <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${dotBgClass} opacity-60`} />
+          <span className={`relative inline-flex rounded-full h-2 w-2 ${dotBgClass}`} />
         </span>
 
         <span>{mainText}</span>
@@ -172,11 +173,11 @@ export function TodayUpdatePillBadge({
       {...interactiveProps}
       onClick={onClick}
       aria-label={`최신 실거래 갱신 완료, ${metrics.latestRegisteredDateLabel || '최신'} 국토부 등록 반영`}
-      className={`h-[26px] inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-[11px] sm:text-xs font-semibold tracking-tight tabular-nums select-none shrink-0 ${
+      className={`h-[26px] inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] border border-border/70 text-secondary text-[11px] sm:text-xs font-semibold tracking-tight tabular-nums select-none shrink-0 ${
         isClickable ? 'cursor-pointer hover:bg-slate-200/60 dark:hover:bg-slate-700/60' : ''
       } ${className}`}
     >
-      <Clock size={12} className="shrink-0 text-slate-400" aria-hidden="true" />
+      <Clock size={12} className="shrink-0 text-tertiary" aria-hidden="true" />
       <span>{emptyLabel}</span>
     </div>
   );

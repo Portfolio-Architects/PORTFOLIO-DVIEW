@@ -226,7 +226,11 @@ jobs:
         if: github.event_name != 'push' && (steps.commit_push.outputs.has_changes == 'true' || steps.commit_push.outputs.pushed_sha != '')
         run: |
           APP_URL="${VERCEL_APP_URL:-https://dongtanview.com}"
-          CRON_AUTH="${CRON_SECRET:-dview-default-cron-secret-2026}"
+          if [ -z "${CRON_SECRET}" ]; then
+            echo "❌ CRON_SECRET GitHub Secret이 설정되지 않아 푸시 발송 API 호출을 중단합니다."
+            exit 1
+          fi
+          CRON_AUTH="${CRON_SECRET}"
           TARGET_DATE=$(date +%Y%m%d)
 
           echo "📣 신규 실거래가 커밋 감지 (SHA: ${{ steps.commit_push.outputs.pushed_sha }})"

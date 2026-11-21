@@ -315,13 +315,9 @@ export default function RelocationTaxSimulator({
       {/* Unified Main Header */}
       <div className="flex flex-col gap-1 border-b border-border/40 pb-5">
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse shrink-0" />
           <h3 className="text-[14.5px] sm:text-[16px] font-black text-primary tracking-tight break-keep" title="테크노밸리 이전 세금 감면 시뮬레이터">
             테크노밸리 이전 세금 감면 시뮬레이터
           </h3>
-          <span className="text-[9.5px] font-extrabold text-[#00a37b] dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full select-none shrink-0">
-            실시간 연산
-          </span>
         </div>
         <p className="text-[11.5px] text-tertiary font-bold mt-0.5 leading-normal">
           현재 법인 소재지와 예상 자산 규모에 기반해 법적 세제 감면 총액을 실시간으로 분석합니다.
@@ -335,12 +331,12 @@ export default function RelocationTaxSimulator({
         <div className="flex flex-col gap-5 min-w-0">
           {/* Step 1 Title */}
           <div className="text-[13px] font-black text-primary flex items-center gap-2 mb-1">
-            <span className="w-5 h-5 rounded-full bg-emerald-600/10 text-emerald-700 flex items-center justify-center text-[10px] font-black">1</span>
+            <span className="w-5 h-5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-primary flex items-center justify-center text-[10px] font-black">1</span>
             <span>이전 조건 및 자산 정보 입력</span>
           </div>
  
           {/* Input 1: Location Toggle */}
-          <div className="p-4 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl flex flex-col gap-3 min-w-0">
+          <div className="p-4 bg-elevated rounded-2xl flex flex-col gap-3 min-w-0">
             <div className="text-[11.5px] font-black text-secondary flex items-center gap-1">
               <span>기존 법인(사업자) 소재지</span>
               <div className="group relative cursor-pointer">
@@ -356,7 +352,7 @@ export default function RelocationTaxSimulator({
                 onClick={() => handleLocationSelect('overconcentrated')}
                 className={getToggleBtnClass({
                   active: existingLocation === 'overconcentrated',
-                  tone: 'emerald',
+                  tone: 'neutral',
                   size: 'md',
                   extraClass: 'w-full !whitespace-normal break-keep text-center text-[10.5px] sm:text-[11.5px]',
                 })}
@@ -368,7 +364,7 @@ export default function RelocationTaxSimulator({
                 onClick={() => handleLocationSelect('other')}
                 className={getToggleBtnClass({
                   active: existingLocation === 'other',
-                  tone: 'emerald',
+                  tone: 'neutral',
                   size: 'md',
                   extraClass: 'w-full !whitespace-normal break-keep text-center text-[10.5px] sm:text-[11.5px]',
                 })}
@@ -379,12 +375,12 @@ export default function RelocationTaxSimulator({
           </div>
  
           {/* Input 2: Corp Tax Slider */}
-          <div className={`p-4 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl flex flex-col gap-3 transition-opacity ${
+          <div className={`p-4 bg-elevated rounded-2xl flex flex-col gap-3 transition-opacity ${
             existingLocation !== 'overconcentrated' ? 'opacity-60' : ''
           }`}>
             <div className="flex justify-between items-center text-[11.5px] font-black">
               <span className="text-secondary">연평균 법인세 (또는 사업소득세)</span>
-              <span className="text-emerald-700 dark:text-emerald-400 text-[13px] font-black tabular-nums">{formatKoreanPrice(annualCorpTax)}</span>
+              <span className="text-primary text-[13px] font-black tabular-nums">{formatKoreanPrice(annualCorpTax)}</span>
             </div>
             <div className="flex flex-wrap gap-1.5" role="group" aria-label="연평균 법인세 빠른 선택">
               {CORP_TAX_PRESETS_MANWON.map((preset) => {
@@ -397,8 +393,8 @@ export default function RelocationTaxSimulator({
                     onClick={() => handleSelectCorpTaxPreset(preset.value)}
                     className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-colors cursor-pointer tabular-nums disabled:opacity-40 disabled:cursor-not-allowed ${
                       active
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-surface hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary'
+                        ? 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900'
+                        : 'bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-secondary hover:text-primary border border-border/60'
                     }`}
                   >
                     {preset.label}
@@ -422,7 +418,7 @@ export default function RelocationTaxSimulator({
               onKeyUp={() => flushSliderInteract('annual_corp_tax')}
               onBlur={() => flushSliderInteract('annual_corp_tax')}
               disabled={existingLocation !== 'overconcentrated'}
-              className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-600 disabled:opacity-40"
+              className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-900 dark:accent-slate-100 disabled:opacity-40"
             />
             {existingLocation !== 'overconcentrated' ? (
               <span className="text-[9.5px] text-tertiary font-bold flex items-start gap-1">
@@ -437,10 +433,10 @@ export default function RelocationTaxSimulator({
           </div>
  
           {/* Input 3: Jisan Purchase Price */}
-          <div className="p-4 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl flex flex-col gap-3">
+          <div className="p-4 bg-elevated rounded-2xl flex flex-col gap-3">
             <div className="flex justify-between items-center text-[11.5px] font-black">
               <span className="text-secondary">동탄 지식산업센터 매입(취득) 가격</span>
-              <span className="text-emerald-700 dark:text-emerald-400 text-[13px] font-black tabular-nums">{formatKoreanPrice(purchasePrice)}</span>
+              <span className="text-primary text-[13px] font-black tabular-nums">{formatKoreanPrice(purchasePrice)}</span>
             </div>
             <div className="flex flex-wrap gap-1.5" role="group" aria-label="매입가 빠른 선택">
               {PURCHASE_PRICE_PRESETS_MANWON.map((preset) => {
@@ -452,8 +448,8 @@ export default function RelocationTaxSimulator({
                     onClick={() => handleSelectPricePreset(preset.value)}
                     className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-colors cursor-pointer tabular-nums ${
                       active
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-surface hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary'
+                        ? 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900'
+                        : 'bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-secondary hover:text-primary border border-border/60'
                     }`}
                   >
                     {preset.label}
@@ -477,7 +473,7 @@ export default function RelocationTaxSimulator({
               onPointerUp={() => flushSliderInteract('purchase_price')}
               onKeyUp={() => flushSliderInteract('purchase_price')}
               onBlur={() => flushSliderInteract('purchase_price')}
-              className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-600"
+              className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-900 dark:accent-slate-100"
             />
             <span className="text-[9.5px] text-tertiary font-bold flex items-start gap-1">
               <span>※</span>
@@ -486,10 +482,10 @@ export default function RelocationTaxSimulator({
           </div>
  
           {/* Input 4: Property Tax Slider */}
-          <div className="p-4 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl flex flex-col gap-3">
+          <div className="p-4 bg-elevated rounded-2xl flex flex-col gap-3">
             <div className="flex justify-between items-center text-[11.5px] font-black">
               <span className="text-secondary">연간 예상 재산세 납부액</span>
-              <span className="text-emerald-700 dark:text-emerald-400 text-[13px] font-black tabular-nums">{formatKoreanPrice(annualPropTax)}</span>
+              <span className="text-primary text-[13px] font-black tabular-nums">{formatKoreanPrice(annualPropTax)}</span>
             </div>
             <input
               type="range"
@@ -506,7 +502,7 @@ export default function RelocationTaxSimulator({
               onPointerUp={() => flushSliderInteract('annual_prop_tax')}
               onKeyUp={() => flushSliderInteract('annual_prop_tax')}
               onBlur={() => flushSliderInteract('annual_prop_tax')}
-              className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-600"
+              className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-900 dark:accent-slate-100"
             />
             <span className="text-[9.5px] text-tertiary font-bold flex items-start gap-1">
               <span>※</span>
@@ -520,12 +516,12 @@ export default function RelocationTaxSimulator({
           <div>
             {/* Step 2 Title */}
             <div className="text-[13px] font-black text-primary flex items-center gap-2 mb-4">
-              <span className="w-5 h-5 rounded-full bg-emerald-500/10 text-[#00a37b] flex items-center justify-center text-[10px] font-black">2</span>
+              <span className="w-5 h-5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-primary flex items-center justify-center text-[10px] font-black">2</span>
               <span>예상 절세 혜택 분석 결과</span>
             </div>
  
             {/* Big Score Board */}
-            <div className="bg-[#f9fafb] dark:bg-[#17171c] p-6 sm:p-7 rounded-3xl flex flex-col items-center justify-center text-center my-2 select-none">
+            <div className="bg-elevated p-6 sm:p-7 rounded-3xl flex flex-col items-center justify-center text-center my-2 select-none">
               <span className="text-[10.5px] text-tertiary font-extrabold uppercase tracking-wider mb-2">
                 6개년 총 절세 추정치
               </span>
@@ -541,9 +537,9 @@ export default function RelocationTaxSimulator({
             <div className="flex flex-col gap-3 my-4">
               
               {/* Corp Tax Savings */}
-              <div className="flex items-center justify-between p-4 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl transition-colors">
+              <div className="flex items-center justify-between p-4 bg-elevated rounded-2xl transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-brand-blue" />
                   <div className="flex flex-col">
                     <span className="text-[13px] font-black text-primary">법인세 / 소득세 감면 (6개년)</span>
                     <span className="text-[10.5px] text-tertiary font-bold mt-0.5">이전 후 최초 4년 100%, 이후 2년 50%</span>
@@ -555,9 +551,9 @@ export default function RelocationTaxSimulator({
               </div>
  
               {/* Acquisition Tax Savings */}
-              <div className="flex items-center justify-between p-4 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl transition-colors">
+              <div className="flex items-center justify-between p-4 bg-elevated rounded-2xl transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#00a37b]" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-primary" />
                   <div className="flex flex-col">
                     <span className="text-[13px] font-black text-primary">취득세 감면 (최초 1회)</span>
                     <span className="text-[10.5px] text-tertiary font-bold mt-0.5">분양 취득 사업용 직접 사용 시 35% 감면</span>
@@ -569,9 +565,9 @@ export default function RelocationTaxSimulator({
               </div>
  
               {/* Property Tax Savings */}
-              <div className="flex items-center justify-between p-4 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl transition-colors">
+              <div className="flex items-center justify-between p-4 bg-elevated rounded-2xl transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-400" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-slate-400 dark:bg-slate-500" />
                   <div className="flex flex-col">
                     <span className="text-[13px] font-black text-primary">재산세 감면 (5개년 누적)</span>
                     <span className="text-[10.5px] text-tertiary font-bold mt-0.5">최초 취득 사용 시 5년간 35% 감면</span>
@@ -584,16 +580,16 @@ export default function RelocationTaxSimulator({
             </div>
           </div>
 
-        {/* Action Buttons & B2B CPA Guide Funnel (Ad Money v5.1 Soft Surface) */}
+        {/* Action Buttons & B2B CPA Guide Funnel (Ad Money v6.0 Live Spark) */}
         <div className="flex flex-col gap-2.5 mt-4 pt-4 border-t border-border/40">
           <a
             href={b2bGuideCpaUrl}
             data-testid="relocation-sim-b2b-cpa-cta"
             onClick={handleSimulatorB2bCpaClick}
-            className="w-full flex items-center justify-between gap-3 py-3 px-4 rounded-2xl bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] transition-colors text-left"
+            className="w-full flex items-center justify-between gap-3 py-3 px-4 rounded-2xl bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] transition-colors text-left"
           >
             <div className="min-w-0 flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+              <span className="w-8 h-8 rounded-xl bg-[#eff1f5] dark:bg-[#1e2532] text-primary flex items-center justify-center shrink-0">
                 <Landmark size={15} />
               </span>
               <div className="min-w-0">
@@ -605,7 +601,7 @@ export default function RelocationTaxSimulator({
                 </p>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] font-extrabold shrink-0">
+            <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[11.5px] font-extrabold shrink-0">
               <span>가이드 보기</span>
               <ArrowUpRight size={13} className="shrink-0" />
             </span>
@@ -614,11 +610,11 @@ export default function RelocationTaxSimulator({
           <button
             type="button"
             onClick={handleCopy}
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-2xl bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] text-[12px] font-extrabold text-secondary cursor-pointer transition-all active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-2xl bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-[12px] font-extrabold text-secondary hover:text-primary cursor-pointer transition-all active:scale-[0.98]"
           >
             {isCopied ? (
               <>
-                <Check size={15} className="text-emerald-500" />
+                <Check size={15} className="text-primary" />
                 <span>복사 완료!</span>
               </>
             ) : (

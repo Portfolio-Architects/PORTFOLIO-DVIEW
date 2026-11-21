@@ -9,7 +9,7 @@ export default function TechnoValleySkeleton() {
       <div className="w-full bg-surface dark:bg-slate-900 border border-border/60 rounded-3xl p-6 md:p-8 flex flex-col gap-3 shadow-sm">
         <div className="flex items-center gap-2">
           <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded-md" />
-          <div className="h-4 w-16 bg-emerald-500/20 rounded-full" />
+          <div className="h-4 w-16 bg-slate-200 dark:bg-slate-800 rounded-full" />
         </div>
         <div className="h-8 w-64 md:w-80 bg-slate-300 dark:bg-slate-800 rounded-xl" />
         <div className="h-4 w-full max-w-lg bg-slate-200 dark:bg-slate-800 rounded-md" />

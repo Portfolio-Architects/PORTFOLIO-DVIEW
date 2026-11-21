@@ -65,16 +65,16 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 px-1">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-[16px] sm:text-[18px] font-black text-slate-900 dark:text-slate-50 tracking-tight">
+            <h2 className="text-[16px] sm:text-[18px] font-black text-primary tracking-tight">
               내집마련 금융 · 전세 안전진단
             </h2>
-            <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/50 text-[10px] font-extrabold">
+            <span className="px-2 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-secondary text-[10px] font-extrabold">
               2026 스트레스 DSR 3단계 · HUG 126% 반영
             </span>
             {apartmentName && defaultPriceWon && defaultPriceWon > 0 && (
               <span
                 data-testid="finance-benchmark-target-badge"
-                className="px-2.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200/70 dark:border-emerald-800/50 text-[10.5px] font-extrabold flex items-center gap-1 tabular-nums"
+                className="px-2.5 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-primary border border-border text-[10.5px] font-extrabold flex items-center gap-1 tabular-nums"
               >
                 <span>선택 기준:</span>
                 <span className="underline underline-offset-2">{apartmentName}</span>
@@ -82,7 +82,7 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
               </span>
             )}
           </div>
-          <p className="text-[11.5px] sm:text-[12.5px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+          <p className="text-[11.5px] sm:text-[12.5px] text-secondary font-medium mt-0.5">
             주담대·신생아특례·디딤돌 한도 및 HUG 보증 실시간 진단
           </p>
         </div>
@@ -93,7 +93,7 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
             type="button"
             data-testid="open-mortgage-modal-btn"
             onClick={handleHeaderMortgage}
-            className="flex items-center px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-bold shadow-xs transition-all cursor-pointer active:scale-[0.98]"
+            className="flex items-center px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[12px] font-bold shadow-xs transition-all cursor-pointer active:scale-[0.98]"
           >
             <span>주담대·DSR 계산기</span>
           </button>
@@ -102,7 +102,7 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
             type="button"
             data-testid="open-jeonse-safety-modal-btn"
             onClick={handleHeaderJeonse}
-            className="flex items-center px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-blue-50/50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700 text-[12px] font-bold shadow-xs transition-all cursor-pointer active:scale-[0.98]"
+            className="flex items-center px-3.5 py-2 rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary border border-border text-[12px] font-bold shadow-xs transition-all cursor-pointer active:scale-[0.98]"
           >
             <span>전세 안전진단</span>
           </button>
@@ -112,7 +112,7 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
               type="button"
               data-testid="open-tax-modal-btn"
               onClick={handleTax}
-              className="flex items-center px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-blue-50/50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700 text-[12px] font-bold shadow-xs transition-all cursor-pointer active:scale-[0.98]"
+              className="flex items-center px-3.5 py-2 rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary border border-border text-[12px] font-bold shadow-xs transition-all cursor-pointer active:scale-[0.98]"
             >
               <span>취득세·중개보수</span>
             </button>
@@ -123,7 +123,7 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
               type="button"
               data-testid="open-sell-timing-modal-btn"
               onClick={handleSellTiming}
-              className="flex items-center px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-blue-50/50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700 text-[12px] font-bold shadow-xs transition-all cursor-pointer active:scale-[0.98]"
+              className="flex items-center px-3.5 py-2 rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary border border-border text-[12px] font-bold shadow-xs transition-all cursor-pointer active:scale-[0.98]"
             >
               <span>양도세·매도타이밍</span>
             </button>

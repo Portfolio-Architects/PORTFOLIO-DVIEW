@@ -171,7 +171,7 @@ const PhotoUploadModal = dynamic(() => import('@/components/apartment-modal/Phot
   loading: () => (
     <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/40 backdrop-blur-xl">
       <div className="bg-surface/75 dark:bg-surface/75 border border-border/50 p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4 text-center min-w-[280px]">
-        <div className="w-10 h-10 rounded-full border-2 border-toss-blue/20 border-t-toss-blue animate-spin" />
+        <div className="w-10 h-10 rounded-full border-2 border-slate-300 dark:border-slate-700 border-t-slate-900 dark:border-t-slate-100 animate-spin" />
         <span className="text-[14px] font-semibold text-primary">사진 등록기 로드 중</span>
       </div>
     </div>
@@ -1422,7 +1422,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
   const magazineBody = (
     <>
       {/* Magazine Content Wrapper with 8 Discrete Analytical Chapters */}
-      <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4 gap-8' : 'px-4 sm:px-6 pt-3 pb-12 md:px-7 md:pt-4 gap-8 md:gap-10'} flex flex-col w-full`}>
+      <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4 gap-8' : 'px-4 sm:px-6 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+48px)] md:px-7 md:pt-4 md:pb-12 gap-8 md:gap-10'} flex flex-col w-full`}>
         {inline && retentionAndBridgeBlock}
 
         {/* Chapter 01: 시세·실거래 */}
@@ -1464,7 +1464,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <section
           id="chapter-02-volume"
           data-testid="chapter-02-volume"
-          className={`${chapterScrollMarginClass} snap-start w-full pt-6 border-t border-[#f2f4f6] dark:border-[#202027]`}
+          className={`${chapterScrollMarginClass} snap-start w-full pt-6 border-t border-border`}
         >
           <div className="flex flex-col gap-3 w-full">
             <div className="flex items-baseline justify-between gap-2 pb-1">
@@ -1490,7 +1490,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
             ) : (
               <div
                 key="ch02-loading"
-                className="w-full h-[520px] sm:h-[430px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] animate-shimmer flex items-center justify-center"
+                className="w-full h-[520px] sm:h-[430px] rounded-2xl bg-elevated animate-shimmer flex items-center justify-center"
               >
                 <span className="text-tertiary text-[12px] font-bold">거래량 분석 로딩 중...</span>
               </div>
@@ -1521,7 +1521,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <section
           id="chapter-03-gap"
           data-testid="chapter-03-gap"
-          className={`${chapterScrollMarginClass} snap-start w-full pt-6 border-t border-[#f2f4f6] dark:border-[#202027]`}
+          className={`${chapterScrollMarginClass} snap-start w-full pt-6 border-t border-border`}
         >
           <div className="bg-surface flex flex-col gap-4">
             <div className="flex items-baseline justify-between gap-2">
@@ -1537,7 +1537,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
             {isChapterMounted('chapter-03-gap') ? (
               <div key="ch03-ready" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-2">
+                <div className="bg-elevated rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-2">
                   <span className="text-[12px] font-semibold text-tertiary">매매-전세 차이 (갭)</span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-[20px] font-black text-primary tabular-nums">
@@ -1551,21 +1551,21 @@ const ApartmentModal = React.memo(function ApartmentModal({
                   </div>
                 </div>
 
-                <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-2">
+                <div className="bg-elevated rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-2">
                   <span className="text-[12px] font-semibold text-tertiary">전세가율</span>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-[20px] font-black text-blue-600 dark:text-blue-400 tabular-nums">
+                    <span className="text-[20px] font-black text-primary tabular-nums">
                       {jeonseSafetyData && jeonseSafetyData.ratio > 0 ? `${jeonseSafetyData.ratio.toFixed(1)}%` : '집계 중'}
                     </span>
                   </div>
                 </div>
 
-                <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-2 sm:col-span-2 md:col-span-1">
+                <div className="bg-elevated rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-2 sm:col-span-2 md:col-span-1">
                   <span className="text-[12px] font-semibold text-tertiary">적정가 대비</span>
                   <div>
                     <span className={`text-[18px] font-black tabular-nums ${
-                      valuation.status === 'undervalued' ? 'text-emerald-600 dark:text-emerald-400' :
-                      valuation.status === 'overvalued' ? 'text-red-500 dark:text-red-400' : 'text-primary'
+                      valuation.status === 'undervalued' ? 'text-brand-blue' :
+                      valuation.status === 'overvalued' ? 'text-brand-red' : 'text-primary'
                     }`}>
                       {valuation.amount}
                     </span>
@@ -1573,7 +1573,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
                 </div>
               </div>
             ) : (
-              <div key="ch03-loading" className="w-full h-28 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] animate-shimmer flex items-center justify-center">
+              <div key="ch03-loading" className="w-full h-28 rounded-2xl bg-elevated animate-shimmer flex items-center justify-center">
                 <span className="text-tertiary text-[12px] font-bold">전세·갭 정보 불러오는 중...</span>
               </div>
             )}
@@ -1584,7 +1584,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <section
           id="chapter-04-infra"
           data-testid="chapter-04-infra"
-          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-8 pt-6 border-t border-[#f2f4f6] dark:border-[#202027]`}
+          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-8 pt-6 border-t border-border`}
         >
           {isAnimationFinished && isChapterMounted('chapter-04-infra') ? (
             <>
@@ -1625,7 +1625,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <section
           id="chapter-05-mortgage"
           data-testid="chapter-05-mortgage"
-          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-8 pt-6 border-t border-[#f2f4f6] dark:border-[#202027]`}
+          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-8 pt-6 border-t border-border`}
         >
           {isAnimationFinished && isChapterMounted('chapter-05-mortgage') ? (
             <>
@@ -1654,7 +1654,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
               {/* Jeonse Safety Section */}
               {jeonseSafetyData && (
-                <div className="bg-surface pt-6 border-t border-[#f2f4f6] dark:border-[#202027]">
+                <div className="bg-surface pt-6 border-t border-border">
                   <div className="flex flex-col w-full">
                     <div className="flex items-center justify-between gap-2 mb-5">
                       <h2 className="text-[18px] md:text-[20px] font-extrabold tracking-tight text-primary">
@@ -1667,7 +1667,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
                           onClick={() => onOpenJeonseSafety(report.apartmentName, 'chapter05_cta')}
                           onMouseEnter={preloadCalculators}
                           onFocus={preloadCalculators}
-                          className="h-8 px-3 rounded-lg bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary text-[12px] font-semibold border-none cursor-pointer transition-colors whitespace-nowrap shrink-0"
+                          className="h-8 px-3 rounded-lg bg-[#eff1f5] hover:bg-[#e4e8ef] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-secondary hover:text-primary text-[12px] font-semibold border-none cursor-pointer transition-colors whitespace-nowrap shrink-0"
                         >
                           전세 안전 계산기
                         </button>
@@ -1722,7 +1722,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <section
           id="chapter-06-ledger"
           data-testid="chapter-06-ledger"
-          className={`${chapterScrollMarginClass} snap-start w-full pt-6 border-t border-[#f2f4f6] dark:border-[#202027]`}
+          className={`${chapterScrollMarginClass} snap-start w-full pt-6 border-t border-border`}
         >
           {isAnimationFinished && isChapterMounted('chapter-06-ledger') ? (
             <ErrorBoundary name="단지 기본정보">
@@ -1733,7 +1733,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
               />
             </ErrorBoundary>
           ) : (
-            <div className="w-full h-32 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] animate-shimmer mt-2" />
+            <div className="w-full h-32 rounded-2xl bg-elevated animate-shimmer mt-2" />
           )}
         </section>
 
@@ -1741,7 +1741,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <section
           id="chapter-07-macro"
           data-testid="chapter-07-macro"
-          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-6 pt-6 border-t border-[#f2f4f6] dark:border-[#202027]`}
+          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-6 pt-6 border-t border-border`}
         >
           {isAnimationFinished && isChapterMounted('chapter-07-macro') ? (
             <div className="relative w-full">
@@ -1763,7 +1763,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <section
           id="chapter-08-report"
           data-testid="chapter-08-report"
-          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-8 pt-6 border-t border-[#f2f4f6] dark:border-[#202027]`}
+          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-8 pt-6 border-t border-border`}
         >
           {isAnimationFinished && isChapterMounted('chapter-08-report') ? (
             <>
@@ -1787,7 +1787,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
                           e.stopPropagation();
                           setIsUploadModalOpen(true);
                         }}
-                        className="h-8 px-3 rounded-lg bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary text-[12px] font-semibold border-none cursor-pointer transition-colors"
+                        className="h-8 px-3 rounded-lg bg-[#eff1f5] hover:bg-[#e4e8ef] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-secondary hover:text-primary text-[12px] font-semibold border-none cursor-pointer transition-colors"
                       >
                         + 사진 올리기
                       </button>
@@ -1800,8 +1800,8 @@ const ApartmentModal = React.memo(function ApartmentModal({
                   <h2 className="text-[18px] md:text-[20px] font-extrabold tracking-tight text-primary mb-4">
                     단지 사진
                   </h2>
-                  <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] px-6 py-8 md:py-10 flex flex-col items-center justify-center text-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-surface dark:bg-[#202027] flex items-center justify-center text-tertiary">
+                  <div className="w-full rounded-2xl bg-elevated px-6 py-8 md:py-10 flex flex-col items-center justify-center text-center gap-3">
+                    <div className="w-11 h-11 rounded-2xl bg-surface dark:bg-[#1e2532] flex items-center justify-center text-tertiary">
                       <Camera size={22} strokeWidth={1.8} />
                     </div>
                     <div className="space-y-1">
@@ -1819,7 +1819,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
                         e.stopPropagation();
                         setIsUploadModalOpen(true);
                       }}
-                      className="mt-1 h-9 px-4 rounded-xl bg-surface hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-primary text-[13px] font-bold border-none cursor-pointer transition-colors"
+                      className="mt-1 h-9 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[13px] font-bold border-none cursor-pointer transition-colors"
                     >
                       첫 사진 올리기
                     </button>
@@ -1869,8 +1869,9 @@ const ApartmentModal = React.memo(function ApartmentModal({
         {showScrollTop && (
           <button
             type="button"
+            data-scroll-interactive="true"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="fixed bottom-20 md:bottom-6 right-5 z-50 p-2.5 rounded-full bg-surface/95 dark:bg-[#202027]/95 text-secondary hover:text-primary border border-[#e5e8eb] dark:border-[#2c2c35] shadow-sm transition-colors active:scale-95 cursor-pointer"
+            className="hidden md:inline-flex fixed bottom-6 right-5 z-50 p-2.5 rounded-full bg-surface/95 dark:bg-[#1e2532]/95 text-secondary hover:text-primary border border-border shadow-sm transition-colors active:scale-95 cursor-pointer"
             aria-label="맨 위로 이동"
           >
             <ArrowLeft size={18} className="rotate-90" />
@@ -1938,7 +1939,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
               onClick={handleModalClose}
               aria-label="닫기"
               title="닫기 (ESC)"
-              className="absolute top-3.5 md:top-3.5 right-3.5 md:right-5 z-[80] p-2 rounded-xl bg-transparent hover:bg-[#f2f4f6] dark:hover:bg-[#202027] text-tertiary hover:text-primary border-none transition-colors active:scale-95 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+              className="absolute top-3.5 md:top-3.5 right-3.5 md:right-5 z-[80] p-2 rounded-xl bg-transparent hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-tertiary hover:text-primary border-none transition-colors active:scale-95 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30 dark:focus-visible:ring-white/30"
             >
               <X size={20} />
             </button>
@@ -1961,7 +1962,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
               type="button"
               data-scroll-interactive="true"
               onClick={() => modalRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="absolute bottom-5 right-5 z-[75] p-2.5 rounded-full bg-surface/95 dark:bg-[#202027]/95 text-secondary hover:text-primary border border-[#e5e8eb] dark:border-[#2c2c35] shadow-sm transition-colors active:scale-95 cursor-pointer"
+              className="absolute bottom-[calc(env(safe-area-inset-bottom,0px)+20px)] md:bottom-5 right-4 md:right-5 z-[75] w-10 h-10 inline-flex items-center justify-center rounded-full bg-surface/95 dark:bg-[#1e2532]/95 text-secondary hover:text-primary border border-border shadow-sm transition-colors active:scale-95 cursor-pointer touch-manipulation"
               aria-label="맨 위로 이동"
             >
               <ArrowLeft size={16} className="rotate-90" />

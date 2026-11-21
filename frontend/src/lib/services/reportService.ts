@@ -70,7 +70,13 @@ export class ReportService {
       throw new Error(errorMsg);
     }
 
-    const profile = await this.userRepo.getOrCreateProfile(validated.data.authorUid);
+    const rawAuthorUid = validated.data.authorUid.trim();
+    const safeAuthorUid = rawAuthorUid.replace(/[\\/]/g, '_');
+    if (!safeAuthorUid || safeAuthorUid === '.' || safeAuthorUid === '..' || /[\u0000-\u001F\u007F]/.test(safeAuthorUid)) {
+      throw new Error('유효한 작성자 UID가 필요합니다.');
+    }
+
+    const profile = await this.userRepo.getOrCreateProfile(rawAuthorUid);
     const total = validated.data.imageEntries.length;
     let done = 0;
 
@@ -82,7 +88,7 @@ export class ReportService {
       const results = await Promise.all(batch.map(async ({ file, category }) => {
         try {
           const { uploadImage } = await import('@/lib/services/storage.service');
-          const downloadUrl = await uploadImage(file, 'field_reports');
+          const downloadUrl = await uploadImage(file, `field_reports/${safeAuthorUid}`);
           done++;
 
           onProgress?.(done, total);
@@ -126,7 +132,7 @@ export class ReportService {
       images,
       premiumScores: validated.data.premiumScores || null,
       authorName: profile?.nickname || '익명',
-      authorUid: validated.data.authorUid,
+      authorUid: rawAuthorUid,
       likes: 0,
       commentCount: 0,
     });

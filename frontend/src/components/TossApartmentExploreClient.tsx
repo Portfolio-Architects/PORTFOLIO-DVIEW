@@ -18,6 +18,7 @@ import { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/types/transaction';
 import type { FieldReportData } from '@/types/report';
 import { trackEvent, trackSearchQuery } from '@/lib/utils/analytics';
+import { acquireBodyScrollLock } from '@/lib/utils/bodyScrollLock';
 
 // subcomponents
 import { SearchSuggestionDropdown } from './explore/SearchSuggestionDropdown';
@@ -344,6 +345,22 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Lock background scroll and allow Escape dismissal while the mobile category sheet is open
+  useEffect(() => {
+    if (!isMobileMenuOpen || typeof window === 'undefined') return;
+    const releaseScrollLock = acquireBodyScrollLock();
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+      releaseScrollLock();
+    };
+  }, [isMobileMenuOpen]);
 
   const [sortKey, setSortKey] = useState<string>('pyeongPrice');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -795,42 +812,46 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             setSidebarWidth(prev => Math.min(380, prev + 10));
           }
         }}
-        className={`${isSplitMode ? 'hidden 2xl:block' : 'hidden md:block'} w-1 hover:w-1.5 bg-border/80 hover:bg-emerald-500/30 active:bg-emerald-500/50 cursor-col-resize select-none shrink-0 transition-all z-20 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-emerald-500/50`}
+        className={`${isSplitMode ? 'hidden 2xl:block' : 'hidden md:block'} w-1 hover:w-1.5 bg-border/80 hover:bg-slate-900/20 dark:hover:bg-white/20 active:bg-slate-900/35 dark:active:bg-white/35 cursor-col-resize select-none shrink-0 transition-all z-20 focus:outline-none focus:ring-2 focus:ring-slate-900/25 dark:focus:ring-white/25 focus:bg-slate-900/35 dark:focus:bg-white/35`}
         title="드래그 또는 화살표 키로 크기 조절"
         aria-label="사이드바 크기 조절기"
       />
 
       {/* Compact Dynamic Sticky Header (Mobile Only) */}
-      <div 
-        className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-surface/95 backdrop-blur-md px-4 pt-3 pb-2 flex flex-col gap-2 transition-all duration-300 border-b border-border/40 shadow-sm ${
+      <div
+        data-scroll-interactive="true"
+        className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-surface/95 backdrop-blur-md px-4 pt-[calc(env(safe-area-inset-top,0px)+10px)] pb-2 flex flex-col gap-2 transition-all duration-300 border-b border-border/60 shadow-sm ${
           isScrolled ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >
-        <div className="flex items-center justify-between w-full">
-          <button 
-            className="flex items-center gap-1 focus:outline-none"
+        <div className="flex items-center justify-between w-full gap-2">
+          <button
+            type="button"
+            className="flex items-center gap-1 min-h-[36px] min-w-0 focus:outline-none touch-manipulation"
             onClick={() => setIsMobileMenuOpen(true)}
           >
-            <h2 className="text-[15px] font-black text-primary tracking-tight">
+            <h2 className="text-[15px] font-black text-primary tracking-tight truncate">
               {categoryTitle}
             </h2>
-            <ChevronDown className="w-4 h-4 text-primary" />
+            <ChevronDown className="w-4 h-4 text-primary shrink-0" />
           </button>
-          <div className="flex items-center gap-1.5">
-            <button 
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
               onClick={() => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 const searchInput = document.querySelector('input[type="search"]') || document.querySelector('input[type="text"]');
                 if (searchInput) (searchInput as HTMLInputElement).focus();
               }}
-              className="p-1 rounded-full hover:bg-body transition-colors"
+              className="w-9 h-9 inline-flex items-center justify-center rounded-full hover:bg-body active:scale-95 transition-all touch-manipulation"
               aria-label="검색"
             >
               <Search className="w-4 h-4 text-secondary" />
             </button>
-            <button 
+            <button
+              type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="p-1 rounded-full hover:bg-body transition-colors"
+              className="w-9 h-9 inline-flex items-center justify-center rounded-full hover:bg-body active:scale-95 transition-all touch-manipulation"
               aria-label="위로"
             >
               <ArrowUp className="w-4 h-4 text-secondary" />
@@ -851,8 +872,8 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                 onClick={() => setCurrentCategory(cat.id)}
                 className={`px-3 py-1 rounded-full text-[11.5px] font-bold transition-all shrink-0 active:scale-95 ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-800'
+                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-2xs'
+                    : 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary hover:text-primary'
                 }`}
               >
                 {cat.label}
@@ -885,17 +906,17 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                 onClick={() => setCurrentCategory(tab.id)}
                 className={`px-3.5 py-2 rounded-xl text-[13px] font-extrabold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-slate-100/80 dark:bg-slate-800/70 text-secondary hover:text-primary hover:bg-slate-200/70 dark:hover:bg-slate-800'
+                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-xs'
+                    : 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary hover:text-primary hover:bg-slate-200/80 dark:hover:bg-[#252c3d]'
                 }`}
               >
                 <span>{tab.label}</span>
                 {tab.badge && (
                   <span
-                    className={`px-1.5 py-0.5 rounded text-[10px] font-bold leading-none ${
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-bold leading-none tabular-nums ${
                       isActive
-                        ? 'bg-white/20 text-white'
-                        : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                        ? 'bg-white/20 text-white dark:bg-slate-900/15 dark:text-slate-900'
+                        : 'bg-surface/80 dark:bg-[#252c3d] text-secondary'
                     }`}
                   >
                     {tab.badge}
@@ -906,19 +927,20 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
           })}
         </div>
 
-        <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-md relative z-30">
-          <div className="flex flex-row justify-between items-center md:flex-col md:items-start">
-            <button 
-              className="flex items-center gap-1 focus:outline-none md:pointer-events-none"
+        <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-surface/95 backdrop-blur-md relative z-30">
+          <div className="flex flex-col items-start gap-1">
+            <button
+              type="button"
+              className="flex items-center gap-1 focus:outline-none md:pointer-events-none touch-manipulation"
               onClick={() => setIsMobileMenuOpen(true)}
             >
-              <h2 className="text-[20px] md:text-[26px] font-extrabold text-primary tracking-tight">
+              <h2 className="text-[20px] md:text-[26px] font-extrabold text-primary tracking-tight break-keep text-left">
                 {categoryTitle}
               </h2>
-              <ChevronDown className="w-5 h-5 text-primary md:hidden" />
+              <ChevronDown className="w-5 h-5 text-primary md:hidden shrink-0" />
             </button>
-            <div className="flex items-center gap-2 mt-0 md:mt-1.5">
-              <p className="text-[13px] md:text-[14px] font-medium text-tertiary">
+            <div className="flex items-center gap-2">
+              <p className="text-[12.5px] md:text-[14px] font-medium text-tertiary break-keep">
                 총 {sortedApts.length}개 단지 · 3.3㎡당 실거래 평단가 및 34평 환산 시세 비교
               </p>
             </div>
@@ -963,7 +985,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               aria-controls="search-suggestions-listbox"
               aria-autocomplete="list"
               aria-label="단지명 검색"
-              className="w-full bg-elevated focus:bg-surface focus:ring-2 focus:ring-blue-600/20 rounded-xl py-2 md:py-2.5 pl-10 pr-10 text-[14px] font-medium text-primary outline-none transition-all"
+              className="w-full bg-elevated focus:bg-surface focus:ring-2 focus:ring-slate-900/15 dark:focus:ring-white/20 rounded-xl py-2.5 pl-10 pr-10 text-[14px] font-medium text-primary outline-none transition-all"
             />
             {/* CSS Rolling Placeholder */}
             {!inputValue && !isSearchFocused && (
@@ -978,17 +1000,17 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               </div>
             )}
             {inputValue && (
-              <button 
+              <button
+                type="button"
                 onClick={() => { setInputValue(''); startTransition(() => setSearchQuery('')); }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-tertiary hover:text-secondary p-1 focus:outline-none rounded-full hover:bg-body"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-tertiary hover:text-secondary w-8 h-8 inline-flex items-center justify-center focus:outline-none rounded-full hover:bg-body touch-manipulation"
                 aria-label="검색어 지우기"
               >
                 <X size={16} />
               </button>
             )}
-            </div>
 
-            {/* Premium Autocomplete & Suggestions Dropdown */}
+            {/* Premium Autocomplete & Suggestions Dropdown (anchored directly below search box on mobile & desktop) */}
             {isSearchFocused && (
               <SearchSuggestionDropdown
                 searchQuery={searchQuery}
@@ -1003,15 +1025,16 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                 preloadApartmentTx={preloadApartmentTx}
               />
             )}
+            </div>
             
             <div 
-              className="flex flex-row overflow-x-auto whitespace-nowrap gap-2 py-1 w-full md:w-auto shrink-0 -mx-4 px-4 md:mx-0 md:px-0 md:items-center md:gap-2"
+              className="flex flex-row overflow-x-auto whitespace-nowrap gap-2 py-1 w-[calc(100%+2rem)] md:w-auto shrink-0 -mx-4 px-4 md:mx-0 md:px-0 md:items-center md:gap-2"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
             >
               {onOpenCompare && (
                 <button
                   onClick={onOpenCompare}
-                  className="px-4 py-2.5 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
+                  className="px-4 py-2.5 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   단지 비교분석
                 </button>
@@ -1019,7 +1042,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               {onOpenJeonseSafety && (
                 <button
                   onClick={() => onOpenJeonseSafety()}
-                  className="px-4 py-2.5 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
+                  className="px-4 py-2.5 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   전세 안전진단
                 </button>
@@ -1027,7 +1050,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               {onOpenMortgage && (
                 <button
                   onClick={() => onOpenMortgage()}
-                  className="px-4 py-2.5 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
+                  className="px-4 py-2.5 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   대출 한도진단
                 </button>
@@ -1035,7 +1058,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               {onOpenTaxCalculator && (
                 <button
                   onClick={() => onOpenTaxCalculator()}
-                  className="px-4 py-2.5 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
+                  className="px-4 py-2.5 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   취득세·중개보수
                 </button>
@@ -1043,7 +1066,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               {onOpenSellTimingCalculator && (
                 <button
                   onClick={() => onOpenSellTimingCalculator()}
-                  className="px-4 py-2.5 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
+                  className="px-4 py-2.5 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   양도세·매도타이밍
                 </button>
@@ -1065,8 +1088,8 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                 onClick={() => setCurrentCategory('rank-price')}
                 className={`px-3 py-1 rounded-full text-xs font-bold transition-colors shrink-0 cursor-pointer ${
                   currentCategory === 'rank-price'
-                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                    : 'bg-slate-100 dark:bg-slate-800 text-secondary hover:text-primary'
+                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                    : 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary hover:text-primary'
                 }`}
               >
                 동탄 전체
@@ -1080,8 +1103,8 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                     onClick={() => setCurrentCategory(`dong-${dong.name}`)}
                     className={`px-3 py-1 rounded-full text-xs font-bold transition-colors shrink-0 cursor-pointer ${
                       isDongActive
-                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                        : 'bg-slate-100 dark:bg-slate-800 text-secondary hover:text-primary'
+                        ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                        : 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary hover:text-primary'
                     }`}
                   >
                     {dong.name}
@@ -1098,7 +1121,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               >
                 <div className="flex flex-col justify-between min-w-0 sm:pr-3 sm:border-r sm:border-border/40">
                   <span className="text-[11px] font-medium text-tertiary">1위 최고 평단가</span>
-                  <p className="text-sm sm:text-[15px] font-extrabold tabular-nums text-blue-600 dark:text-blue-400 mt-0.5">
+                  <p className="text-sm sm:text-[15px] font-extrabold tabular-nums text-primary mt-0.5">
                     {pyeongSummary.maxPyeongPrice.toLocaleString()}만원/평
                   </p>
                   <span className="text-[11px] text-secondary truncate mt-0.5 tabular-nums">
@@ -1143,62 +1166,62 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             <div className="w-[36px] shrink-0" aria-hidden="true">&nbsp;</div>
             <button 
               onClick={() => handleHeaderSort('views')}
-              className={`w-[40px] text-center shrink-0 focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1.5 rounded-lg transition-all cursor-pointer relative flex items-center justify-center ${sortKey === 'views' || (sortKey === 'custom' && currentCategory === 'favorites') ? 'text-emerald-700 dark:text-toss-blue bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
+              className={`w-[40px] text-center shrink-0 focus:outline-none hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] py-1.5 rounded-lg transition-all cursor-pointer relative flex items-center justify-center ${sortKey === 'views' || (sortKey === 'custom' && currentCategory === 'favorites') ? 'text-primary bg-[#eff1f5] dark:bg-[#1e2532] font-black' : ''}`}
             >
               <span className="w-full text-center">순위</span>
               {(sortKey === 'views' || sortKey === 'custom') && (
                 <span className="absolute -right-0.5 top-1/2 -translate-y-1/2">
-                  {sortDirection === 'desc' ? <ArrowDown className="w-2.5 h-2.5 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-2.5 h-2.5 text-emerald-700 dark:text-toss-blue" />}
+                  {sortDirection === 'desc' ? <ArrowDown className="w-2.5 h-2.5 text-primary" /> : <ArrowUp className="w-2.5 h-2.5 text-primary" />}
                 </span>
               )}
             </button>
             <button 
               onClick={() => handleHeaderSort('name')}
-              className={`flex-1 min-w-[120px] ml-2 text-left focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1 px-2 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${sortKey === 'name' ? 'text-emerald-700 dark:text-toss-blue bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
+              className={`flex-1 min-w-[120px] ml-2 text-left focus:outline-none hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] py-1 px-2 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${sortKey === 'name' ? 'text-primary bg-[#eff1f5] dark:bg-[#1e2532] font-black' : ''}`}
             >
               <span>단지명</span>
-              {sortKey === 'name' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
+              {sortKey === 'name' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-primary" /> : <ArrowUp className="w-3 h-3 text-primary" />)}
             </button>
             <button 
               onClick={() => handleHeaderSort('yearBuilt')}
-              className={`w-[95px] text-right pr-3 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'yearBuilt' ? 'text-emerald-700 dark:text-toss-blue bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
+              className={`w-[95px] text-right pr-3 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'yearBuilt' ? 'text-primary bg-[#eff1f5] dark:bg-[#1e2532] font-black' : ''}`}
             >
-              {sortKey === 'yearBuilt' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
+              {sortKey === 'yearBuilt' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-primary" /> : <ArrowUp className="w-3 h-3 text-primary" />)}
               <span>연식</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('totalPrice')}
-              className={`w-[130px] text-right pr-3 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'totalPrice' ? 'text-emerald-700 dark:text-toss-blue bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
+              className={`w-[130px] text-right pr-3 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'totalPrice' ? 'text-primary bg-[#eff1f5] dark:bg-[#1e2532] font-black' : ''}`}
             >
-              {sortKey === 'totalPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
+              {sortKey === 'totalPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-primary" /> : <ArrowUp className="w-3 h-3 text-primary" />)}
               <span>매매가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('pyeongPrice')}
-              className={`w-[90px] text-right pr-3 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'pyeongPrice' ? 'text-emerald-700 dark:text-toss-blue bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
+              className={`w-[90px] text-right pr-3 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'pyeongPrice' ? 'text-primary bg-[#eff1f5] dark:bg-[#1e2532] font-black' : ''}`}
             >
-              {sortKey === 'pyeongPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
+              {sortKey === 'pyeongPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-primary" /> : <ArrowUp className="w-3 h-3 text-primary" />)}
               <span>평당가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('ratio')}
-              className={`w-[120px] text-right pr-3 shrink-0 hidden lg:flex items-center justify-end gap-1 focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'ratio' ? 'text-emerald-700 dark:text-toss-blue bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
+              className={`w-[120px] text-right pr-3 shrink-0 hidden lg:flex items-center justify-end gap-1 focus:outline-none hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'ratio' ? 'text-primary bg-[#eff1f5] dark:bg-[#1e2532] font-black' : ''}`}
             >
-              {sortKey === 'ratio' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
+              {sortKey === 'ratio' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-primary" /> : <ArrowUp className="w-3 h-3 text-primary" />)}
               <span>전세가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('householdCount')}
-              className={`w-[90px] text-right pr-3 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'householdCount' ? 'text-emerald-700 dark:text-toss-blue bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
+              className={`w-[90px] text-right pr-3 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'householdCount' ? 'text-primary bg-[#eff1f5] dark:bg-[#1e2532] font-black' : ''}`}
             >
-              {sortKey === 'householdCount' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
+              {sortKey === 'householdCount' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-primary" /> : <ArrowUp className="w-3 h-3 text-primary" />)}
               <span>세대수</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('volume3M')}
-              className={`w-[100px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'volume3M' ? 'text-blue-600 dark:text-blue-400 bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
+              className={`w-[100px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'volume3M' ? 'text-primary bg-[#eff1f5] dark:bg-[#1e2532] font-black' : ''}`}
             >
-              {sortKey === 'volume3M' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-blue-600 dark:text-blue-400" /> : <ArrowUp className="w-3 h-3 text-blue-600 dark:text-blue-400" />)}
+              {sortKey === 'volume3M' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-primary" /> : <ArrowUp className="w-3 h-3 text-primary" />)}
               <span>거래량</span>
             </button>
           </div>
@@ -1210,8 +1233,8 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                 data-testid="explore-favorites-empty-prompt"
                 className="flex flex-col items-center justify-center text-tertiary w-full border border-dashed border-border/85 rounded-2xl bg-body/10 px-4 py-16 transition-all duration-300 min-h-[260px] gap-3"
               >
-                <div className="w-11 h-11 rounded-full bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                  <Star size={22} className="fill-blue-500 text-blue-600" />
+                <div className="w-11 h-11 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] flex items-center justify-center text-primary">
+                  <Star size={22} className="fill-current text-primary" />
                 </div>
                 <span className="text-[15px] font-extrabold text-primary">등록된 관심 단지가 없습니다</span>
                 <span className="text-[13px] font-medium text-tertiary text-center max-w-[360px]">
@@ -1220,7 +1243,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                 <button
                   type="button"
                   onClick={() => setCurrentCategory('rank-price')}
-                  className="mt-1 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12.5px] font-bold transition-colors cursor-pointer"
+                  className="mt-1 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[12.5px] font-bold transition-colors cursor-pointer"
                 >
                   전체 단지 보기
                 </button>
@@ -1229,7 +1252,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               <div 
                 className="flex flex-col items-center justify-center text-tertiary w-full border border-dashed border-border/85 rounded-2xl bg-body/10 px-4 py-20 transition-all duration-300 min-h-[300px]"
               >
-                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-tertiary mb-3">
+                <div className="w-12 h-12 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] flex items-center justify-center text-tertiary mb-3">
                   <Search size={24} />
                 </div>
                 <span className="text-[15px] font-extrabold text-primary">검색 결과가 없습니다</span>
@@ -1267,7 +1290,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                 <div className="w-full flex justify-center p-4">
                   <button
                     onClick={() => setVisibleCount(prev => prev + 15)}
-                    className="w-full py-4 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-primary font-extrabold text-[14.5px] rounded-2xl flex items-center justify-center gap-1.5 transition-colors duration-200 cursor-pointer active:scale-[0.995]"
+                    className="w-full py-4 bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary font-extrabold text-[14.5px] rounded-2xl flex items-center justify-center gap-1.5 transition-colors duration-200 cursor-pointer active:scale-[0.995]"
                   >
 
                     <span>분석 단지 더보기 ({visibleCount} / {sortedApts.length})</span>
@@ -1282,32 +1305,44 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
       </div>
       </div>
 
-      {/* Mobile Bottom Sheet Menu */}
+      {/* Mobile Bottom Sheet Menu (Elevated above MobileDock z-[10000] & MobileStickyAnchorAd z-[9990]) */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[100] flex flex-col justify-end md:hidden">
+        <div
+          data-testid="explore-mobile-category-sheet"
+          data-scroll-interactive="true"
+          role="dialog"
+          aria-modal="true"
+          aria-label="단지 보기 방식"
+          className="fixed inset-0 z-[10020] flex flex-col justify-end md:hidden overscroll-none"
+        >
           {/* Dimmed Background */}
-          <button 
+          <button
             type="button"
-            className="absolute inset-0 bg-black/40 transition-opacity border-none cursor-default" 
+            className="absolute inset-0 bg-black/45 backdrop-blur-[2px] transition-opacity border-none cursor-default"
             onClick={() => setIsMobileMenuOpen(false)}
             aria-label="메뉴 닫기"
           />
-          
+
           {/* Sheet */}
-          <div className="relative w-full bg-surface rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-full duration-300">
+          <div className="relative w-full bg-surface rounded-t-3xl shadow-2xl max-h-[85dvh] flex flex-col pb-[env(safe-area-inset-bottom,0px)] animate-in slide-in-from-bottom-full duration-300">
+            <div className="w-full pt-2.5 pb-1 flex justify-center shrink-0" aria-hidden="true">
+              <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+            </div>
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-border shrink-0">
-              <h2 className="text-[18px] font-extrabold text-primary">단지 보기 방식</h2>
-              <button 
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-border shrink-0">
+              <h2 className="text-[17px] font-extrabold text-primary">단지 보기 방식</h2>
+              <button
+                type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1.5 -mr-1.5 rounded-full hover:bg-body transition-colors"
+                aria-label="메뉴 닫기"
+                className="w-9 h-9 inline-flex items-center justify-center -mr-1.5 rounded-full hover:bg-body active:scale-95 transition-all cursor-pointer touch-manipulation"
               >
-                <X className="w-6 h-6 text-tertiary" />
+                <X className="w-5 h-5 text-tertiary" />
               </button>
             </div>
-            
+
             {/* Scrollable Content */}
-            <div className="flex-1 px-5 py-2 overflow-y-auto">
+            <div className="flex-1 px-4 py-2 overflow-y-auto overscroll-contain">
               <div className="py-3 mt-1">
                 <h3 className="text-[13px] font-extrabold text-tertiary mb-2 px-2">단지 랭킹</h3>
                 <div className="flex flex-col gap-1" role="tablist" aria-label="모바일 단지 랭킹 필터">
@@ -1374,7 +1409,7 @@ function SidebarItem({ label, active, onClick }: { label: string, active: boolea
       role="tab"
       aria-selected={active}
       className={`text-left px-3 py-2.5 rounded-xl text-[14px] font-bold transition-all ${
-        active ? 'bg-elevated text-blue-600 dark:text-blue-400' : 'text-secondary hover:bg-elevated/60'
+        active ? 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary font-extrabold' : 'text-secondary hover:bg-elevated/60 hover:text-primary'
       }`}
     >
       {label}
@@ -1389,11 +1424,11 @@ function MobileSidebarItem({ label, active, onClick }: { label: string, active: 
       role="tab"
       aria-selected={active}
       className={`text-left px-4 py-3.5 rounded-2xl text-[16px] font-bold transition-all flex items-center justify-between ${
-        active ? 'bg-toss-blue-light text-emerald-800' : 'text-primary hover:bg-body/50'
+        active ? 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary font-extrabold' : 'text-primary hover:bg-body/50'
       }`}
     >
       {label}
-      {active && <div className="w-1.5 h-1.5 rounded-full bg-toss-blue" />}
+      {active && <div className="w-1.5 h-1.5 rounded-full bg-slate-900 dark:bg-slate-100" />}
     </button>
   );
 }

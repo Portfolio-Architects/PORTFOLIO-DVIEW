@@ -7,7 +7,6 @@ import {
   getTxSummaryData,
   hasVerifiedApartmentSalePrice,
   isAdSenseApprovalMode,
-  getAdSenseApprovalEliteAptSlugs,
 } from '@/lib/services/apartmentPageService';
 import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 
@@ -102,95 +101,99 @@ export default async function sitemap(
     });
   });
 
-  // 2. Zone Routes (7 Dongtan investment zones)
-  ZONES.forEach((zone) => {
-    routes.push({
-      url: `${baseUrl}/zone/${zone.id}`,
-      lastModified: nowDate,
-      changeFrequency: 'daily',
-      priority: 0.85,
-    });
-  });
-
   const approvalMode = isAdSenseApprovalMode();
+
+  // 2. Zone Routes (7 Dongtan investment zones — excluded during AdSense Approval Mode to keep 73.5% editorial focus)
+  if (!approvalMode) {
+    ZONES.forEach((zone) => {
+      routes.push({
+        url: `${baseUrl}/zone/${zone.id}`,
+        lastModified: nowDate,
+        changeFrequency: 'daily',
+        priority: 0.85,
+      });
+    });
+  }
 
   // 3. TechnoValley Knowledge Industry Center Detail Routes (56 B2B centers) are unconditionally isolated
   // with `robots: noindex, follow` until MOLIT commercial real-transaction coverage exists (only `/technovalley` hub is indexed).
 
-  // 4. Apartment Routes (142 verified-sale complexes in standard mode; Top 40 flagship complexes in AdSense approval mode; 43 zero-sale complexes isolated via noindex)
-  try {
-    const txSummary = await getTxSummaryData();
-    const aptNames = Object.keys(txSummary || {});
-    const eliteAptSlugs = approvalMode ? getAdSenseApprovalEliteAptSlugs(txSummary) : null;
+  // 4. Apartment Routes (142 verified-sale complexes in standard mode; excluded during AdSense Editorial Fortress Approval Mode to avoid programmatic template dilution)
+  if (!approvalMode) {
+    try {
+      const txSummary = await getTxSummaryData();
+      const aptNames = Object.keys(txSummary || {});
+      const eliteAptSlugs = null as Set<string> | null;
 
-    const reportsMap = new Map<string, string[]>();
-    if (adminDb) {
-      try {
-        const reportsSnap = await adminDb
-          .collection('scoutingReports')
-          .select('apartmentName', 'images')
-          .get();
-        reportsSnap.forEach((doc) => {
-          const data = doc.data();
-          if (
-            data.apartmentName &&
-            data.images &&
-            Array.isArray(data.images) &&
-            data.images.length > 0
-          ) {
-            reportsMap.set(
-              data.apartmentName,
-              (data.images as { url?: string }[])
-                .map((img) => img?.url || '')
-                .filter(Boolean)
-            );
-          }
-        });
-      } catch (err) {
-        logger.error('Sitemap.apartmentSitemap', 'Failed to fetch scoutingReports for sitemap', {}, err as Error);
+      const reportsMap = new Map<string, string[]>();
+      if (adminDb) {
+        try {
+          const reportsSnap = await adminDb
+            .collection('scoutingReports')
+            .select('apartmentName', 'images')
+            .get();
+          reportsSnap.forEach((doc) => {
+            const data = doc.data();
+            if (
+              data.apartmentName &&
+              data.images &&
+              Array.isArray(data.images) &&
+              data.images.length > 0
+            ) {
+              reportsMap.set(
+                data.apartmentName,
+                (data.images as { url?: string }[])
+                  .map((img) => img?.url || '')
+                  .filter(Boolean)
+              );
+            }
+          });
+        } catch (err) {
+          logger.error('Sitemap.apartmentSitemap', 'Failed to fetch scoutingReports for sitemap', {}, err as Error);
+        }
       }
+
+      const seenCanonicalSlugs = new Set<string>();
+      aptNames.forEach((aptName) => {
+        const aptSummary = txSummary[aptName];
+        const canonicalSlug = (
+          resolveCanonicalAptSlug(aptName, {
+            txMap: txSummary,
+            dong: aptSummary?.dong,
+          }) || aptName
+        ).normalize('NFC');
+        if (seenCanonicalSlugs.has(canonicalSlug)) {
+          return;
+        }
+        seenCanonicalSlugs.add(canonicalSlug);
+
+        const canonicalSummary = txSummary[canonicalSlug] || aptSummary;
+        if (!hasVerifiedApartmentSalePrice(canonicalSummary)) {
+          return;
+        }
+        if (eliteAptSlugs && !eliteAptSlugs.has(canonicalSlug)) {
+          return;
+        }
+
+        const images = reportsMap.get(canonicalSlug) || reportsMap.get(aptName);
+        const lastModified = parseSitemapDate(canonicalSummary?.latestDate, nowDate);
+
+        const routeData: MetadataRoute.Sitemap[number] & { images?: string[] } = {
+          url: `${baseUrl}/apartment/${encodeURIComponent(canonicalSlug)}`,
+          lastModified,
+          changeFrequency: 'weekly',
+          priority: 0.95,
+        };
+
+        if (images && images.length > 0) {
+          routeData.images = images;
+        }
+
+        routes.push(routeData);
+      });
+    } catch (error) {
+      logger.error('Sitemap.apartmentSitemap', 'Failed to generate apartment sitemap', {}, error as Error);
     }
-
-    const seenCanonicalSlugs = new Set<string>();
-    aptNames.forEach((aptName) => {
-      const aptSummary = txSummary[aptName];
-      const canonicalSlug = (
-        resolveCanonicalAptSlug(aptName, {
-          txMap: txSummary,
-          dong: aptSummary?.dong,
-        }) || aptName
-      ).normalize('NFC');
-      if (seenCanonicalSlugs.has(canonicalSlug)) {
-        return;
-      }
-      seenCanonicalSlugs.add(canonicalSlug);
-
-      const canonicalSummary = txSummary[canonicalSlug] || aptSummary;
-      if (!hasVerifiedApartmentSalePrice(canonicalSummary)) {
-        return;
-      }
-      if (eliteAptSlugs && !eliteAptSlugs.has(canonicalSlug)) {
-        return;
-      }
-
-      const images = reportsMap.get(canonicalSlug) || reportsMap.get(aptName);
-      const lastModified = parseSitemapDate(canonicalSummary?.latestDate, nowDate);
-
-      const routeData: MetadataRoute.Sitemap[number] & { images?: string[] } = {
-        url: `${baseUrl}/apartment/${encodeURIComponent(canonicalSlug)}`,
-        lastModified,
-        changeFrequency: 'weekly',
-        priority: 0.95,
-      };
-
-      if (images && images.length > 0) {
-        routeData.images = images;
-      }
-
-      routes.push(routeData);
-    });
-  } catch (error) {
-    logger.error('Sitemap.apartmentSitemap', 'Failed to generate apartment sitemap', {}, error as Error);
   }
 
   return routes;

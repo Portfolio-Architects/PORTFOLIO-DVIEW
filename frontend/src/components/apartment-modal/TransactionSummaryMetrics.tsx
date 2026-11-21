@@ -145,10 +145,19 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
       ? periodTransactions
       : periodTransactions.filter(tx => String(tx.area) === priceTypeFilter);
 
-    // 이상치 필터 연동 (R5 비대칭 IQR 알고리즘 및 전월세 multiplier 3.0 적용, 상한선 오타 필터 복구)
+    // 이상치 필터 연동 (R5 비대칭 IQR 알고리즘 및 전월세 multiplier 3.0 적용, 파이프라인 시계열 검증 결과와 일관성 유지)
     if (filterOutliers) {
       const isRent = periodDealType === 'jeonse';
-      baseTx = filterOutliersIQR(baseTx, getTxPrice, isRent ? 3.0 : 1.5, isRent ? 5.0 : 3.5);
+      baseTx = filterOutliersIQR(
+        baseTx,
+        getTxPrice,
+        isRent ? 3.0 : 1.5,
+        isRent ? 5.0 : 3.5,
+        {
+          isPipelineOutlier: tx => (typeof tx.isOutlier === 'boolean' ? tx.isOutlier : undefined),
+          isDirectDeal: tx => tx.dealType === '직거래',
+        }
+      );
     }
 
     const overallAvgPrice = baseTx.length > 0 ? baseTx.reduce((s, t) => s + getTxPrice(t), 0) / baseTx.length : 0;
@@ -280,7 +289,7 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
             <h3 className="text-[16px] md:text-[18px] font-bold text-secondary flex items-center gap-1.5">기간별 평균가격
               <button
                 onClick={(e) => { e.stopPropagation(); setShowPriceHelp((prev) => !prev); }}
-                className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-toss-gray hover:bg-[#8b95a1] text-[10px] md:text-[11px] font-extrabold text-surface inline-flex items-center justify-center transition-colors leading-none flex-shrink-0"
+                className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-[#eff1f5] hover:bg-[#e4e8ef] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-[10px] md:text-[11px] font-extrabold text-secondary hover:text-primary inline-flex items-center justify-center transition-colors leading-none flex-shrink-0 cursor-pointer border-none"
                 aria-label="기준 설명"
               >?</button>
             </h3>
@@ -297,14 +306,14 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
                 className="fixed inset-0 z-[9998] bg-transparent border-none outline-none cursor-default" 
                 onClick={() => setShowPriceHelp(false)} 
               />
-              <div className="absolute left-4 top-12 z-[9999] w-[260px] bg-[#1e293b] text-surface text-[11px] leading-relaxed rounded-xl px-4 py-3 shadow-2xl">
+              <div className="absolute left-4 top-12 z-[9999] w-[260px] bg-slate-900 text-white text-[11px] leading-relaxed rounded-xl px-4 py-3 shadow-2xl">
                 <div className="font-bold mb-1.5 flex items-center gap-1.5">
-                  <BarChart3 size={14} className="text-blue-400 shrink-0" />
+                  <BarChart3 size={14} className="text-slate-300 shrink-0" />
                   <span>기간별 평균가격이란?</span>
                 </div>
-                <p className="text-surface/80">각 기간 내 실거래된 모든 자료의 <span className="text-surface font-bold">산술 평균</span>입니다.</p>
-                <p className="text-surface/80 mt-1">100만 원 단위로 반올림하여 표시합니다.</p>
-                <p className="text-surface/50 mt-1.5 text-[10px]">예: "1개월" = 최근 1개월간 거래된 가격의 평균</p>
+                <p className="text-white/80">각 기간 내 실거래된 모든 자료의 <span className="text-white font-bold">산술 평균</span>입니다.</p>
+                <p className="text-white/80 mt-1">100만 원 단위로 반올림하여 표시합니다.</p>
+                <p className="text-white/50 mt-1.5 text-[10px]">예: "1개월" = 최근 1개월간 거래된 가격의 평균</p>
               </div>
             </>
           )}
@@ -314,10 +323,10 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
             const isActive = priceTypeFilter === f.key;
             return (
               <button key={f.key} onClick={() => setPriceTypeFilter(f.key)}
-                className={`shrink-0 px-[18px] py-[7.5px] rounded-[10px] text-[13px] md:text-[13.5px] font-bold transition-all cursor-pointer ${
+                className={`shrink-0 px-[18px] py-[7.5px] rounded-[10px] text-[13px] md:text-[13.5px] font-bold transition-all cursor-pointer border-none ${
                   isActive
-                    ? 'bg-primary text-surface shadow-sm'
-                    : 'bg-body text-tertiary hover:bg-[#e5e8eb]'
+                    ? 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 shadow-xs'
+                    : 'bg-[#eff1f5] hover:bg-[#e4e8ef] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-secondary hover:text-primary'
                 }`}
               >{f.label}</button>
             );
@@ -327,7 +336,7 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
         {/* 주거 안정 및 전세가율 요약 카드 (선택된 평형 필터 대응) */}
         {metrics.avgSalePrice > 0 && metrics.avgJeonsePrice > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5 mt-3">
-            <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 flex items-center justify-between">
+            <div className="bg-elevated rounded-2xl p-4 flex items-center justify-between">
               <div className="flex flex-col gap-0.5">
                 <span className="text-[12px] font-semibold text-tertiary">실구매 필요차액 (매매-전세 갭)</span>
                 <span className="text-[11px] text-tertiary font-medium">
@@ -339,7 +348,7 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
                 <span className="text-[12px] font-semibold text-tertiary ml-0.5">필요</span>
               </div>
             </div>
-            <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 flex items-center justify-between">
+            <div className="bg-elevated rounded-2xl p-4 flex items-center justify-between">
               <div className="flex flex-col gap-0.5">
                 <span className="text-[12px] font-semibold text-tertiary">실거래 전세가율</span>
                 <span className="text-[11px] text-tertiary font-medium">
@@ -347,16 +356,16 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-[18px] font-black text-blue-600 dark:text-blue-400 tabular-nums">{metrics.jeonseRatio.toFixed(1)}%</span>
+                <span className="text-[18px] font-black text-primary tabular-nums">{metrics.jeonseRatio.toFixed(1)}%</span>
               </div>
             </div>
           </div>
         )}
 
         <div className="overflow-x-auto custom-scrollbar mt-1">
-          <table className="w-full text-sm min-w-[600px] border-t border-body">
+          <table className="w-full text-sm min-w-[600px] border-t border-border">
             <thead>
-              <tr className="border-b border-border text-tertiary text-[13px] md:text-[14px] font-bold bg-body">
+              <tr className="border-b border-border text-tertiary text-[13px] md:text-[14px] font-bold bg-elevated">
                 <th className="py-3 px-2 text-center w-[56px] min-w-[56px] shrink-0">구분</th>
                 {metrics.periodData.map(p => (
                   <th key={`th-${p.key}`} className="py-3 px-3 text-center whitespace-nowrap">{p.label}</th>
@@ -364,8 +373,8 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-body hover:bg-[#f8faff] transition-colors">
-                <td className="py-3.5 px-2 text-[13px] md:text-[14px] font-bold text-secondary bg-body/50 align-middle">
+              <tr className="border-b border-border hover:bg-elevated transition-colors">
+                <td className="py-3.5 px-2 text-[13px] md:text-[14px] font-bold text-secondary bg-elevated/60 align-middle">
                   <div className="flex flex-col items-center justify-center leading-tight">
                     <span>평균</span>
                     <span>가격</span>
@@ -377,8 +386,8 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
                   </td>
                 ))}
               </tr>
-              <tr className="border-b border-body hover:bg-[#f8faff] transition-colors">
-                <td className="py-3.5 px-2 text-[13px] md:text-[14px] font-bold text-secondary bg-body/50 align-middle">
+              <tr className="border-b border-border hover:bg-elevated transition-colors">
+                <td className="py-3.5 px-2 text-[13px] md:text-[14px] font-bold text-secondary bg-elevated/60 align-middle">
                   <div className="flex flex-col items-center justify-center leading-tight">
                     <span>평당</span>
                     <span>가격</span>
@@ -393,8 +402,8 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
                   </td>
                 ))}
               </tr>
-              <tr className="border-b border-body hover:bg-[#f8faff] transition-colors">
-                <td className="py-3.5 px-2 text-[13px] md:text-[14px] font-bold text-secondary bg-body/50 align-middle">
+              <tr className="border-b border-border hover:bg-elevated transition-colors">
+                <td className="py-3.5 px-2 text-[13px] md:text-[14px] font-bold text-secondary bg-elevated/60 align-middle">
                   <div className="flex flex-col items-center justify-center leading-tight">
                     <span>거래</span>
                     <span>건수</span>

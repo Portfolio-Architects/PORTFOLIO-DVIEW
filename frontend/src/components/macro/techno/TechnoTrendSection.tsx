@@ -59,7 +59,7 @@ export const TechnoTrendSection = React.memo(function TechnoTrendSection({
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-[16px] font-black text-primary flex items-center gap-1.5">
-              <TrendingUp size={18} className="text-blue-600 dark:text-blue-400" />
+              <TrendingUp size={18} className="text-primary" />
               <span>지식산업센터 공실률 & 임대료 시계열 추이</span>
             </h3>
             <button
@@ -108,7 +108,7 @@ export const TechnoTrendSection = React.memo(function TechnoTrendSection({
 
           <button
             onClick={onOpenDetailModal}
-            className="px-3 py-1.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11.5px] font-extrabold hover:bg-blue-500/20 transition-all cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-[#eff1f5] dark:bg-[#1e2532] text-primary text-[11.5px] font-extrabold hover:bg-slate-200/80 dark:hover:bg-[#252c3d] transition-all cursor-pointer"
           >
             상세 데이터표
           </button>
@@ -195,7 +195,7 @@ export const TechnoTrendSection = React.memo(function TechnoTrendSection({
                 type="monotone"
                 dataKey={metricMode === 'vacancy' ? '평균공실률' : '평균임대료'}
                 name={metricMode === 'vacancy' ? '평균 공실률' : '평균 임대료'}
-                stroke="#845ef7"
+                stroke="#64748b"
                 strokeWidth={3}
                 strokeDasharray="4 4"
                 dot={false}

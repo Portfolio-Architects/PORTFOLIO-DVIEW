@@ -100,6 +100,7 @@ const PROXY_RATELIMIT_EXEMPT_API_PATHS = new Set([
   '/api/technovalley/industry-distribution',
   '/api/technovalley/center-specs',
   '/api/apartments/vote',
+  '/api/matchups/vote',
   '/api/board/posts',
   '/api/board/comments',
   '/api/board/likes',

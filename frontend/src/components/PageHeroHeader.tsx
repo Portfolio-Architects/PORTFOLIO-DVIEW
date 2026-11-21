@@ -13,6 +13,7 @@ export interface PageHeroHeaderProps {
   readonly bottomContent?: React.ReactNode;
   readonly isTitleDiv?: boolean;
   readonly isSplitMode?: boolean;
+  readonly hideMobileStickyBar?: boolean;
 }
 
 const PageHeroHeader = React.memo(function PageHeroHeader({
@@ -25,12 +26,13 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
   bottomContent,
   isTitleDiv = false,
   isSplitMode = false,
+  hideMobileStickyBar = false,
 }: PageHeroHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const TitleTag = isTitleDiv ? "div" : "h1";
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || hideMobileStickyBar) return;
     let scrollFrame: number | null = null;
     const handleScroll = () => {
       if (scrollFrame) return;
@@ -45,13 +47,15 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
       window.removeEventListener("scroll", handleScroll);
       if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
     };
-  }, []);
+  }, [hideMobileStickyBar]);
 
   return (
     <>
-      {/* Compact Dynamic Sticky Header (Mobile Only) */}
+      {/* Compact Dynamic Sticky Header (Mobile Only — suppressed when page provides its own mobile sticky bar) */}
+      {!hideMobileStickyBar && (
       <div
-        className={`fixed top-0 left-0 right-0 md:hidden z-30 h-12 bg-surface/95 backdrop-blur-md px-5 flex items-center justify-between transition-transform transition-opacity duration-300 ${
+        data-scroll-interactive="true"
+        className={`fixed top-0 left-0 right-0 md:hidden z-30 min-h-12 pt-[env(safe-area-inset-top,0px)] bg-surface/95 backdrop-blur-md border-b border-border/50 px-4 flex items-center justify-between transition-[transform,opacity] duration-300 ${
           isScrolled
             ? "opacity-100 shadow-[0_4px_12px_rgba(0,0,0,0.05)]"
             : "opacity-0 pointer-events-none"
@@ -61,10 +65,11 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
           willChange: 'transform'
         }}
       >
-        <div className="text-[15px] font-extrabold text-primary tracking-tight truncate min-w-0">
+        <div className="h-12 flex items-center text-[15px] font-extrabold text-primary tracking-tight truncate min-w-0">
           {compactTitle || title}
         </div>
       </div>
+      )}
 
       {/* Standardized Hero Header */}
       <div className={`h-[130px] sm:h-[128px] flex flex-col gap-3 sm:gap-4 ${isSplitMode ? 'px-4 sm:px-5 md:px-6 xl:px-8' : 'px-3 sm:px-6 md:px-10 lg:px-16'} pt-[28px] md:pt-6 lg:pt-8 pb-3 w-full max-w-full overflow-x-clip min-w-0 bg-transparent border-b border-slate-200/80 dark:border-slate-800/80 shrink-0 z-20 relative transition-opacity duration-200 ease-out`}>

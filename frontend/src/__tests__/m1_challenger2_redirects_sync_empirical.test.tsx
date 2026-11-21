@@ -286,7 +286,7 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
         const links = within(headerNav).getAllByRole('link');
 
         const activeLinkIndex = tabs.indexOf(tab);
-        expect(links[activeLinkIndex]).toHaveClass('text-blue-600');
+        expect(links[activeLinkIndex]).toHaveClass('text-primary');
         expect(links[activeLinkIndex]).toHaveClass('bg-white');
 
         // Other links should not have active background

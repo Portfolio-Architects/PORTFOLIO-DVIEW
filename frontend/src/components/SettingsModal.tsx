@@ -248,7 +248,7 @@ const SettingsModal = React.memo(function SettingsModal() {
               <div className="flex flex-col gap-2 bg-body p-3 rounded-[20px]">
                 {isLoadingApts ? (
                   <div className="flex items-center justify-center py-4 gap-2 text-xs text-tertiary font-medium">
-                    <Loader2 size={14} className="animate-spin text-toss-blue" />
+                    <Loader2 size={14} className="animate-spin text-primary" />
                     구독 목록 불러오는 중...
                   </div>
                 ) : subscribedApts.length === 0 ? (
@@ -265,7 +265,7 @@ const SettingsModal = React.memo(function SettingsModal() {
                           </span>
                           <button
                             onClick={() => handleUnsubscribeApt(apt)}
-                            className="text-xs font-black text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-950/20 px-2.5 py-1.5 rounded-md transition-colors cursor-pointer"
+                            className="text-xs font-black text-brand-red bg-brand-red-light px-2.5 py-1.5 rounded-md transition-colors cursor-pointer"
                           >
                             해제
                           </button>

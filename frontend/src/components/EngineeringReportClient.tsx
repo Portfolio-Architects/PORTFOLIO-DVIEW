@@ -73,7 +73,7 @@ export const ENGINEERING_REPORT_MARKDOWN_COMPONENTS: Components = {
         <span
           data-repo-doc-ref={normalizedLabel}
           title={normalizedLabel ? `저장소 문서/코드 참조: ${normalizedLabel}` : undefined}
-          className="inline-flex items-center rounded-md bg-[#f2f4f6] px-1.5 py-0.5 text-[0.9em] font-semibold text-[#3182f6] dark:bg-[#202027] dark:text-blue-400"
+          className="inline-flex items-center rounded-md bg-[#eff1f5] px-1.5 py-0.5 text-[0.9em] font-semibold text-primary dark:bg-[#1e2532]"
         >
           {children}
         </span>
@@ -82,7 +82,7 @@ export const ENGINEERING_REPORT_MARKDOWN_COMPONENTS: Components = {
 
     if (rawHref.startsWith('#')) {
       return (
-        <a href={rawHref} className="text-blue-600 hover:underline dark:text-blue-400">
+        <a href={rawHref} className="text-primary underline underline-offset-2">
           {children}
         </a>
       );
@@ -90,7 +90,7 @@ export const ENGINEERING_REPORT_MARKDOWN_COMPONENTS: Components = {
 
     if (rawHref.startsWith('/')) {
       return (
-        <Link href={rawHref} prefetch={false} className="text-blue-600 hover:underline dark:text-blue-400">
+        <Link href={rawHref} prefetch={false} className="text-primary underline underline-offset-2">
           {children}
         </Link>
       );
@@ -101,7 +101,7 @@ export const ENGINEERING_REPORT_MARKDOWN_COMPONENTS: Components = {
         href={rawHref}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-600 hover:underline dark:text-blue-400"
+        className="text-primary underline underline-offset-2"
       >
         {children}
       </a>

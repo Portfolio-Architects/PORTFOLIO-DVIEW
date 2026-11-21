@@ -285,6 +285,7 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
       role="region"
       aria-label="외부 브라우저 전환 안내 배너"
       data-testid="inapp-slim-banner"
+      data-scroll-interactive="true"
       style={{ height: '48px' }}
       className="fixed top-0 left-0 right-0 z-[9999] h-[48px] min-h-[48px] max-h-[48px] bg-slate-900/95 backdrop-blur-md text-white border-b border-slate-800 px-3 sm:px-4 flex items-center justify-between gap-2 shadow-sm"
     >
@@ -292,13 +293,13 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
         <div
           className={`h-7 px-2 rounded-md ${appConfig.iconColor} border border-slate-700 flex items-center gap-1.5 shrink-0 text-[11px] font-bold`}
         >
-          <Compass size={13} className="text-emerald-400 shrink-0" />
+          <Compass size={13} className="text-white shrink-0" />
           <span>{appConfig.badgeText}</span>
         </div>
         <p className="text-[12px] font-semibold text-slate-200 truncate">
           {redirectFailed ? (
             <span className="inline-flex items-center gap-1 text-slate-200">
-              <AlertTriangle size={12} className="text-emerald-400 shrink-0" />
+              <AlertTriangle size={12} className="text-brand-red shrink-0" />
               <span>링크 복사 후 기본 브라우저에서 열어주세요</span>
             </span>
           ) : (
@@ -313,7 +314,7 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
             type="button"
             data-testid="inapp-open-external-btn"
             onClick={handleRedirectClick}
-            className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg bg-white hover:bg-slate-100 text-slate-900 text-[11px] font-extrabold transition-colors cursor-pointer"
           >
             <ExternalLink size={12} />
             <span>{appConfig.btnText}</span>

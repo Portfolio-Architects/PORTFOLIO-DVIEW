@@ -119,8 +119,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
 
             {/* Desktop Wide View: 5 Core Nav Tabs + Right Utility Links */}
             <nav aria-label="메인 메뉴" className="hidden md:flex w-full items-center justify-start gap-3">
-              {/* Left Group: 5 Core Nav Tabs (Segmented Control Style) */}
-              <div data-testid="nav-left-group" className="flex shrink-0 items-center space-x-1 bg-slate-100/90 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/70 dark:border-slate-700/60">
+              {/* Left Group: 5 Core Nav Tabs (Segmented Control Style — Live Spark Neutral Ink) */}
+              <div data-testid="nav-left-group" className="flex shrink-0 items-center space-x-1 bg-[#eff1f5] dark:bg-[#1e2532] p-1.5 rounded-2xl">
                 {/* 1. 아파트 랩 */}
                 <Link
                   href="/"
@@ -132,8 +132,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   }}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'overview'
-                      ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
-                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                      ? 'bg-white dark:bg-[#252c3d] text-primary font-black shadow-xs'
+                      : 'text-tertiary hover:text-primary hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >
                   <span>아파트 랩</span>
@@ -146,8 +146,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   onClick={(e) => handleNavClick(e, '/explore', 'imjang')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'imjang' || activeTab === 'explore'
-                      ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
-                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                      ? 'bg-white dark:bg-[#252c3d] text-primary font-black shadow-xs'
+                      : 'text-tertiary hover:text-primary hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >
                   <span>아파트 탐색</span>
@@ -160,8 +160,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   onClick={(e) => handleNavClick(e, '/stats', 'stats')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'stats'
-                      ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
-                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                      ? 'bg-white dark:bg-[#252c3d] text-primary font-black shadow-xs'
+                      : 'text-tertiary hover:text-primary hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >
                   <span>아파트 통계</span>
@@ -175,8 +175,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   onClick={(e) => handleNavClick(e, '/guide', 'guide')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'guide'
-                      ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
-                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                      ? 'bg-white dark:bg-[#252c3d] text-primary font-black shadow-xs'
+                      : 'text-tertiary hover:text-primary hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >
                   <span>분석 리포트</span>
@@ -189,8 +189,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   onClick={(e) => handleNavClick(e, '/technovalley', 'technovalley')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'technovalley'
-                      ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
-                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                      ? 'bg-white dark:bg-[#252c3d] text-primary font-black shadow-xs'
+                      : 'text-tertiary hover:text-primary hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >
                   <span>테크노밸리 랩</span>
@@ -205,7 +205,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                     data-testid="header-about-link"
                     data-href="/about"
                     onClick={() => router?.push('/about')}
-                    className="px-3 py-1.5 text-[12px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                    className="px-3 py-1.5 text-[12px] font-bold text-secondary hover:text-primary hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] rounded-xl transition-colors cursor-pointer"
                   >
                     서비스 안내
                   </button>
@@ -215,7 +215,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                     data-testid="header-contact-link"
                     data-href="/contact"
                     onClick={() => router?.push('/contact')}
-                    className="px-3 py-1.5 text-[12px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                    className="px-3 py-1.5 text-[12px] font-bold text-secondary hover:text-primary hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] rounded-xl transition-colors cursor-pointer"
                   >
                     고객지원
                   </button>
@@ -243,11 +243,11 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                     }}
                     className={`inline-flex items-center gap-1.5 px-3 lg:px-3.5 py-2 text-[12.5px] lg:text-[13px] font-extrabold rounded-[12px] transition-colors duration-150 cursor-pointer ${
                       activeTab === 'lounge'
-                        ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/80 dark:border-blue-800/70 shadow-xs'
-                        : 'bg-slate-100/90 hover:bg-slate-200/75 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-slate-700 hover:text-blue-600 dark:text-slate-200 dark:hover:text-blue-400 border border-slate-200/70 dark:border-slate-700/60'
+                        ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-xs'
+                        : 'bg-[#eff1f5] hover:bg-slate-200/80 dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-primary'
                     }`}
                   >
-                    <MessageSquare size={14} strokeWidth={2.25} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                    <MessageSquare size={14} strokeWidth={2.25} className="shrink-0" />
                     <span className="whitespace-nowrap">실시간 입주민 라운지</span>
                   </button>
                 </div>

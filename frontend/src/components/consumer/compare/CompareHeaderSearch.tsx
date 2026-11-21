@@ -73,7 +73,7 @@ export const CompareHeaderSearch = React.memo(function CompareHeaderSearch({
             }}
             onFocus={() => setIsFocused1(true)}
             onKeyDown={handleKeyDown1}
-            className="w-full bg-surface border border-border/40 focus:border-blue-600 rounded-xl py-2 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
+            className="w-full bg-surface border border-border/40 focus:border-slate-900 dark:focus:border-slate-100 rounded-xl py-2 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
           />
           {searchQuery1 && (
             <button
@@ -116,7 +116,7 @@ export const CompareHeaderSearch = React.memo(function CompareHeaderSearch({
                           saveToRecent(apt);
                         }}
                         className={`w-full text-left px-3 py-2 text-[12.5px] font-bold hover:bg-body text-secondary flex items-center justify-between transition-all ${
-                          activeIndex1 === index ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : ''
+                          activeIndex1 === index ? 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary' : ''
                         }`}
                       >
                         <span>{getDisplayAptName(apt.name)}</span>
@@ -135,7 +135,7 @@ export const CompareHeaderSearch = React.memo(function CompareHeaderSearch({
 
       {/* VS Divider */}
       <div className="md:col-span-1 flex items-center justify-center">
-        <span className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-500 text-white font-black text-[12px] flex items-center justify-center shadow-md select-none shrink-0">
+        <span className="w-8 h-8 rounded-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-black text-[12px] flex items-center justify-center shadow-sm select-none shrink-0">
           VS
         </span>
       </div>
@@ -154,7 +154,7 @@ export const CompareHeaderSearch = React.memo(function CompareHeaderSearch({
             }}
             onFocus={() => setIsFocused2(true)}
             onKeyDown={handleKeyDown2}
-            className="w-full bg-surface border border-border/40 focus:border-blue-600 rounded-xl py-2 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
+            className="w-full bg-surface border border-border/40 focus:border-slate-900 dark:focus:border-slate-100 rounded-xl py-2 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
           />
           {searchQuery2 && (
             <button
@@ -197,7 +197,7 @@ export const CompareHeaderSearch = React.memo(function CompareHeaderSearch({
                           saveToRecent(apt);
                         }}
                         className={`w-full text-left px-3 py-2 text-[12.5px] font-bold hover:bg-body text-secondary flex items-center justify-between transition-all ${
-                          activeIndex2 === index ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : ''
+                          activeIndex2 === index ? 'bg-[#eff1f5] dark:bg-[#1e2532] text-primary' : ''
                         }`}
                       >
                         <span>{getDisplayAptName(apt.name)}</span>

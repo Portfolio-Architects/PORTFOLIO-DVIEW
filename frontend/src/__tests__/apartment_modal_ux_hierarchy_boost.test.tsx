@@ -173,7 +173,7 @@ describe('ApartmentModal UX Hierarchy, Deduplication, Natural Naming & Surface S
     }
   });
 
-  it('Point 1: keeps strictly ONE primary solid blue CTA in the drawer header, zero competing gradients/emerald pills, and manages share/tool popover Escape & mutual exclusion', () => {
+  it('Point 1: keeps strictly ONE primary solid ink CTA in the drawer header, zero competing gradients/emerald pills, and manages share/tool popover Escape & mutual exclusion', () => {
     const onClose = jest.fn();
     const { container } = renderDrawer({ onClose });
 
@@ -187,9 +187,9 @@ describe('ApartmentModal UX Hierarchy, Deduplication, Natural Naming & Surface S
     // Header has at most 5 quiet/primary controls when popovers are closed
     expect(header.querySelectorAll('button, a').length).toBeLessThanOrEqual(5);
 
-    // Strictly ONE solid primary blue CTA (금융 도구) across the entire top chrome
+    // Strictly ONE solid primary ink CTA (금융 도구) across the entire top chrome (Live Spark v6.0)
     const primaryAccentControls = topChromeControls.filter((el) =>
-      /\bbg-blue-600\b/.test(el.className)
+      /\bbg-slate-900\b/.test(el.className)
     );
     expect(primaryAccentControls).toHaveLength(1);
     expect(primaryAccentControls[0]).toHaveAttribute('data-testid', 'apt-header-tool-menu-btn');

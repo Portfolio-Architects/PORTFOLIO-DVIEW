@@ -25,6 +25,9 @@ import {
   getBuildingAgeDepreciationData,
 } from '@/lib/stats/thematicPriceComparisonEngine';
 import { StatsPageClient } from './StatsPageClient';
+import BalanceMatchupWidget from '@/components/engagement/BalanceMatchupWidget';
+import { resolveBalanceMatchups } from '@/lib/data/balanceMatchups';
+import { getSyncTxSummaryMap } from '@/lib/server/syncTxSummary';
 
 export const dynamic = 'force-static';
 export const revalidate = false;
@@ -36,10 +39,9 @@ const STATS_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComp
 )}`;
 
 export const metadata: Metadata = {
-  title:
-    '동탄 아파트 통계 · 동탄1 vs 동탄2 집값 비교 · 초품아·호수공원·연식별·동탄역 거리별 실거래가 · 역세권 프리미엄 회귀분석 (127개 단지) | D-VIEW 통계 랩',
+  title: '동탄 아파트 통계·권역별 집값 격차 분석 | D-VIEW',
   description:
-    '국토교통부 약 6.6만 건 실거래가 및 입지 공공데이터 기반 동탄신도시 127개 아파트 단지 통계 분석 리포트. 동탄1 vs 동탄2 집값 비교, 초품아·학원가 학군 프리미엄, 동탄호수공원 수변 조망권 시세 격차, 연식별(신축·준신축·구축) 감가상각 및 전고점 방어율, 동탄역 거리별 OLS 회귀분석 지표를 제공합니다.',
+    '국토교통부 실거래가 기반 동탄 127개 단지 통계 분석 — 동탄1 vs 동탄2 집값 비교, 초품아 학군 프리미엄, 호수공원 조망 격차, 연식별 방어율과 동탄역 거리별 회귀분석을 확인하세요.',
   keywords: [
     '동탄 아파트 통계',
     '동탄1 동탄2 집값 비교',
@@ -330,11 +332,11 @@ export default function StatsPage() {
             initialAgeData={initialAgeData}
           />
 
-          {/* Visible SSR Semantic Regression & Thematic Price Comparison Summary (Dual-Layer Ad Money v5.1) */}
+          {/* Visible SSR Semantic Regression & Thematic Price Comparison Summary (Dual-Layer Ad Money v6.0) */}
           <section
             id="stats-ssr-regression-summary"
             aria-label="동탄역 거리별 아파트 가격 회귀분석 요약"
-            className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-5 sm:p-6 text-xs sm:text-[13px] text-secondary space-y-4 tabular-nums scroll-mt-24 md:scroll-mt-[96px]"
+            className="w-full rounded-2xl bg-elevated p-5 sm:p-6 text-xs sm:text-[13px] text-secondary space-y-4 tabular-nums scroll-mt-24 md:scroll-mt-[96px]"
           >
             {/* Layer 1 Header */}
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -355,7 +357,7 @@ export default function StatsPage() {
 
             {/* Layer 1 KPI Strip (4 compact tiles, zero <li>) */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-              <div className="rounded-xl bg-surface dark:bg-[#202027] p-3.5 flex flex-col gap-1">
+              <div className="rounded-xl bg-surface p-3.5 flex flex-col gap-1">
                 <span className="text-[11px] font-bold text-tertiary whitespace-nowrap truncate">
                   분석 표본
                 </span>
@@ -367,11 +369,11 @@ export default function StatsPage() {
                 </span>
               </div>
 
-              <div className="rounded-xl bg-surface dark:bg-[#202027] p-3.5 flex flex-col gap-1">
+              <div className="rounded-xl bg-surface p-3.5 flex flex-col gap-1">
                 <span className="text-[11px] font-bold text-tertiary whitespace-nowrap truncate">
                   역세권 프리미엄
                 </span>
-                <span className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
+                <span className="text-base sm:text-lg font-black text-brand-red tracking-tight">
                   {regression.stationPremiumRatePercent >= 0 ? '+' : ''}
                   {regression.stationPremiumRatePercent.toFixed(1)}%
                 </span>
@@ -380,11 +382,11 @@ export default function StatsPage() {
                 </span>
               </div>
 
-              <div className="rounded-xl bg-surface dark:bg-[#202027] p-3.5 flex flex-col gap-1">
+              <div className="rounded-xl bg-surface p-3.5 flex flex-col gap-1">
                 <span className="text-[11px] font-bold text-tertiary whitespace-nowrap truncate">
                   1km당 변동
                 </span>
-                <span className="text-base sm:text-lg font-black text-blue-600 dark:text-blue-400 tracking-tight">
+                <span className="text-base sm:text-lg font-black text-brand-blue tracking-tight">
                   {Math.round(regression.slopeWonPerKm).toLocaleString('ko-KR')}만원
                 </span>
                 <span className="text-[11px] font-semibold text-secondary truncate">
@@ -392,7 +394,7 @@ export default function StatsPage() {
                 </span>
               </div>
 
-              <div className="rounded-xl bg-surface dark:bg-[#202027] p-3.5 flex flex-col gap-1">
+              <div className="rounded-xl bg-surface p-3.5 flex flex-col gap-1">
                 <span className="text-[11px] font-bold text-tertiary whitespace-nowrap truncate">
                   모형 설명력
                 </span>
@@ -410,11 +412,11 @@ export default function StatsPage() {
               {distanceTiers.map((tier) => {
                 const pyeongMan = Math.round(tier.avgPricePerPyeongWon / 10000);
                 const prem = tier.premiumVsAveragePercent;
-                const tone = prem > 0 ? 'safe' : prem < 0 ? 'down' : 'neutral';
+                const tone = prem > 0 ? 'up' : prem < 0 ? 'down' : 'neutral';
                 return (
                   <li
                     key={tier.tierId}
-                    className="rounded-xl bg-surface dark:bg-[#202027] p-3.5 flex flex-col justify-between gap-2"
+                    className="rounded-xl bg-surface p-3.5 flex flex-col justify-between gap-2"
                   >
                     <div className="flex items-center justify-between gap-1.5">
                       <span className="text-[11px] font-bold text-secondary truncate">
@@ -441,7 +443,7 @@ export default function StatsPage() {
             </ul>
 
             {/* Layer 1: 5 Clean 1-Line Thematic Summary Rows (All IDs & 4 /apartment/ Links Preserved) */}
-            <div className="divide-y divide-[#f2f4f6] dark:divide-[#202027] border-t border-[#f2f4f6] dark:border-[#202027]">
+            <div className="divide-y divide-border border-t border-border">
               {initialUndervaluedSummary.items.length > 0 && (
                 <div
                   id="stats-ssr-undervalued-summary"
@@ -456,10 +458,10 @@ export default function StatsPage() {
                         key={item.canonicalSlug}
                         href={`/apartment/${encodeURIComponent(item.canonicalSlug)}`}
                         prefetch={false}
-                        className="inline-flex items-center gap-1 rounded-md bg-surface dark:bg-[#202027] px-2 py-0.5 text-[11.5px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline"
+                        className="inline-flex items-center gap-1 rounded-md bg-surface px-2 py-0.5 text-[11.5px] font-bold text-primary hover:underline"
                       >
                         <span>{item.name}</span>
-                        <span className="text-tertiary font-semibold">
+                        <span className="text-brand-blue font-extrabold">
                           {item.discountPercent.toFixed(1)}%
                         </span>
                       </Link>
@@ -468,7 +470,7 @@ export default function StatsPage() {
                   <Link
                     href="/guide/dongtan-budget-tier-ranking"
                     prefetch={false}
-                    className="shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                    className="shrink-0 text-xs font-bold text-secondary hover:text-primary hover:underline"
                   >
                     예산별 랭킹 가이드
                   </Link>
@@ -488,7 +490,7 @@ export default function StatsPage() {
                     className={getVisualSignalPillClass({
                       tone:
                         delta.weightedPricePremiumPercent > 0
-                          ? 'safe'
+                          ? 'up'
                           : delta.weightedPricePremiumPercent < 0
                             ? 'down'
                             : 'neutral',
@@ -502,7 +504,7 @@ export default function StatsPage() {
                 <Link
                   href="/guide/dongtan-1-vs-2-comparison"
                   prefetch={false}
-                  className="shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  className="shrink-0 text-xs font-bold text-secondary hover:text-primary hover:underline"
                 >
                   동탄1·2 비교 가이드
                 </Link>
@@ -522,7 +524,7 @@ export default function StatsPage() {
                     className={getVisualSignalPillClass({
                       tone:
                         initialSchoolData.delta.academyPricePremiumPercent > 0
-                          ? 'safe'
+                          ? 'up'
                           : initialSchoolData.delta.academyPricePremiumPercent < 0
                             ? 'down'
                             : 'neutral',
@@ -537,7 +539,7 @@ export default function StatsPage() {
                 <Link
                   href="/guide/dongtan-school-zone-top-apartments"
                   prefetch={false}
-                  className="shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  className="shrink-0 text-xs font-bold text-secondary hover:text-primary hover:underline"
                 >
                   초품아·학군 가이드
                 </Link>
@@ -557,7 +559,7 @@ export default function StatsPage() {
                     className={getVisualSignalPillClass({
                       tone:
                         initialLakeData.delta.waterfrontVsHinterlandPremiumPercent > 0
-                          ? 'safe'
+                          ? 'up'
                           : initialLakeData.delta.waterfrontVsHinterlandPremiumPercent < 0
                             ? 'down'
                             : 'neutral',
@@ -572,7 +574,7 @@ export default function StatsPage() {
                 <Link
                   href="/guide/dongtan-lake-vs-station-comparison"
                   prefetch={false}
-                  className="shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  className="shrink-0 text-xs font-bold text-secondary hover:text-primary hover:underline"
                 >
                   호수공원·동탄역 가이드
                 </Link>
@@ -592,7 +594,7 @@ export default function StatsPage() {
                     className={getVisualSignalPillClass({
                       tone:
                         initialAgeData.delta.newVsOldPricePremiumPercent > 0
-                          ? 'safe'
+                          ? 'up'
                           : initialAgeData.delta.newVsOldPricePremiumPercent < 0
                             ? 'down'
                             : 'neutral',
@@ -607,7 +609,7 @@ export default function StatsPage() {
                 <Link
                   href="/guide/dongtan-reconstruction-remodeling-1st-new-town-outlook"
                   prefetch={false}
-                  className="shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  className="shrink-0 text-xs font-bold text-secondary hover:text-primary hover:underline"
                 >
                   연식·리모델링 가이드
                 </Link>
@@ -615,7 +617,7 @@ export default function StatsPage() {
             </div>
 
             {/* Layer 2: Closed-by-default Native SSR <details> (ZERO <li>, ZERO <AdSlot>) */}
-            <details className={getSeoAccordionClass('bg-surface! dark:bg-[#202027]!')}>
+            <details className={getSeoAccordionClass('bg-surface!')}>
               <summary className={getSeoAccordionSummaryClass()}>
                 <span>OLS 회귀분석 · 입지별 산출 근거 더보기</span>
                 <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
@@ -637,7 +639,7 @@ export default function StatsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
                   {initialUndervaluedSummary.items.length > 0 && (
-                    <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-3 space-y-1">
+                    <div className="rounded-xl bg-elevated p-3 space-y-1">
                       <div className="font-bold text-primary">
                         로그거리·연식 다중회귀 (R² {(initialUndervaluedSummary.rSquared * 100).toFixed(1)}%)
                       </div>
@@ -652,7 +654,7 @@ export default function StatsPage() {
                     </div>
                   )}
 
-                  <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-3 space-y-1">
+                  <div className="rounded-xl bg-elevated p-3 space-y-1">
                     <div className="font-bold text-primary">동탄1 vs 동탄2 권역 비교</div>
                     <p>
                       동탄1({dongtan1.complexCount.toLocaleString('ko-KR')}개 단지, 1년 가중평균 {dongtan1.weightedAvgPriceEokText},
@@ -662,7 +664,7 @@ export default function StatsPage() {
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-3 space-y-1">
+                  <div className="rounded-xl bg-elevated p-3 space-y-1">
                     <div className="font-bold text-primary">초품아 · 학군 및 학원가 밀집도</div>
                     <p>
                       초품아({initialSchoolData.chopumaGroup.complexCount.toLocaleString('ko-KR')}개 단지, 평당{' '}
@@ -675,7 +677,7 @@ export default function StatsPage() {
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-3 space-y-1">
+                  <div className="rounded-xl bg-elevated p-3 space-y-1">
                     <div className="font-bold text-primary">동탄호수공원 수변권 · 연식별 감가상각</div>
                     <p>
                       호수 수변권 1km 이내({initialLakeData.waterfrontGroup.complexCount.toLocaleString('ko-KR')}개 단지, 평당{' '}
@@ -694,6 +696,13 @@ export default function StatsPage() {
               </div>
             </details>
           </section>
+
+          {/* Site-Wide Interactive 1:1 Balance Matchup tied to Stats Themes */}
+          <BalanceMatchupWidget
+            matchups={resolveBalanceMatchups('stats_1vs2', getSyncTxSummaryMap())}
+            surface="stats_bottom"
+            heading="통계로 확인한 동탄 핵심 1:1 밸런스 맞대결"
+          />
         </div>
       </main>
 

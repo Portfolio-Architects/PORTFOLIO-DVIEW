@@ -63,19 +63,10 @@ export function GuideStatsComparisonBridge({
       id="guide-to-stats-comparison-bridge"
       data-testid="guide-to-stats-comparison-bridge"
       aria-label="동탄1 vs 동탄2 실시간 집값 통계 비교 대시보드 연동"
-      className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-blue-500/25 dark:border-blue-500/30 p-4 sm:p-5 space-y-4"
+      className="w-full rounded-2xl bg-elevated border border-border/60 p-4 sm:p-5 space-y-4"
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-extrabold bg-blue-600 text-white">
-              <DviewIcon name="scale" size={14} />
-              <span>비교글 × 아파트 통계 양방향 연동</span>
-            </span>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 tabular-nums">
-              국토부 127개 단지 실거래 전수 집계
-            </span>
-          </div>
           <h3 className="text-base sm:text-lg font-black text-primary tracking-tight">
             {isDongtan1Vs2Article
               ? '동탄1 vs 동탄2, 실제 집값은 얼마일까? 실시간 통계 대시보드'
@@ -92,7 +83,7 @@ export function GuideStatsComparisonBridge({
           onClick={() =>
             handleStatsClick('dongtan-1-vs-2-comparison', '동탄1 vs 동탄2 집값 통계 비교 보러가기')
           }
-          className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-[13px] font-extrabold transition-colors shadow-xs"
+          className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-xs sm:text-[13px] font-extrabold transition-colors shadow-xs"
         >
           <DviewIcon name="bar-chart-3" size={16} />
           <span>동탄1 vs 동탄2 집값 통계 비교 보러가기</span>
@@ -103,10 +94,10 @@ export function GuideStatsComparisonBridge({
       {/* Live House Price Snapshot Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {/* Dongtan 1 Snapshot */}
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#202027] border border-emerald-500/20 flex flex-col justify-between gap-1.5">
-          <div className="flex items-center justify-between text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-            <span className="inline-flex items-center gap-1">
-              <DviewIcon name="building-2" size={14} />
+        <div className="p-3.5 rounded-xl bg-surface border border-border flex flex-col justify-between gap-1.5">
+          <div className="flex items-center justify-between text-[11px] font-bold text-secondary">
+            <span className="inline-flex items-center gap-1 text-primary">
+              <DviewIcon name="building-2" size={14} className="text-secondary" />
               동탄1신도시 ({dongtan1.complexCount}단지)
             </span>
             <span>반송·석우·능동</span>
@@ -115,12 +106,12 @@ export function GuideStatsComparisonBridge({
             <span className="text-xs font-bold text-tertiary">1년 평균 집값</span>
             <span
               data-testid="bridge-dongtan1-avg-price"
-              className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums"
+              className="text-lg sm:text-xl font-black text-primary tabular-nums"
             >
               {dongtan1.weightedAvgPriceEokText}
             </span>
           </div>
-          <div className="flex items-center justify-between text-[11px] text-secondary tabular-nums pt-1.5 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between text-[11px] text-secondary tabular-nums pt-1.5 border-t border-border/60">
             <span>평당 {dongtan1.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원</span>
             <GuideAptCtaLink
               href={`/apartment/${encodeURIComponent(dongtan1.maxPriceComplexSlug || dongtan1.maxPriceComplexName)}`}
@@ -132,7 +123,7 @@ export function GuideStatsComparisonBridge({
               placement={aptPlacement}
               sectionTitle="동탄1신도시 최고가 대표 단지 바로가기"
               dataTestId="bridge-dongtan1-max-apt-cta"
-              className="font-bold text-emerald-700 dark:text-emerald-300 hover:underline"
+              className="font-bold text-primary hover:underline"
             >
               최고 {dongtan1.maxPriceComplexName} ({dongtan1.maxLatestPriceEokText})
             </GuideAptCtaLink>
@@ -140,10 +131,10 @@ export function GuideStatsComparisonBridge({
         </div>
 
         {/* Dongtan 2 Snapshot */}
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#202027] border border-blue-500/20 flex flex-col justify-between gap-1.5">
-          <div className="flex items-center justify-between text-[11px] font-bold text-blue-700 dark:text-blue-300">
-            <span className="inline-flex items-center gap-1">
-              <DviewIcon name="trending-up" size={14} />
+        <div className="p-3.5 rounded-xl bg-surface border border-border flex flex-col justify-between gap-1.5">
+          <div className="flex items-center justify-between text-[11px] font-bold text-secondary">
+            <span className="inline-flex items-center gap-1 text-primary">
+              <DviewIcon name="trending-up" size={14} className="text-secondary" />
               동탄2신도시 ({dongtan2.complexCount}단지)
             </span>
             <span>청계·여울·송동 등 8개동</span>
@@ -152,12 +143,12 @@ export function GuideStatsComparisonBridge({
             <span className="text-xs font-bold text-tertiary">1년 평균 집값</span>
             <span
               data-testid="bridge-dongtan2-avg-price"
-              className="text-lg sm:text-xl font-black text-blue-600 dark:text-blue-400 tabular-nums"
+              className="text-lg sm:text-xl font-black text-primary tabular-nums"
             >
               {dongtan2.weightedAvgPriceEokText}
             </span>
           </div>
-          <div className="flex items-center justify-between text-[11px] text-secondary tabular-nums pt-1.5 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between text-[11px] text-secondary tabular-nums pt-1.5 border-t border-border/60">
             <span>평당 {dongtan2.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원</span>
             <GuideAptCtaLink
               href={`/apartment/${encodeURIComponent(dongtan2.maxPriceComplexSlug || dongtan2.maxPriceComplexName)}`}
@@ -169,7 +160,7 @@ export function GuideStatsComparisonBridge({
               placement={aptPlacement}
               sectionTitle="동탄2신도시 최고가 대표 단지 바로가기"
               dataTestId="bridge-dongtan2-max-apt-cta"
-              className="font-bold text-blue-700 dark:text-blue-300 hover:underline"
+              className="font-bold text-primary hover:underline"
             >
               최고 {dongtan2.maxPriceComplexName} ({dongtan2.maxLatestPriceEokText})
             </GuideAptCtaLink>
@@ -177,10 +168,18 @@ export function GuideStatsComparisonBridge({
         </div>
 
         {/* Price Gap & Quick Action */}
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#202027] border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between gap-1.5">
+        <div className="p-3.5 rounded-xl bg-surface border border-border flex flex-col justify-between gap-1.5">
           <div className="flex items-center justify-between text-[11px] font-bold text-secondary">
             <span>동탄2 vs 동탄1 평균 집값 격차</span>
-            <span className="text-blue-600 dark:text-blue-400 tabular-nums">
+            <span
+              className={`tabular-nums font-extrabold ${
+                delta.weightedPricePremiumPercent > 0
+                  ? 'text-brand-red'
+                  : delta.weightedPricePremiumPercent < 0
+                    ? 'text-brand-blue'
+                    : 'text-secondary'
+              }`}
+            >
               {delta.weightedPricePremiumPercent >= 0 ? '+' : ''}
               {delta.weightedPricePremiumPercent}%
             </span>
@@ -194,7 +193,7 @@ export function GuideStatsComparisonBridge({
               {delta.weightedPriceDiffEokText}
             </span>
           </div>
-          <div className="flex items-center justify-between text-[11px] text-secondary tabular-nums pt-1.5 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between text-[11px] text-secondary tabular-nums pt-1.5 border-t border-border/60">
             <span>
               평당 {delta.pyeongPriceDiffManwon >= 0 ? '+' : ''}
               {delta.pyeongPriceDiffManwon.toLocaleString('ko-KR')}만원 격차
@@ -204,7 +203,7 @@ export function GuideStatsComparisonBridge({
               onClick={() =>
                 handleStatsClick('dongtan-station-distance', '동탄역 거리별 회귀분석 보기')
               }
-              className="font-bold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-0.5"
+              className="font-bold text-primary hover:underline inline-flex items-center gap-0.5"
             >
               <span>역세권 통계</span>
               <DviewIcon name="arrow-right" size={12} />
@@ -223,18 +222,18 @@ export function GuideStatsComparisonBridge({
           onClick={() =>
             handleStatsClick('school-district-premium', '초품아·학원가 집값 격차 리포트')
           }
-          className="group p-3 rounded-xl bg-white dark:bg-[#202027] border border-slate-200/80 dark:border-slate-800 hover:border-blue-500/40 transition-colors flex items-center justify-between gap-2"
+          className="group p-3 rounded-xl bg-surface border border-border hover:border-slate-300 dark:hover:border-slate-700 transition-colors flex items-center justify-between gap-2"
         >
           <div className="space-y-0.5 min-w-0">
-            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-blue-600 dark:text-blue-400">
+            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-secondary group-hover:text-primary transition-colors">
               <DviewIcon name="graduation-cap" size={14} />
-              Issue #2 · 초품아·학원가 집값 비교
+              초품아·학원가 집값 비교
             </span>
             <p className="text-xs font-bold text-primary truncate tabular-nums">
               학원 밀집권 {schoolData.academyPrimeGroup.weightedAvgPriceEokText} ({schoolData.delta.academyPriceDiffEokText})
             </p>
           </div>
-          <DviewIcon name="arrow-right" size={14} className="text-tertiary group-hover:text-blue-600" />
+          <DviewIcon name="arrow-right" size={14} className="text-tertiary group-hover:text-primary" />
         </Link>
 
         <Link
@@ -242,18 +241,18 @@ export function GuideStatsComparisonBridge({
           onClick={() =>
             handleStatsClick('lake-park-view-premium', '동탄호수공원 조망권 집값 격차 리포트')
           }
-          className="group p-3 rounded-xl bg-white dark:bg-[#202027] border border-slate-200/80 dark:border-slate-800 hover:border-emerald-500/40 transition-colors flex items-center justify-between gap-2"
+          className="group p-3 rounded-xl bg-surface border border-border hover:border-slate-300 dark:hover:border-slate-700 transition-colors flex items-center justify-between gap-2"
         >
           <div className="space-y-0.5 min-w-0">
-            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400">
+            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-secondary group-hover:text-primary transition-colors">
               <Waves className="w-3.5 h-3.5 shrink-0" />
-              Issue #3 · 호수공원 수변 집값 비교
+              호수공원 수변 집값 비교
             </span>
             <p className="text-xs font-bold text-primary truncate tabular-nums">
               수변권 {lakeData.waterfrontGroup.weightedAvgPriceEokText} ({lakeData.delta.waterfrontVsHinterlandPriceDiffEokText})
             </p>
           </div>
-          <DviewIcon name="arrow-right" size={14} className="text-tertiary group-hover:text-emerald-600" />
+          <DviewIcon name="arrow-right" size={14} className="text-tertiary group-hover:text-primary" />
         </Link>
 
         <Link
@@ -261,18 +260,18 @@ export function GuideStatsComparisonBridge({
           onClick={() =>
             handleStatsClick('building-age-depreciation', '연식별 감가상각·방어율 비교 리포트')
           }
-          className="group p-3 rounded-xl bg-white dark:bg-[#202027] border border-slate-200/80 dark:border-slate-800 hover:border-blue-500/40 transition-colors flex items-center justify-between gap-2"
+          className="group p-3 rounded-xl bg-surface border border-border hover:border-slate-300 dark:hover:border-slate-700 transition-colors flex items-center justify-between gap-2"
         >
           <div className="space-y-0.5 min-w-0">
-            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-blue-600 dark:text-blue-400">
+            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-secondary group-hover:text-primary transition-colors">
               <DviewIcon name="calendar" size={14} />
-              Issue #4 · 신축 vs 구축 연식별 비교
+              신축 vs 구축 연식별 비교
             </span>
             <p className="text-xs font-bold text-primary truncate tabular-nums">
               신축 {ageData.newBuildGroup.weightedAvgPriceEokText} vs 구축 {ageData.oldBuildGroup.weightedAvgPriceEokText}
             </p>
           </div>
-          <DviewIcon name="arrow-right" size={14} className="text-tertiary group-hover:text-blue-600" />
+          <DviewIcon name="arrow-right" size={14} className="text-tertiary group-hover:text-primary" />
         </Link>
       </div>
 
@@ -286,7 +285,7 @@ export function GuideStatsComparisonBridge({
             onClick={() =>
               handleStatsClick('dongtan-1-vs-2-comparison', '평형별·예산대별 집값 비교표 열기')
             }
-            className="font-extrabold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+            className="font-extrabold text-primary hover:underline inline-flex items-center gap-1"
           >
             <span>평형별·예산대별 집값 비교표 열기</span>
             <DviewIcon name="arrow-right" size={14} />

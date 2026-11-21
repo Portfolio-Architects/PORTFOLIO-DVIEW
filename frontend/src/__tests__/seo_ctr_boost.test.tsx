@@ -2235,7 +2235,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
         zoneCards.forEach((card) => {
           expect(card.className).toContain('min-h-[158px]');
           expect(card.className).toContain('sm:min-h-[168px]');
-          expect(card.className).toContain('bg-slate-50/90');
+          expect(card.className).toMatch(/bg-elevated|bg-slate-50\/90/);
         });
 
         // Inline apartment deep-links (`data-testid="guide-inline-apt-link"`) render in all 8 guides

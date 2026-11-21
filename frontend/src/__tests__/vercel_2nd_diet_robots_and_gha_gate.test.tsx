@@ -18,7 +18,7 @@ import '@testing-library/jest-dom';
 
 import robots from '@/app/robots';
 import {
-  ADSENSE_CRAWLER_BOT,
+  ADSENSE_AND_GOOGLE_REVIEW_BOTS,
   ALLOWED_REVENUE_SEARCH_BOTS,
   BLOCKED_AI_AND_SEO_SCRAPER_BOTS,
 } from '@/lib/seo/robotsPolicy';
@@ -281,7 +281,7 @@ describe('Vercel 2nd-Round Payload Diet, Strict Bot Blocking & 11:00 KST GHA Gat
   // 2. robots.ts Strict Revenue-Bot Allowlist & Foreign AI/SEO Scraper Block
   // =========================================================================
   describe('2. robots.ts Revenue-Only Allowlist & AI/SEO Scraper Blocklist', () => {
-    it('allows ONLY Googlebot, Mediapartners-Google, Yeti, Daumoa, Bingbot and explicitly disallows AI & SEO scrapers plus wildcard *', () => {
+    it('allows Google AdSense/review & search bots plus wildcard public access while explicitly disallowing AI & SEO scrapers and internal APIs', () => {
       const config = robots();
       const rules = Array.isArray(config.rules) ? config.rules : [config.rules];
 
@@ -291,9 +291,12 @@ describe('Vercel 2nd-Round Payload Diet, Strict Bot Blocking & 11:00 KST GHA Gat
       );
 
       expect(new Set(allowedAgents)).toEqual(
-        new Set([ADSENSE_CRAWLER_BOT, ...ALLOWED_REVENUE_SEARCH_BOTS])
+        new Set([...ADSENSE_AND_GOOGLE_REVIEW_BOTS, ...ALLOWED_REVENUE_SEARCH_BOTS, '*'])
       );
-      expect(allowedAgents).not.toContain('*');
+      expect(allowedAgents).toContain('AdsBot-Google');
+      expect(allowedAgents).toContain('AdsBot-Google-Mobile');
+      expect(allowedAgents).toContain('Google-Display-Ads-Bot');
+      expect(allowedAgents).toContain('GoogleOther');
 
       const blockRule = rules.find(
         (r) => Array.isArray(r.userAgent) && r.userAgent.includes('GPTBot')
@@ -328,9 +331,10 @@ describe('Vercel 2nd-Round Payload Diet, Strict Bot Blocking & 11:00 KST GHA Gat
 
       const wildcardRule = rules.find((r) => r.userAgent === '*');
       expect(wildcardRule).toBeDefined();
-      expect(wildcardRule?.allow).toBeUndefined();
+      expect(wildcardRule?.allow).toBe('/');
+      expect(wildcardRule?.disallow).not.toContain('/');
       expect(wildcardRule?.disallow).toEqual(
-        expect.arrayContaining(['/', '/api/cron/', '/api/ads/', '/api/push/', '/api/indexing/'])
+        expect.arrayContaining(['/api/cron/', '/api/ads/', '/api/push/', '/api/indexing/', '/api/matchups/'])
       );
       expect(config.sitemap).toBe('https://dongtanview.com/sitemap.xml');
     });
@@ -539,7 +543,7 @@ describe('Vercel 2nd-Round Payload Diet, Strict Bot Blocking & 11:00 KST GHA Gat
         path.resolve(__dirname, '../components/guide/GuideAptPreviewCard.tsx'),
         'utf8'
       );
-      expect(gcardSrc).toContain('bg-slate-50/90 hover:bg-slate-100/80 dark:bg-slate-900/80 dark:hover:bg-slate-800/80');
+      expect(gcardSrc).toContain('bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532]');
 
       // 3. Every var(--...) referenced inside @layer components in globals.css must be defined in :root
       const cssSrc = fs.readFileSync(path.resolve(__dirname, '../app/globals.css'), 'utf8');

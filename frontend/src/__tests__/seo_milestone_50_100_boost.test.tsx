@@ -206,11 +206,10 @@ describe('GSC 50·100 Clicks Milestone SEO Enhancement Verification Suite', () =
       const title = String(statsMetadata.title);
       const desc = String(statsMetadata.description);
       expect(title).toContain('동탄 아파트 통계');
-      expect(title).toContain('동탄역 거리별 실거래가');
-      expect(title).toContain('역세권 프리미엄 회귀분석');
-      expect(title).toContain('127개 단지');
-      expect(desc).toContain('127개 아파트 단지');
-      expect(desc).toContain('OLS 회귀분석');
+      expect(title).toContain('권역별 집값 격차 분석');
+      expect(title.length).toBeLessThanOrEqual(45);
+      expect(desc).toContain('127개 단지');
+      expect(desc).toContain('회귀분석');
       expect(EMOJI_REGEX.test(title + desc)).toBe(false);
 
       const keywords = statsMetadata.keywords as string[];

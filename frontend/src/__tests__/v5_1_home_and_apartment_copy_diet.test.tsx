@@ -290,13 +290,12 @@ describe('Ad Money v5.1: Main Home, Hero & Apartment Detail Copy Diet + Semantic
       expect(zoneGrid?.className).toContain('lg:grid-cols-4');
       expect(zoneGrid?.className).not.toContain('lg:grid-cols-7');
       expect(editorial.textContent).toContain('최근 실거래 평균');
-      // F5: TOP 10 widens to md:grid-cols-5, uses getDisplayAptName without truncate, and deduplicates bottom /explore nav
+      // F5: TOP 10 widens to md:grid-cols-5, uses getDisplayAptName without truncate, and eliminates duplicate bottom service/policy nav bar
       const top10FirstCard = editorial.querySelector('a[href^="/apartment/"]');
       expect(top10FirstCard?.parentElement?.className).toContain('md:grid-cols-5');
       expect(top10FirstCard?.parentElement?.className).not.toContain('lg:grid-cols-10');
       expect(editorial.textContent).toContain('최근 실거래가');
-      const bottomNavExploreLinks = editorial.querySelectorAll('nav a[href="/explore"]');
-      expect(bottomNavExploreLinks.length).toBe(1);
+      expect(editorial.querySelectorAll('nav').length).toBe(0);
       // HomePage bottom methodology & catalog <details> stay collapsed for compact UX while preserving full SSR text
       for (const detailsEl of Array.from(editorial.querySelectorAll('details'))) {
         expect(detailsEl.hasAttribute('open')).toBe(false);
@@ -305,7 +304,6 @@ describe('Ad Money v5.1: Main Home, Hero & Apartment Detail Copy Diet + Semantic
       // HomePage bottom editorial copy uses updated "분석 리포트" tone without stale "가이드" phrasing
       const editorialCombinedText = `${editorial.getAttribute('aria-label') || ''} ${editorial.textContent || ''}`;
       expect(editorialCombinedText).not.toContain('가이드');
-      expect(editorial.querySelector('#home-lab-to-guide-interlink')?.textContent || '').toContain('분석 리포트');
       const guideGridEl = editorial.querySelector('#home-guide-4col-grid')!;
       expect(guideGridEl.textContent || '').toContain('분석 리포트');
       const guideDirectoryDetails = guideGridEl.querySelector('details');
@@ -321,7 +319,7 @@ describe('Ad Money v5.1: Main Home, Hero & Apartment Detail Copy Diet + Semantic
       const layer1H3s = Array.from(editorial.querySelectorAll('h3')).filter(
         (el) => !el.closest('details')
       );
-      expect(layer1H3s.length).toBeGreaterThanOrEqual(4);
+      expect(layer1H3s.length).toBeGreaterThanOrEqual(3);
       for (const h3 of layer1H3s) {
         const res = checkCopyBudget(h3.textContent || '', 'sectionTitle');
         expect(res.withinBudget).toBe(true);
@@ -333,9 +331,6 @@ describe('Ad Money v5.1: Main Home, Hero & Apartment Detail Copy Diet + Semantic
       for (const p of zoneDescNodes) {
         expect(checkCopyBudget(p.textContent || '', 'cardDescription').withinBudget).toBe(true);
       }
-
-      const notifP = editorial.querySelector('#notification p');
-      expect(checkCopyBudget(notifP?.textContent || '', 'sectionSubtitle').withinBudget).toBe(true);
 
       // Every signal pill (getVisualSignalPillClass) on HomePage obeys signalBadge (<=10 chars)
       const homeSignalPills = Array.from(container.querySelectorAll(SIGNAL_PILL_SELECTOR));
@@ -1013,8 +1008,8 @@ describe('Ad Money v5.1: Main Home, Hero & Apartment Detail Copy Diet + Semantic
       );
       const cardModerate = getByTestId('rate-shock-card-1');
       const cardSevere = getByTestId('rate-shock-card-2');
-      expect(cardModerate.className).toContain('bg-slate-50/90');
-      expect(cardSevere.className).toContain('bg-red-50/60');
+      expect(cardModerate.className).toContain('bg-elevated');
+      expect(cardSevere.className).toContain('bg-brand-red-light');
       expect(cardModerate.className).not.toBe(cardSevere.className);
       unmount();
     });

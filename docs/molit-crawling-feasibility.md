@@ -695,8 +695,7 @@ jobs:
       - name: Fetch transactions from 국토부 API
         if: github.event_name != 'push'
         run: |
-          API_KEY_RESOLVED="${BUILDING_API_KEY:-4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff}"
-          CRON_SECRET_RESOLVED="${CRON_SECRET:-dview-default-cron-secret-2026}"
+          CRON_SECRET_RESOLVED="${CRON_SECRET:?CRON_SECRET secret is required}"
           
           # [버그 수정] date -u 사용 금지: Asia/Seoul 기준 요일 및 월 계산
           DAY_OF_WEEK=$(date +%u)
@@ -710,7 +709,6 @@ jobs:
             echo "📡 Vercel icn1 크론 릴레이 동기화 트리거 (${YM})..."
             curl -sS -m 55 \
               -H "Authorization: Bearer ${CRON_SECRET_RESOLVED}" \
-              -H "x-building-api-key: ${API_KEY_RESOLVED}" \
               "${VERCEL_APP_URL:-https://dongtanview.com}/api/cron/sync-transactions?ym=${YM}&skipDeploy=1" || echo "⚠️ Vercel 크론 호출 실패, Node 스크립트로 계속 진행"
           done
           

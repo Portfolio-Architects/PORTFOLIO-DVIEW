@@ -297,7 +297,7 @@ describe('officeTx.service XML parser hardening & P0-3 dynamic months / Redis ca
       expect(content).not.toContain('가상 데이터');
       expect(content).not.toContain('isMock');
       expect(content).not.toContain('accent-hs-orange');
-      expect(content).toContain('accent-emerald-600');
+      expect(content).toContain('accent-slate-900');
       expect(content).toContain('tabular-nums');
       expect(content).toContain('등록된 공동 임차 모집글이 없습니다.');
     });

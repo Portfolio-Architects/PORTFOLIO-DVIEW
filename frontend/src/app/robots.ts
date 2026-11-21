@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 import {
-  ADSENSE_CRAWLER_BOT,
+  ADSENSE_AND_GOOGLE_REVIEW_BOTS,
   ALLOWED_REVENUE_SEARCH_BOTS,
   BLOCKED_AI_AND_SEO_SCRAPER_BOTS,
   ROBOTS_ALLOWED_PATHS,
@@ -13,25 +13,26 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
-        // Prioritize Google AdSense crawler for immediate site verification and ad targeting
-        userAgent: ADSENSE_CRAWLER_BOT,
+        // Explicitly allow all Google AdSense, ad-quality, rendering & inspection crawlers
+        userAgent: [...ADSENSE_AND_GOOGLE_REVIEW_BOTS],
         allow: '/',
       },
       {
-        // Strict allowlist: ONLY revenue-driving search engine bots (Google, Naver, Daum, Bing)
+        // Primary search engine bots (Google, Naver, Daum, Bing)
         userAgent: [...ALLOWED_REVENUE_SEARCH_BOTS],
         allow: [...ROBOTS_ALLOWED_PATHS],
         disallow: [...ROBOTS_DISALLOWED_INTERNAL_APIS],
       },
       {
-        // Explicitly block foreign AI training & SEO scraper bots to protect ISR Read Units & Origin Transfer
+        // Explicitly block foreign AI training & heavy SEO scraper bots
         userAgent: [...BLOCKED_AI_AND_SEO_SCRAPER_BOTS],
         disallow: '/',
       },
       {
-        // Default-deny policy for all other unspecified crawlers/scrapers (internal APIs remain explicitly listed)
+        // Standard default policy: allow public pages for auxiliary verification crawlers while shielding internal APIs
         userAgent: '*',
-        disallow: ['/', ...ROBOTS_DISALLOWED_INTERNAL_APIS],
+        allow: '/',
+        disallow: [...ROBOTS_DISALLOWED_INTERNAL_APIS],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

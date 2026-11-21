@@ -364,6 +364,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
 
   return createPortal(
     <div
+      data-scroll-interactive="true"
       className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center items-center p-0 md:p-6 lg:p-8 overscroll-none animate-in fade-in duration-200"
       onWheel={(e) => e.stopPropagation()}
     >
@@ -389,21 +390,25 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
         aria-labelledby="compare-modal-title"
         aria-describedby="compare-modal-desc"
         onKeyDown={handleFocusTrap}
-        className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[1150px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[90vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl overflow-hidden"
+        className="relative bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[1150px] h-[92dvh] md:h-auto md:min-h-[460px] md:max-h-[90dvh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl overflow-hidden"
       >
+        <div className="md:hidden w-full pt-2 pb-0.5 flex justify-center shrink-0 bg-surface/50" aria-hidden="true">
+          <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+        </div>
         {/* Header */}
-        <header className="flex items-center justify-between border-b border-border/40 px-6 py-4 shrink-0 bg-surface/50">
-          <div className="flex flex-col gap-0.5">
-            <h2 id="compare-modal-title" className="text-[17px] font-black text-primary flex items-center gap-1.5">
+        <header className="flex items-center justify-between gap-2 border-b border-border/40 px-4 py-3.5 sm:px-6 sm:py-4 shrink-0 bg-surface/50">
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <h2 id="compare-modal-title" className="text-[16px] sm:text-[17px] font-black text-primary flex items-center gap-1.5">
               <span>1:1 아파트 단지 비교 분석기</span>
             </h2>
-            <p id="compare-modal-desc" className="text-[12px] font-medium text-tertiary">
+            <p id="compare-modal-desc" className="text-[12px] font-medium text-tertiary break-keep">
               두 단지의 입지 조건, 단지 규모, 실거래 트렌드를 직관적으로 대조 비교합니다.
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center bg-body hover:bg-border/30 text-secondary transition-all"
+            className="w-9 h-9 rounded-full flex items-center justify-center bg-body hover:bg-border/30 text-secondary transition-all shrink-0 touch-manipulation"
             aria-label="닫기"
           >
             <X size={18} />
@@ -411,7 +416,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto overscroll-contain custom-scrollbar p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto overscroll-contain custom-scrollbar p-4 sm:p-6 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] md:pb-6 space-y-5 sm:space-y-6">
           {/* Subcomponent 1: HeaderSearch */}
           <CompareHeaderSearch
             firstInputRef={firstInputRef}
@@ -464,18 +469,18 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
               />
 
               {/* Subcomponent 3: 5-Axis Radar Chart & Gauges */}
-              <div className="bg-[#fcfdfe]/50 dark:bg-[#151b26]/30 border border-border/40 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-stretch gap-6">
+              <div className="bg-elevated/60 border border-border rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-stretch gap-6">
                 {/* 5 Gauge Bars */}
                 <div className="flex-1 flex flex-col justify-between space-y-3">
                   <div className="space-y-2">
-                    <h4 className="text-[13px] font-black text-blue-600 dark:text-blue-400 tracking-wider uppercase">단지 가치 오각형 분석</h4>
+                    <h4 className="text-[13px] font-black text-secondary tracking-wider uppercase">단지 가치 오각형 분석</h4>
                     <h3 className="text-[16px] font-black text-primary">5대 지표 스펙트럼 대조</h3>
                     <p className="text-[12px] font-medium text-tertiary leading-relaxed break-keep">
                       철도교통, 초·중등 학군, 상권 인프라, 세대당 주차 및 단지 규모, 준공 연식 등 입지를 구성하는 5가지 다차원 가치를 정량화한 분석 차트입니다. 다각형 면적이 넓고 균형 잡힐수록 완성도 높은 입지를 뜻합니다.
                     </p>
                   </div>
 
-                  <div className="space-y-3 border-t border-border/20 pt-4">
+                  <div className="space-y-3 border-t border-border/20 pt-4 tabular-nums">
                     {comp.radarChartData.map((item) => {
                       const score1 = (item[comp.apt1Label] as number) || 0;
                       const score2 = (item[comp.apt2Label] as number) || 0;
@@ -488,26 +493,26 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                       return (
                         <div key={item.subject} className="space-y-1.5">
                           <div className="flex justify-between items-center text-[11px] font-extrabold">
-                            <span className={`flex items-center gap-0.5 transition-colors ${isApt1Win ? 'text-emerald-500 font-black' : 'text-tertiary font-bold'}`}>
-                              {isApt1Win && <Sparkles size={10} className="fill-emerald-500 text-emerald-500" />}
+                            <span className={`flex items-center gap-0.5 transition-colors ${isApt1Win ? 'text-brand-blue font-black' : 'text-tertiary font-bold'}`}>
+                              {isApt1Win && <Sparkles size={10} className="fill-brand-blue text-brand-blue" />}
                               <span>{score1}점</span>
                             </span>
                             <span className="text-secondary font-bold text-[10.5px]">{item.subject}</span>
-                            <span className={`flex items-center gap-0.5 transition-colors ${isApt2Win ? 'text-[#4196f7] font-black' : 'text-tertiary font-bold'}`}>
+                            <span className={`flex items-center gap-0.5 transition-colors ${isApt2Win ? 'text-brand-red font-black' : 'text-tertiary font-bold'}`}>
                               <span>{score2}점</span>
-                              {isApt2Win && <Sparkles size={10} className="fill-[#4196f7] text-[#4196f7]" />}
+                              {isApt2Win && <Sparkles size={10} className="fill-brand-red text-brand-red" />}
                             </span>
                           </div>
 
-                          <div className="h-2 w-full bg-border/20 dark:bg-slate-800/40 rounded-full overflow-hidden flex relative">
+                          <div className="h-2 w-full bg-[#eff1f5] dark:bg-[#1e2532] rounded-full overflow-hidden flex relative">
                             <div
                               style={{ width: `${ratio1}%` }}
-                              className={`h-full bg-emerald-500 transition-all duration-500 ${isApt1Win ? 'opacity-100' : 'opacity-50'}`}
+                              className={`h-full bg-brand-blue transition-all duration-500 ${isApt1Win ? 'opacity-100' : 'opacity-45'}`}
                             />
-                            <div className="w-[1.5px] h-full bg-white dark:slate-900 z-10 shrink-0" />
+                            <div className="w-[1.5px] h-full bg-surface z-10 shrink-0" />
                             <div
                               style={{ width: `${ratio2}%` }}
-                              className={`h-full bg-[#4196f7] transition-all duration-500 ${isApt2Win ? 'opacity-100' : 'opacity-50'}`}
+                              className={`h-full bg-brand-red transition-all duration-500 ${isApt2Win ? 'opacity-100' : 'opacity-45'}`}
                             />
                           </div>
                         </div>
@@ -541,24 +546,24 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                 formatYearBuilt={comp.formatYearBuilt}
               />
 
-              {/* Reverse-Entry Recirculation Card (DESIGN.md Slate/Emerald/Blue compliant) */}
+              {/* Reverse-Entry Recirculation Card (Ad Money v6.0 Live Spark) */}
               <div
                 data-testid="compare-reverse-entry-bar"
-                className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="bg-elevated border border-border rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded">
+                    <span className="text-[10px] font-extrabold text-secondary bg-[#eff1f5] dark:bg-[#1e2532] px-2 py-0.5 rounded">
                       DEEP DIVE
                     </span>
-                    <span className="text-[12px] font-black text-slate-700 dark:text-slate-300">
+                    <span className="text-[12px] font-black text-secondary">
                       단독 8챕터 정밀 리포트 역진입
                     </span>
                   </div>
-                  <div className="text-[14px] font-extrabold text-slate-900 dark:text-slate-100 leading-snug">
+                  <div className="text-[14px] font-extrabold text-primary leading-snug">
                     비교 완료 단지의 실거래 원장·전세 안전진단·학군 세부 지표 열람
                   </div>
-                  <p className="text-[11.5px] font-medium text-slate-500 dark:text-slate-400">
+                  <p className="text-[11.5px] font-medium text-tertiary">
                     선택한 단지의 8챕터 종합 가치분석 모노그래프로 즉시 전환합니다.
                   </p>
                 </div>
@@ -568,8 +573,9 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                     type="button"
                     data-testid="compare-reverse-entry-apt1"
                     onClick={() => comp.apt1 && handleReverseEntry(comp.apt1.name)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[12.5px] font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[12.5px] font-black bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 shadow-sm transition-colors cursor-pointer"
                   >
+                    <span className="w-2 h-2 rounded-full bg-brand-blue shrink-0" />
                     <span>{comp.apt1Label} 상세 리포트</span>
                     <ArrowUpRight size={14} />
                   </button>
@@ -577,8 +583,9 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                     type="button"
                     data-testid="compare-reverse-entry-apt2"
                     onClick={() => comp.apt2 && handleReverseEntry(comp.apt2.name)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[12.5px] font-black bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[12.5px] font-black bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary border border-border shadow-xs transition-colors cursor-pointer"
                   >
+                    <span className="w-2 h-2 rounded-full bg-brand-red shrink-0" />
                     <span>{comp.apt2Label} 상세 리포트</span>
                     <ArrowUpRight size={14} />
                   </button>

@@ -1,11 +1,11 @@
 {
   "apartmentCount": 183,
-  "saleTxCount": 66420,
-  "latestContractDate": "20261118",
-  "latestRegisteredDate": "20261119",
-  "todayRegisteredCount": 27,
-  "todayNewHighCount": 12,
-  "latestBatchCount": 27,
-  "latestBatchNewHighCount": 12,
+  "saleTxCount": 66469,
+  "latestContractDate": "20261120",
+  "latestRegisteredDate": "20261121",
+  "todayRegisteredCount": 50,
+  "todayNewHighCount": 22,
+  "latestBatchCount": 50,
+  "latestBatchNewHighCount": 22,
   "lastSyncTime": "06:33"
 }

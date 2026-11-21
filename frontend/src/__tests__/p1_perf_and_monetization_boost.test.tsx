@@ -2,7 +2,7 @@
  * @file p1_perf_and_monetization_boost.test.tsx
  * @description Empirical Unit & Integration Verification Suite for Phase 1 (P1):
  * - P1-1: MobileStickyAnchorAd component, NEXT_PUBLIC_ADSENSE_SLOT_ANCHOR binding, MobileDock clearance, and document.hidden refresh freeze
- * - P1-2: Pretendard-subset.woff2 (<300KB valid wOF2 subset) and layout.tsx preload: true configuration
+ * - P1-2: Pretendard-subset.woff2 (<380KB valid wOF2 subset with full 400..930 gvar) and layout.tsx preload: true configuration
  * - P1-3: ApartmentModal & ApartmentPage (/apartment/[aptName]) ad wrapper un-nesting (>=328px mobile width) and SSR report visibility
  * - P1-4: useApartmentDetails on-demand full transaction lazy loading, TransactionTable load-more wiring, and CPA fallback same-tab Link routing
  */
@@ -218,7 +218,7 @@ describe('Phase 1 (P1): Performance & Monetization Acceleration Suite', () => {
   });
 
   describe('P1-2: Pretendard-subset.woff2 Payload Optimization & Preload Contract', () => {
-    it('verifies Pretendard-subset.woff2 (<300KB) contains all 2,350 KS X 1001 Hangul glyph outlines, preserves CSS fallback for unkept codepoints, and enables preload: true', () => {
+    it('verifies Pretendard-subset.woff2 (<380KB) contains all 2,350 KS X 1001 Hangul glyph outlines AND gvar bold variation deltas, preserves GPOS/fallback, and enables preload: true', () => {
       const subsetFontPath = path.resolve(__dirname, '../../public/fonts/Pretendard-subset.woff2');
       const fullFontPath = path.resolve(__dirname, '../../public/fonts/PretendardVariable.woff2');
       expect(fs.existsSync(subsetFontPath)).toBe(true);
@@ -228,12 +228,12 @@ describe('Phase 1 (P1): Performance & Monetization Acceleration Suite', () => {
 
       // Valid WOFF2 magic bytes ('wOF2')
       expect(subsetBuf.slice(0, 4).toString('ascii')).toBe('wOF2');
-      // Size is between 100KB and 300KB (~271KB, >85% reduction from 2.06MB)
+      // Size is between 100KB and 380KB (~354KB, >82% reduction from 2.06MB with full 400..930 gvar intact)
       expect(subsetBuf.length).toBeGreaterThan(100 * 1024);
-      expect(subsetBuf.length).toBeLessThan(300 * 1024);
+      expect(subsetBuf.length).toBeLessThan(380 * 1024);
       expect(subsetBuf.length).toBeLessThan(fullStats.size * 0.2);
 
-      // Deep WOFF2 glyph outline & cmap verification via fontkit + iconv-lite
+      // Deep WOFF2 glyph outline, gvar variation, & cmap verification via fontkit + iconv-lite
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { TextEncoder: NodeTextEncoder, TextDecoder: NodeTextDecoder } = require('util');
       if (typeof globalThis.TextEncoder === 'undefined') {
@@ -245,8 +245,14 @@ describe('Phase 1 (P1): Performance & Monetization Acceleration Suite', () => {
       const fontkit = require('next/dist/compiled/@next/font/dist/fontkit');
       const font = fontkit.default(subsetBuf);
 
+      // Verify variable weight axis covers Regular(400) through Black(900) and GPOS kerning is intact
+      expect(font.variationAxes?.wght?.min).toBeLessThanOrEqual(400);
+      expect(font.variationAxes?.wght?.max).toBeGreaterThanOrEqual(900);
+      expect(font.directory?.tables?.GPOS?.length).toBeGreaterThan(1000);
+
       let ksxCount = 0;
       let nonEmptyKsxOutlines = 0;
+      let nonEmptyKsxGvar = 0;
       for (let b1 = 0xb0; b1 <= 0xc8; b1++) {
         for (let b2 = 0xa1; b2 <= 0xfe; b2++) {
           const ch = iconv.decode(Buffer.from([b1, b2]), 'euc-kr');
@@ -254,8 +260,15 @@ describe('Phase 1 (P1): Performance & Monetization Acceleration Suite', () => {
             const cp = ch.codePointAt(0)!;
             if (cp >= 0xac00 && cp <= 0xd7a3) {
               ksxCount++;
-              if (font.hasGlyphForCodePoint(cp) && font.glyphForCodePoint(cp).path.commands.length > 0) {
-                nonEmptyKsxOutlines++;
+              if (font.hasGlyphForCodePoint(cp)) {
+                const glyph = font.glyphForCodePoint(cp);
+                if (glyph.path.commands.length > 0) {
+                  nonEmptyKsxOutlines++;
+                }
+                const gvarDeltaLen = font.gvar.offsets[glyph.id + 1] - font.gvar.offsets[glyph.id];
+                if (gvarDeltaLen > 0) {
+                  nonEmptyKsxGvar++;
+                }
               }
             }
           }
@@ -263,6 +276,16 @@ describe('Phase 1 (P1): Performance & Monetization Acceleration Suite', () => {
       }
       expect(ksxCount).toBe(2350);
       expect(nonEmptyKsxOutlines).toBe(2350);
+      // Regression guard: prevent zeroed-out gvar deltas (which left '슷', '돔', etc. stuck at Regular 400 in Bold headings)
+      expect(nonEmptyKsxGvar).toBe(2350);
+
+      for (const ch of ['비', '슷', '한', '단', '지', '돔', '괜', '됐', '쉽', '훨', '씬', '샾', '쏼', '↗', '↘', '₩', '㎡', '0', '9']) {
+        const cp = ch.codePointAt(0)!;
+        expect(font.hasGlyphForCodePoint(cp)).toBe(true);
+        const glyph = font.glyphForCodePoint(cp);
+        expect(glyph.path.commands.length).toBeGreaterThan(0);
+        expect(font.gvar.offsets[glyph.id + 1] - font.gvar.offsets[glyph.id]).toBeGreaterThan(0);
+      }
 
       // Verify non-KS X 1001 rare syllables are removed from cmap so browser CSS fallback works
       expect(font.hasGlyphForCodePoint('믜'.codePointAt(0)!)).toBe(false);

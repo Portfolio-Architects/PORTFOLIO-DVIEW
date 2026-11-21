@@ -20,7 +20,8 @@ const {
   initMacroTrendData,
   accumulateMacroTrend,
   calculateRecent7DaysVolume,
-  generateMacroTrendSeries
+  generateMacroTrendSeries,
+  generateGranularMacroTrendSeries
 } = require('./pipeline/macroTrendCalculator');
 const {
   formatPriceEok,
@@ -101,6 +102,7 @@ const PERIOD_1Y_OUTPUT_PATH = path.resolve(__dirname, '../public/data/transactio
 const PERIOD_3Y_OUTPUT_PATH = path.resolve(__dirname, '../public/data/transactions-3y.json');
 const PERIOD_ALL_OUTPUT_PATH = path.resolve(__dirname, '../public/data/transactions-all.json');
 const MACRO_TREND_OUTPUT_PATH = path.resolve(__dirname, '../public/data/macro-trend.json');
+const MACRO_TREND_SERIES_OUTPUT_PATH = path.resolve(__dirname, '../public/data/macro-trend-series.json');
 const MARKET_STATS_OUTPUT_PATH = path.resolve(__dirname, '../public/data/market-stats.json');
 const TX_DATA_DIR = path.resolve(__dirname, '../public/tx-data');
 
@@ -558,9 +560,9 @@ function getMolitField(item, ...keys) {
 }
 
 async function fetchRecentMolitDirect(byApt, now = new Date()) {
-  const { fetchWithRetry: fetchTradeWithRetry, DEFAULT_API_KEY } = require('./fetch-transactions');
+  const { fetchWithRetry: fetchTradeWithRetry } = require('./fetch-transactions');
   const { fetchWithRetry: fetchRentWithRetry } = require('./fetch-rent');
-  const apiKey = (process.env.BUILDING_API_KEY || DEFAULT_API_KEY).trim();
+  const apiKey = (process.env.BUILDING_API_KEY || process.env.PUBLIC_DATA_PORTAL_KEY || '').trim();
   if (!apiKey) return { tradeAdded: 0, rentAdded: 0 };
 
   const targetMonths = [];
@@ -1188,6 +1190,7 @@ async function main() {
   console.log(`🧹 전체 ${Object.keys(byApt).length}개 중 동탄 지역 ${filteredApts.length}개 아파트만 필터링 완료`);
 
   const allSaleTxs = [];
+  const allRentTxs = [];
 
   for (const aptName of filteredApts) {
     const txs = byApt[aptName];
@@ -1206,6 +1209,7 @@ async function main() {
     const saleTxs = filterOutliersRolling(rawSaleTxs);
     const rentTxs = filterOutliersRolling(rawRentTxs);
     allSaleTxs.push(...saleTxs);
+    allRentTxs.push(...rentTxs);
 
     // 공급면적(분양평수) 평당 가격으로 재조정 (normalizer.getSupplyPyeong 단일 진실 공급원 통합)
     txs.forEach(t => { t.areaPyeong = getSupplyPyeong(aptName, t.area, typeMap); });
@@ -1231,8 +1235,15 @@ async function main() {
   // 최근 7일 거래량 및 WoW 추세 계산
   const recent7DaysVolume = calculateRecent7DaysVolume(allSaleTxs, parseYYYYMMDD);
 
-  // 거시 트렌드 시계열 배열 생성
-  const dongtanMacroTrend = generateMacroTrendSeries(macroTrendData, trendMonths);
+  // 동탄 전체 일자별·주차별·월별 실거래 시세 & 체결 건수 시계열 생성
+  const { compactSeries: granularMacroTrend, monthlyPoints } = generateGranularMacroTrendSeries(
+    allSaleTxs,
+    allRentTxs,
+    { dailyWindowYears: 5, minYear: 2008, now }
+  );
+  // 월별 거시 트렌드 (실제 체결 건수 saleCount/rentCount 포함; 데이터 부재 시 기존 바스켓 폴백)
+  const dongtanMacroTrend =
+    monthlyPoints.length > 0 ? monthlyPoints : generateMacroTrendSeries(macroTrendData, trendMonths);
 
   // 최근 90일 매매 실거래 플랫 리스트 생성
   const recentTransactions = formatRecentTransactions(allSaleTxs, now, 1000);
@@ -1247,6 +1258,7 @@ async function main() {
     summaryPath: OUTPUT_PATH,
     recentTxPath: RECENT_TX_OUTPUT_PATH,
     macroTrendPath: MACRO_TREND_OUTPUT_PATH,
+    macroTrendSeriesPath: MACRO_TREND_SERIES_OUTPUT_PATH,
     period1yPath: PERIOD_1Y_OUTPUT_PATH,
     period3yPath: PERIOD_3Y_OUTPUT_PATH,
     periodAllPath: PERIOD_ALL_OUTPUT_PATH,
@@ -1255,6 +1267,7 @@ async function main() {
     recent7DaysVolume,
     recentTransactions,
     dongtanMacroTrend,
+    granularMacroTrend,
     transactions1y,
     transactions3y,
     transactionsAll,

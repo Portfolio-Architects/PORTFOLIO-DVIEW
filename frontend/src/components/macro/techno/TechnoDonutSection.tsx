@@ -39,7 +39,7 @@ export const TechnoDonutSection = React.memo(function TechnoDonutSection({
         <div>
           <h3 className="text-[16px] font-black text-primary flex items-center gap-2">
             <span>업종별 입주 비중 및 클러스터 구성</span>
-            <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+            <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-[#eff1f5] dark:bg-[#1e2532] text-primary">
               총 1,931개사 전수조사
             </span>
           </h3>
@@ -107,7 +107,7 @@ export const TechnoDonutSection = React.memo(function TechnoDonutSection({
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span className="text-[10px] font-bold text-tertiary">주요 업종</span>
                 <span className="text-[13px] font-black text-primary">반도체/기기</span>
-                <span className="text-[10px] font-extrabold text-blue-600 dark:text-blue-400">67.0%</span>
+                <span className="text-[10px] font-extrabold text-primary tabular-nums">67.0%</span>
               </div>
             </div>
           ) : (
@@ -157,7 +157,7 @@ export const TechnoDonutSection = React.memo(function TechnoDonutSection({
       {/* Selected Sector Representative Companies */}
       {activeSector && (
         <div className="p-4 rounded-xl bg-body/80 border border-border/40 animate-in fade-in duration-200">
-          <div className="flex items-center gap-1.5 text-[12px] font-black text-blue-600 dark:text-blue-400 mb-2.5">
+          <div className="flex items-center gap-1.5 text-[12px] font-black text-primary mb-2.5">
             <Sparkles size={14} />
             <span>{activeSector.name} 주요 앵커 기업 리스트</span>
           </div>

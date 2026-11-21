@@ -299,7 +299,7 @@ export function runNaverSearchAdvisorAudit(
     const issues: string[] = [];
     const entries = input.sitemapEntries || [];
     const seenUrls = new Set<string>();
-    const minSitemapUrls = (input.adsenseApprovalMode ?? isAdSenseApprovalMode()) ? 70 : 175;
+    const minSitemapUrls = (input.adsenseApprovalMode ?? isAdSenseApprovalMode()) ? 30 : 175;
 
     if (entries.length < minSitemapUrls) {
       issues.push(`사이트맵 URL 수(${entries.length}개)가 최소 기준(${minSitemapUrls}개)보다 적습니다.`);

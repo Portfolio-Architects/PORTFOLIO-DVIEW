@@ -277,10 +277,10 @@ export default function TopLandingCalculatorQuickBar({
         data-variant="technovalley"
         data-surface={surface}
         aria-label="동탄테크노밸리 금융 계산기 퀵 진입 바"
-        className={`w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] px-3.5 py-2.5 sm:px-4 sm:py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 min-h-[56px] box-border ${className}`}
+        className={`w-full rounded-2xl bg-elevated px-3.5 py-2.5 sm:px-4 sm:py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 min-h-[56px] box-border ${className}`}
       >
         <div className="flex flex-wrap items-center gap-2 min-w-0">
-          <span className={getVisualSignalPillClass({ tone: 'safe', size: 'xs' })}>
+          <span className={getVisualSignalPillClass({ tone: 'neutral', size: 'xs' })}>
             <Calculator size={12} className="shrink-0" />
             <span>금융 퀵 계산기</span>
           </span>
@@ -296,7 +296,7 @@ export default function TopLandingCalculatorQuickBar({
             type="button"
             data-testid="top-calc-quick-corporate-tax-btn"
             onClick={handleTechnoValleyCorporateTaxClick}
-            className="inline-flex items-center justify-center gap-1.5 min-h-[36px] px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11.5px] sm:text-xs font-extrabold transition-colors cursor-pointer whitespace-nowrap max-w-full"
+            className="inline-flex items-center justify-center gap-1.5 min-h-[36px] px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[11.5px] sm:text-xs font-extrabold transition-colors cursor-pointer whitespace-nowrap max-w-full"
           >
             <Landmark size={13} className="shrink-0" />
             <span>법인·취득세 35% 감면 계산</span>
@@ -308,7 +308,7 @@ export default function TopLandingCalculatorQuickBar({
             prefetch={false}
             data-testid="top-calc-quick-mortgage-btn"
             onClick={handleTechnoValleyMortgageLinkClick}
-            className="inline-flex items-center justify-center gap-1.5 min-h-[36px] px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] sm:text-xs font-extrabold transition-colors whitespace-nowrap max-w-full"
+            className="inline-flex items-center justify-center gap-1.5 min-h-[36px] px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary border border-border text-[11.5px] sm:text-xs font-extrabold transition-colors whitespace-nowrap max-w-full"
           >
             <Calculator size={13} className="shrink-0" />
             <span>배후 주거 주담대·DSR 계산</span>
@@ -325,12 +325,12 @@ export default function TopLandingCalculatorQuickBar({
       data-variant="guide"
       data-surface={surface}
       aria-label="리포트 상단 금융 계산기 퀵 진입 바"
-      className={`w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col xl:flex-row xl:items-center justify-between gap-2 min-h-[56px] box-border ${className}`}
+      className={`w-full rounded-2xl bg-elevated px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col xl:flex-row xl:items-center justify-between gap-2 min-h-[56px] box-border ${className}`}
     >
       <div className="flex items-center gap-2 min-w-0">
         <span
           className={getVisualSignalPillClass({
-            tone: emphasizeCorporateTax ? 'safe' : 'down',
+            tone: 'neutral',
             size: 'xs',
           })}
         >
@@ -351,7 +351,7 @@ export default function TopLandingCalculatorQuickBar({
             prefetch={false}
             data-testid="top-calc-quick-corporate-tax-btn"
             onClick={handleGuideCorporateTaxLinkClick}
-            className="inline-flex items-center justify-center gap-1 min-h-[34px] sm:min-h-[36px] px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11.5px] sm:text-xs font-extrabold transition-colors whitespace-nowrap"
+            className="inline-flex items-center justify-center gap-1 min-h-[34px] sm:min-h-[36px] px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[11.5px] sm:text-xs font-extrabold transition-colors whitespace-nowrap"
           >
             <Landmark size={13} className="shrink-0" />
             <span>법인·지산 세제 시뮬레이터</span>
@@ -363,7 +363,11 @@ export default function TopLandingCalculatorQuickBar({
           type="button"
           data-testid="top-calc-quick-mortgage-btn"
           onClick={() => handleGuideInlineCalculatorClick('mortgage')}
-          className="inline-flex items-center justify-center gap-1 min-h-[34px] sm:min-h-[36px] px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] sm:text-xs font-extrabold transition-colors cursor-pointer whitespace-nowrap"
+          className={`inline-flex items-center justify-center gap-1 min-h-[34px] sm:min-h-[36px] px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[11.5px] sm:text-xs font-extrabold transition-colors cursor-pointer whitespace-nowrap ${
+            emphasizeCorporateTax
+              ? 'bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary border border-border'
+              : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900'
+          }`}
         >
           <Calculator size={13} className="shrink-0" />
           <span>주담대·DSR 계산</span>
@@ -374,9 +378,9 @@ export default function TopLandingCalculatorQuickBar({
           type="button"
           data-testid="top-calc-quick-tax-btn"
           onClick={() => handleGuideInlineCalculatorClick('tax')}
-          className="inline-flex items-center justify-center gap-1 min-h-[34px] sm:min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-surface dark:bg-[#202027] hover:bg-[#f2f4f6] dark:hover:bg-[#2c2c35] text-primary text-[11.5px] sm:text-xs font-extrabold transition-colors cursor-pointer whitespace-nowrap"
+          className="inline-flex items-center justify-center gap-1 min-h-[34px] sm:min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-primary border border-border text-[11.5px] sm:text-xs font-extrabold transition-colors cursor-pointer whitespace-nowrap"
         >
-          <Landmark size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <Landmark size={13} className="text-secondary shrink-0" />
           <span>취득세 계산</span>
         </button>
 
@@ -386,9 +390,9 @@ export default function TopLandingCalculatorQuickBar({
             prefetch={false}
             data-testid="top-calc-quick-corporate-tax-btn"
             onClick={handleGuideCorporateTaxLinkClick}
-            className="inline-flex items-center justify-center gap-1 min-h-[34px] sm:min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-surface dark:bg-[#202027] hover:bg-[#f2f4f6] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary text-[11.5px] sm:text-xs font-extrabold transition-colors whitespace-nowrap"
+            className="inline-flex items-center justify-center gap-1 min-h-[34px] sm:min-h-[36px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-surface hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] text-secondary hover:text-primary border border-border text-[11.5px] sm:text-xs font-extrabold transition-colors whitespace-nowrap"
           >
-            <Landmark size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <Landmark size={13} className="text-secondary shrink-0" />
             <span>법인·지산 세제 시뮬레이터</span>
             <ArrowUpRight size={12} className="shrink-0" />
           </Link>

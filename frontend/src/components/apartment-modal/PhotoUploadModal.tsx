@@ -192,11 +192,17 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
 
   const handleSubmit = async () => {
     if (!file) return;
+    const rawUid = typeof user?.uid === 'string' ? user.uid.trim() : '';
+    const safeUid = rawUid.replace(/[\\/]/g, '_');
+    if (!safeUid || safeUid === '.' || safeUid === '..' || /[\u0000-\u001F\u007F]/.test(safeUid)) {
+      alert('사진 제보는 로그인 후 이용하실 수 있습니다.');
+      return;
+    }
     setIsUploading(true);
     
     try {
-      // 1. Upload to Storage
-      const downloadUrl = await uploadImage(file, 'user_pending_photos');
+      // 1. Upload to UID-scoped pre-moderation Storage path
+      const downloadUrl = await uploadImage(file, `user_pending_photos/${safeUid}`);
       
       // 2. Save to Firestore pending queue
       const uploaderName = user?.displayName || user?.email?.split('@')[0] || '익명';
@@ -213,8 +219,8 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
         caption: caption.trim(),
         status: 'pending',
         createdAt: serverTimestamp(),
-        uploaderUid: user?.uid || 'anonymous',
-        uploaderEmail: user?.email || 'anonymous',
+        uploaderUid: rawUid,
+        uploaderEmail: user?.email || '',
         uploaderName,
       }));
       
@@ -247,7 +253,8 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
 
   return createPortal(
     <div 
-      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      data-scroll-interactive="true"
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overscroll-none animate-in fade-in duration-200"
       role="presentation"
     >
       <div 
@@ -257,19 +264,19 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
         aria-labelledby="photo-upload-title"
         aria-describedby="photo-upload-desc"
         onKeyDown={handleFocusTrap}
-        className="bg-surface rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+        className="bg-surface rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90dvh] pb-[env(safe-area-inset-bottom,0px)] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-border">
           <h2 id="photo-upload-title" className="text-[18px] font-bold text-primary flex items-center gap-2">
-            <Camera className="text-toss-blue" size={20} aria-hidden="true" />
+            <Camera className="text-primary" size={20} aria-hidden="true" />
             우리 단지 사진 올리기
           </h2>
           <button 
             ref={closeButtonRef}
             onClick={onClose}
-            className="p-2 -mr-2 text-tertiary hover:bg-body rounded-full transition-colors"
+            className="p-2 -mr-2 text-tertiary hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] hover:text-primary rounded-full transition-colors"
             disabled={isUploading}
             aria-label="닫기"
           >
@@ -281,7 +288,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
         <div id="photo-upload-desc" className="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6">
           {isSuccess ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="w-16 h-16 bg-toss-blue-light text-toss-blue rounded-full flex items-center justify-center mb-4">
+              <div className="w-16 h-16 bg-[#eff1f5] dark:bg-[#1e2532] text-primary rounded-full flex items-center justify-center mb-4">
                 <CheckCircle2 size={32} />
               </div>
               <h3 className="text-[20px] font-bold text-primary mb-2">등록이 완료되었습니다!</h3>
@@ -301,12 +308,12 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
                 />
                 <button 
                   type="button"
-                  className={`w-full aspect-video rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue
+                  className={`w-full aspect-video rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20 dark:focus-visible:ring-white/25
                     ${previewUrl 
                       ? 'border-transparent bg-black' 
                       : isDragging 
-                        ? 'border-blue-600 bg-blue-600/5' 
-                        : 'border-border bg-body hover:bg-surface'}`}
+                        ? 'border-slate-900 dark:border-slate-100 bg-[#eff1f5] dark:bg-[#1e2532]' 
+                        : 'border-border bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532]'}`}
                   onClick={() => fileInputRef.current?.click()}
                   onDragEnter={handleDragEnter}
                   onDragOver={handleDragOver}
@@ -326,7 +333,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
                   ) : (
                     <div className="flex flex-col items-center gap-3 text-tertiary p-6 text-center">
                       <div className="w-12 h-12 bg-surface rounded-full shadow-sm flex items-center justify-center">
-                        <ImageIcon size={24} className="text-toss-blue" />
+                        <ImageIcon size={24} className="text-secondary" />
                       </div>
                       <p className="text-[14px] font-medium">여기를 눌러 사진을 선택하세요<br/><span className="text-[12px] text-tertiary">(최대 10MB)</span></p>
                     </div>
@@ -342,10 +349,10 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
                     <button
                       key={cat.id}
                       onClick={() => setCategory(cat.id)}
-                      className={`py-2 px-1 text-[13px] font-bold rounded-xl transition-colors
+                      className={`py-2 px-1 text-[13px] font-bold rounded-xl transition-colors border-none cursor-pointer
                         ${category === cat.id 
-                          ? 'bg-toss-blue-light text-toss-blue border border-toss-blue/20' 
-                          : 'bg-body text-secondary border border-transparent hover:bg-surface'}`}
+                          ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' 
+                          : 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary hover:text-primary'}`}
                     >
                       {cat.label}
                     </button>
@@ -360,10 +367,10 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
                   placeholder="예: 단지 내 메인 산책로 야경입니다."
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  className="w-full bg-body border-none rounded-xl p-4 text-[15px] text-primary placeholder:text-tertiary focus:ring-2 focus:ring-toss-blue/30 focus:bg-surface transition-all resize-none h-24"
+                  className="w-full bg-elevated border-none rounded-xl p-4 text-[15px] text-primary placeholder:text-tertiary focus:ring-2 focus:ring-slate-900/15 dark:focus:ring-white/20 focus:bg-surface transition-all resize-none h-24"
                   maxLength={100}
                 />
-                <div className="text-right text-[12px] text-tertiary font-medium">
+                <div className="text-right text-[12px] text-tertiary font-medium tabular-nums">
                   {caption.length}/100
                 </div>
               </div>
@@ -377,8 +384,8 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
             <button
               onClick={handleSubmit}
               disabled={!file || isUploading}
-              className={`w-full py-4 rounded-xl text-[16px] font-bold flex items-center justify-center gap-2 transition-all
-                ${(!file || isUploading) ? 'bg-body text-tertiary cursor-not-allowed' : 'bg-toss-blue text-white hover:opacity-90 shadow-[0_4px_12px_rgba(49,130,246,0.2)]'}`}
+              className={`w-full py-4 rounded-xl text-[16px] font-bold flex items-center justify-center gap-2 transition-all border-none
+                ${(!file || isUploading) ? 'bg-[#eff1f5] dark:bg-[#1e2532] text-tertiary cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 cursor-pointer'}`}
             >
               {isUploading ? (
                 <>

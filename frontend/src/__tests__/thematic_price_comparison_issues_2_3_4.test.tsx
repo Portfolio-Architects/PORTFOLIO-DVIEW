@@ -347,7 +347,7 @@ describe('Thematic House Price Comparison Engine & UI Suite (Issues #2, #3, #4)'
 
       expect(screen.getByTestId('school-district-premium-section')).toBeInTheDocument();
       expect(screen.getByTestId('school-zone-rank-1')).toBeInTheDocument();
-      expect(screen.getByText('Issue #1 동탄역 거리 분석 리포트 보기')).toBeInTheDocument();
+      expect(screen.getByText('동탄역 거리 분석 리포트 보기')).toBeInTheDocument();
 
       // Switch area band to 30평대 (medium)
       fireEvent.click(screen.getByTestId('school-area-filter-medium'));
@@ -421,7 +421,7 @@ describe('Thematic House Price Comparison Engine & UI Suite (Issues #2, #3, #4)'
       expect(screen.getAllByTestId('ad-slot')).toHaveLength(4);
 
       // Return to Issue #1 via button
-      fireEvent.click(screen.getByText('Issue #1 동탄역 거리 분석 리포트 보기'));
+      fireEvent.click(screen.getByText('동탄역 거리 분석 리포트 보기'));
       expect(screen.getByText('초역세권 프리미엄 격차')).toBeInTheDocument();
     });
 

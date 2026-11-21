@@ -50,12 +50,12 @@ export function BoardPostCard({ post, onClick, onDelete }: BoardPostCardProps) {
     <article
       data-testid={`board-post-card-${post.id}`}
       onClick={() => onClick && onClick(post)}
-      className="group relative w-full bg-elevated hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] rounded-2xl p-4 sm:p-5 transition-colors cursor-pointer border border-transparent hover:border-slate-200/80 dark:hover:border-slate-800"
+      className="group relative w-full bg-elevated hover:bg-[#eff1f5] dark:hover:bg-[#1e2532] rounded-2xl p-4 sm:p-5 transition-colors cursor-pointer border border-transparent hover:border-border"
     >
       {/* Header Row: Complex badge, GPS mark, relative time, delete button */}
       <div className="flex items-center justify-between gap-2 mb-2">
         <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-          <span className="bg-slate-200/80 dark:bg-slate-800 text-primary font-bold text-xs px-2.5 py-1 rounded-[6px] truncate max-w-[200px]">
+          <span className="bg-[#eff1f5] dark:bg-[#1e2532] text-primary font-bold text-xs px-2.5 py-1 rounded-[6px] truncate max-w-[200px]">
             {post.authorTitle}
           </span>
 
@@ -72,7 +72,7 @@ export function BoardPostCard({ post, onClick, onDelete }: BoardPostCardProps) {
           {post.isMine && (
             <span
               data-testid="my-post-badge"
-              className="text-[10.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-full"
+              className="text-[10.5px] font-bold text-primary bg-[#eff1f5] dark:bg-[#1e2532] border border-border px-2 py-0.5 rounded-full"
             >
               내 글
             </span>
@@ -91,7 +91,7 @@ export function BoardPostCard({ post, onClick, onDelete }: BoardPostCardProps) {
               data-testid={`delete-post-btn-${post.id}`}
               onClick={handleDeleteClick}
               aria-label="게시글 삭제"
-              className="p-1.5 rounded-lg text-tertiary hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+              className="p-1.5 rounded-lg text-tertiary hover:text-brand-red hover:bg-brand-red-light transition-colors"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -101,7 +101,7 @@ export function BoardPostCard({ post, onClick, onDelete }: BoardPostCardProps) {
 
       {/* Title & Content Preview */}
       <div className="space-y-1.5">
-        <h3 className="text-base font-extrabold text-primary line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+        <h3 className="text-base font-extrabold text-primary line-clamp-1 group-hover:text-primary transition-colors">
           {post.title}
         </h3>
         <p className="text-sm text-secondary line-clamp-2 leading-relaxed">
@@ -116,7 +116,7 @@ export function BoardPostCard({ post, onClick, onDelete }: BoardPostCardProps) {
           <span className="tabular-nums">{post.viewCount ?? 0}</span>
         </div>
 
-        <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+        <div className="flex items-center gap-1 text-secondary">
           <ThumbsUp className="w-3.5 h-3.5" />
           <span className="tabular-nums font-bold">{post.likeCount}</span>
         </div>
@@ -135,7 +135,7 @@ export function BoardPostCard({ post, onClick, onDelete }: BoardPostCardProps) {
           className="absolute inset-0 z-10 bg-slate-900/80 backdrop-blur-xs rounded-2xl flex items-center justify-center p-4 animate-in fade-in duration-100"
         >
           <div className="w-full max-w-xs text-center space-y-3 bg-surface dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl">
-            <div className="w-9 h-9 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
+            <div className="w-9 h-9 rounded-full bg-brand-red-light text-brand-red flex items-center justify-center mx-auto">
               <AlertTriangle className="w-5 h-5" />
             </div>
             <div className="space-y-1">
@@ -149,7 +149,7 @@ export function BoardPostCard({ post, onClick, onDelete }: BoardPostCardProps) {
                 type="button"
                 onClick={handleCancelDelete}
                 disabled={isDeleting}
-                className="flex-1 py-1.5 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-secondary"
+                className="flex-1 py-1.5 rounded-lg text-xs font-bold bg-[#eff1f5] dark:bg-[#1e2532] hover:bg-slate-200 dark:hover:bg-slate-700 text-secondary"
               >
                 취소
               </button>
@@ -158,7 +158,7 @@ export function BoardPostCard({ post, onClick, onDelete }: BoardPostCardProps) {
                 data-testid="confirm-delete-action-btn"
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
-                className="flex-1 py-1.5 rounded-lg text-xs font-black bg-red-600 hover:bg-red-700 text-white"
+                className="flex-1 py-1.5 rounded-lg text-xs font-black bg-brand-red hover:opacity-90 text-white"
               >
                 {isDeleting ? '삭제 중...' : '삭제'}
               </button>

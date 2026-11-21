@@ -70,10 +70,14 @@ const sampleRealAptName =
   '동탄 더샵 레이크에듀타운';
 
 describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
+  const TEST_CRON_SECRET = 'jest-challenger-m3-cron-secret';
+  const originalCronSecret = process.env.CRON_SECRET;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubStore.length = 0;
     mockDeleteDoc.mockResolvedValue(undefined);
+    process.env.CRON_SECRET = TEST_CRON_SECRET;
 
     (db?.collection as jest.Mock).mockImplementation((colName: string) => ({
       where: jest.fn((field: string, op: string, value: unknown) => ({
@@ -109,6 +113,11 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
         delete: mockDeleteDoc,
       })),
     }));
+  });
+
+  afterAll(() => {
+    if (originalCronSecret === undefined) delete process.env.CRON_SECRET;
+    else process.env.CRON_SECRET = originalCronSecret;
   });
 
   // =========================================================================
@@ -289,7 +298,7 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
       mockSubStore.push(dualSubDoc);
 
       const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=${latestRealRegDate}`, {
-        headers: { host: 'localhost:5000' },
+        headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` },
       });
 
       const res = await GET(req);
@@ -397,7 +406,7 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
       expect(mockSubStore.length).toBe(100);
 
       const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=${latestRealRegDate}`, {
-        headers: { host: 'localhost:5000' },
+        headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` },
       });
 
       const res = await GET(req);
@@ -445,7 +454,7 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
 
     it('NEVER calls webpush.sendNotification when ?dryRun=true is passed', async () => {
       const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=${latestRealRegDate}`, {
-        headers: { host: 'localhost:5000' },
+        headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` },
       });
 
       const res = await GET(req);
@@ -463,7 +472,7 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
 
       try {
         const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?date=${latestRealRegDate}`, {
-          headers: { host: 'localhost:5000' },
+          headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` },
         });
 
         const res = await GET(req);
@@ -481,7 +490,7 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
       for (const query of ['dry_run=true', 'dryrun=true']) {
         jest.clearAllMocks();
         const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?${query}&date=${latestRealRegDate}`, {
-          headers: { host: 'localhost:5000' },
+          headers: { host: 'localhost:5000', authorization: `Bearer ${TEST_CRON_SECRET}` },
         });
 
         const res = await GET(req);

@@ -27,15 +27,15 @@ const CLUSTER_SHORT_META: Record<
 > = {
   SAME_DONG: {
     label: '동일권역',
-    badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
+    badgeClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary',
   },
   SAME_PRICE_BAND: {
     label: '유사시세',
-    badgeClass: 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300',
+    badgeClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary',
   },
   TOP_VOLUME: {
     label: '인기거래',
-    badgeClass: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+    badgeClass: 'bg-[#eff1f5] dark:bg-[#1e2532] text-secondary',
   },
 };
 
@@ -99,7 +99,7 @@ export const ApartmentLandingRetentionStrip = React.memo(function ApartmentLandi
     <section
       data-testid="apartment-landing-retention-strip"
       aria-label="인접 단지 빠른 비교 및 관심단지 알림"
-      className="w-full min-h-[76px] sm:min-h-[60px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] px-4 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 box-border"
+      className="w-full min-h-[76px] sm:min-h-[60px] rounded-2xl bg-elevated px-4 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 box-border"
     >
       {/* Left: Peer Chips Row */}
       <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar min-w-0 py-0.5">
@@ -129,12 +129,12 @@ export const ApartmentLandingRetentionStrip = React.memo(function ApartmentLandi
                   });
                   onSelectPeer(target.aptName);
                 }}
-                className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] border-none transition-colors shrink-0 cursor-pointer"
+                className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-[#eff1f5] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] border-none transition-colors shrink-0 cursor-pointer"
               >
                 <span className="text-[10.5px] font-semibold text-tertiary shrink-0">
                   {clusterMeta.label}
                 </span>
-                <span className="text-[12px] font-bold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 whitespace-nowrap">
+                <span className="text-[12px] font-bold text-primary group-hover:text-primary whitespace-nowrap">
                   {getDisplayAptName(target.aptName)}
                 </span>
                 {verifiedPrice && (
@@ -166,7 +166,7 @@ export const ApartmentLandingRetentionStrip = React.memo(function ApartmentLandi
                 });
                 onOpenCompare(currentAptName, primaryTarget.aptName);
               }}
-              className="h-8 px-3 rounded-xl bg-surface hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-primary text-[12px] font-bold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer border-none"
+              className="h-8 px-3 rounded-xl bg-surface hover:bg-[#eff1f5] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-primary text-[12px] font-bold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer border-none"
             >
               <ArrowRightLeft className="w-3.5 h-3.5 text-secondary shrink-0" />
               <span>1:1 비교</span>
@@ -199,13 +199,13 @@ export const ApartmentLandingRetentionStrip = React.memo(function ApartmentLandi
               }}
               className={
                 isFavorite
-                  ? 'h-8 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[12px] font-bold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer border-none'
-                  : 'h-8 px-3 rounded-xl bg-surface hover:bg-[#e5e8eb] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary text-[12px] font-bold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer border-none'
+                  ? 'h-8 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-[12px] font-bold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer border-none'
+                  : 'h-8 px-3 rounded-xl bg-surface hover:bg-[#eff1f5] dark:bg-[#1e2532] dark:hover:bg-[#252c3d] text-secondary hover:text-primary text-[12px] font-bold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer border-none'
               }
             >
               {isFavorite ? (
                 <>
-                  <Bell className="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <Bell className="w-3.5 h-3.5 shrink-0" />
                   <span>관심 저장됨 · 변동 알림 켜기</span>
                 </>
               ) : (

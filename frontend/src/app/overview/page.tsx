@@ -356,8 +356,8 @@ async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | '
                 </p>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <section className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-4 space-y-2.5">
-                    <h3 className="text-xs sm:text-sm font-extrabold text-emerald-700 dark:text-emerald-400">
+                  <section className="rounded-xl bg-[#f7f8fa] dark:bg-[#151a23] p-4 space-y-2.5">
+                    <h3 className="text-xs sm:text-sm font-extrabold text-primary">
                       동탄 시세 리더 TOP 10 대장 랭킹
                     </h3>
                     <ol className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300 tabular-nums">
@@ -368,7 +368,7 @@ async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | '
                             <Link
                               href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`}
                               prefetch={false}
-                              className="hover:text-emerald-700 dark:hover:text-emerald-400 underline decoration-slate-300 dark:decoration-slate-700 underline-offset-2"
+                              className="hover:underline underline-offset-2"
                             >
                               {apt.name}
                             </Link>
@@ -379,8 +379,8 @@ async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | '
                       ))}
                     </ol>
                   </section>
-                  <section className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-4 space-y-2.5">
-                    <h3 className="text-xs sm:text-sm font-extrabold text-blue-700 dark:text-blue-400">
+                  <section className="rounded-xl bg-[#f7f8fa] dark:bg-[#151a23] p-4 space-y-2.5">
+                    <h3 className="text-xs sm:text-sm font-extrabold text-primary">
                       최근 실거래 등록 내역 (최신 15건)
                     </h3>
                     {recentTxs.length > 0 ? (
@@ -403,7 +403,7 @@ async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | '
                                   <Link
                                     href={`/apartment/${encodeURIComponent(canonicalTxSlug)}`}
                                     prefetch={false}
-                                    className="hover:text-blue-600 dark:hover:text-blue-400 underline decoration-slate-300 dark:decoration-slate-700 underline-offset-2"
+                                    className="hover:underline underline-offset-2"
                                   >
                                     {displayTxAptName}
                                   </Link>

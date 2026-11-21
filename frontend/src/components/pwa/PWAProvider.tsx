@@ -33,6 +33,11 @@ export interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+export interface SubscribeToPushOptions {
+  extraAptNames?: string[];
+  includeGuestFavorites?: boolean;
+}
+
 interface PWAContextType {
   isInstallable: boolean;
   deferredPrompt: BeforeInstallPromptEvent | null;
@@ -43,7 +48,11 @@ interface PWAContextType {
   // Web Push Notifications
   isPushSupported: boolean;
   pushSubscription: PushSubscription | null;
-  subscribeToPush: (uid?: string | null, aptName?: string) => Promise<boolean>;
+  subscribeToPush: (
+    uid?: string | null,
+    aptName?: string,
+    options?: SubscribeToPushOptions
+  ) => Promise<boolean>;
   unsubscribeFromPush: (aptName?: string | null) => Promise<boolean>;
   showToast: (message: string) => void;
   isIOS: boolean;
@@ -59,8 +68,8 @@ const PWAContext = createContext<PWAContextType>({
   triggerCustomA2HSModal: () => {},
   isPushSupported: false,
   pushSubscription: null,
-  subscribeToPush: async (uid?: string | null, aptName?: string) => false,
-  unsubscribeFromPush: async (aptName?: string | null) => false,
+  subscribeToPush: async (_uid?: string | null, _aptName?: string, _options?: SubscribeToPushOptions) => false,
+  unsubscribeFromPush: async (_aptName?: string | null) => false,
   showToast: () => {},
   isIOS: false,
   isStandalone: false,
@@ -314,8 +323,8 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       });
       setToastMessage(
         count > 1
-          ? `${primaryDisplay} 외 ${count - 1}곳 관심단지가 이어졌습니다 · 평일 07시 알림을 켜보세요`
-          : `${primaryDisplay} 관심단지가 이어졌습니다 · 평일 07시 알림을 켜보세요`
+          ? `${primaryDisplay} 외 ${count - 1}곳 관심단지가 이어졌습니다 · 매일 오전 7시대 알림을 켜보세요`
+          : `${primaryDisplay} 관심단지가 이어졌습니다 · 매일 오전 7시대 알림을 켜보세요`
       );
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
       toastTimeoutRef.current = setTimeout(() => {
@@ -579,13 +588,26 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     }
   };
 
-  const subscribeToPush = async (uid?: string | null, aptName?: string) => {
+  const subscribeToPush = async (
+    uid?: string | null,
+    aptName?: string,
+    options?: SubscribeToPushOptions
+  ) => {
     if (typeof window === 'undefined') return false;
 
     const swContainer = getSafeServiceWorkerContainer();
     if (!isPushSupported || typeof Notification === 'undefined' || !swContainer) {
       throw new Error('UNSUPPORTED_BROWSER');
     }
+
+    const vapidPublicKey = (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '')
+      .trim()
+      .replace(/^["']|["']$/g, '');
+    if (!vapidPublicKey) {
+      logger.error('PWAProvider', 'NEXT_PUBLIC_VAPID_PUBLIC_KEY is not configured');
+      throw new Error('VAPID_NOT_CONFIGURED');
+    }
+
     try {
       let permission: NotificationPermission;
       try {
@@ -600,51 +622,117 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       if (permission !== 'granted') {
         throw new Error('PERMISSION_DENIED');
       }
-      
-      const reg = await swContainer.ready;
+
+      let existingReg: ServiceWorkerRegistration | undefined | null = null;
+      if (typeof swContainer.getRegistration === 'function') {
+        existingReg = await swContainer.getRegistration();
+      }
+      if (!existingReg && typeof swContainer.register === 'function') {
+        try {
+          existingReg = await swContainer.register('/sw.js', { updateViaCache: 'none' });
+        } catch (regErr) {
+          logger.warn('PWAProvider', 'On-demand SW registration failed', undefined, regErr);
+        }
+      }
+
+      const reg = (await swContainer.ready) || existingReg;
       if (!reg || !reg.pushManager) {
         throw new Error('REGISTRATION_FAILED');
       }
-      
-      // Replace with your VAPID public key
-      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BJfvp3-MGu6cXDWL2GGKO019MjQhLFSwk1zvAIo8QgX31bfCwfjOHHr34iJcGYnhxpJBCsPoXeG6CAXql9KR9Xg';
+
       const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-      
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: convertedVapidKey
-      });
-      
+
+      let sub: PushSubscription;
+      try {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedVapidKey,
+        });
+      } catch (subErr: unknown) {
+        const errName = subErr instanceof Error ? subErr.name : '';
+        if (errName === 'InvalidStateError' && typeof reg.pushManager.getSubscription === 'function') {
+          const staleSub = await reg.pushManager.getSubscription();
+          if (staleSub && typeof staleSub.unsubscribe === 'function') {
+            await staleSub.unsubscribe();
+            sub = await reg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: convertedVapidKey,
+            });
+          } else {
+            throw subErr;
+          }
+        } else {
+          throw subErr;
+        }
+      }
+
       if (!mountedRef.current) return false;
       setPushSubscription(sub);
 
+      const GLOBAL_PUSH_LABELS = new Set(['동탄 전체', '동탄 전역']);
       const trimmedPrimaryApt = (aptName || '').trim();
       const primaryNorm = trimmedPrimaryApt ? normalizeAptName(trimmedPrimaryApt) : '';
       const seenExtraNorms = new Set<string>();
-      const dedupedExtraFavs: string[] = [];
-      const rawGuestFavs =
-        typeof readSanitizedGuestFavorites === 'function' ? readSanitizedGuestFavorites() : [];
-      for (const fav of rawGuestFavs) {
-        const canonicalFav = resolveCanonicalAptSlug(fav) || fav;
-        const favNorm = normalizeAptName(canonicalFav);
-        if (!favNorm || seenExtraNorms.has(favNorm)) continue;
+      const priorityExtras: string[] = [];
+
+      for (const rawExtra of options?.extraAptNames || []) {
+        const trimmedExtra = (rawExtra || '').trim();
+        if (!trimmedExtra) continue;
+        if (GLOBAL_PUSH_LABELS.has(trimmedExtra)) {
+          if (trimmedPrimaryApt !== trimmedExtra && !priorityExtras.includes(trimmedExtra)) {
+            priorityExtras.push(trimmedExtra);
+          }
+          continue;
+        }
+        const canonicalExtra = resolveCanonicalAptSlug(trimmedExtra) || trimmedExtra;
+        const extraNorm = normalizeAptName(canonicalExtra);
+        if (!extraNorm || seenExtraNorms.has(extraNorm)) continue;
         if (
           trimmedPrimaryApt &&
-          (canonicalFav === trimmedPrimaryApt ||
-            favNorm === primaryNorm ||
-            isSameApartment(canonicalFav, trimmedPrimaryApt))
+          !GLOBAL_PUSH_LABELS.has(trimmedPrimaryApt) &&
+          (canonicalExtra === trimmedPrimaryApt ||
+            extraNorm === primaryNorm ||
+            isSameApartment(canonicalExtra, trimmedPrimaryApt))
         ) {
           continue;
         }
-        seenExtraNorms.add(favNorm);
-        dedupedExtraFavs.push(canonicalFav);
+        seenExtraNorms.add(extraNorm);
+        priorityExtras.push(canonicalExtra);
       }
-      const extraGuestFavs = dedupedExtraFavs.slice(-50);
+
+      const dedupedGuestFavs: string[] = [];
+      if (options?.includeGuestFavorites !== false) {
+        const rawGuestFavs =
+          typeof readSanitizedGuestFavorites === 'function' ? readSanitizedGuestFavorites() : [];
+        for (const fav of rawGuestFavs) {
+          const canonicalFav = resolveCanonicalAptSlug(fav) || fav;
+          const favNorm = normalizeAptName(canonicalFav);
+          if (!favNorm || seenExtraNorms.has(favNorm)) continue;
+          if (
+            trimmedPrimaryApt &&
+            !GLOBAL_PUSH_LABELS.has(trimmedPrimaryApt) &&
+            (canonicalFav === trimmedPrimaryApt ||
+              favNorm === primaryNorm ||
+              isSameApartment(canonicalFav, trimmedPrimaryApt))
+          ) {
+            continue;
+          }
+          seenExtraNorms.add(favNorm);
+          dedupedGuestFavs.push(canonicalFav);
+        }
+      }
+
+      const maxGuestSlots = Math.max(0, 50 - priorityExtras.length);
+      const extraAptList =
+        maxGuestSlots > 0
+          ? [...priorityExtras, ...dedupedGuestFavs.slice(-maxGuestSlots)]
+          : priorityExtras.slice(0, 50);
+
       const subscribeBody: Record<string, unknown> = {
-        subscription: sub,
+        subscription: typeof sub.toJSON === 'function' ? sub.toJSON() : sub,
         uid: uid || null,
         apartmentName: aptName || null,
-        ...(extraGuestFavs.length > 0 ? { apartmentNames: extraGuestFavs } : {}),
+        ...(extraAptList.length > 0 ? { apartmentNames: extraAptList } : {}),
       };
       
       // Save subscription to the backend
@@ -723,13 +811,30 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
           logger.error('PWAProvider', 'Failed to enqueue push unsubscribe', undefined, err);
         }
       } else {
+        let rejectedSingleUnsubscribe = false;
         try {
-          await fetch('/api/push/unsubscribe', {
+          const res = await fetch('/api/push/unsubscribe', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ endpoint: pushSubscription.endpoint, apartmentName: aptName || null })
           });
-          logger.info('PWAProvider', 'Push Unsubscribed', { endpoint: pushSubscription.endpoint, apartmentName: aptName });
+          if (res && typeof res.ok === 'boolean' && !res.ok) {
+            if (res.status >= 500 || res.status === 429) {
+              throw new Error(`PUSH_UNSUBSCRIBE_HTTP_${res.status}`);
+            }
+            logger.warn('PWAProvider', 'Push unsubscribe rejected by server', {
+              status: res.status,
+              apartmentName: aptName,
+            });
+            if (aptName) {
+              rejectedSingleUnsubscribe = true;
+              if (mountedRef.current) {
+                showToast('알림 소유권 확인이 필요합니다. 알림을 다시 신청한 뒤 변경해 주세요.');
+              }
+            }
+          } else {
+            logger.info('PWAProvider', 'Push Unsubscribed', { endpoint: pushSubscription.endpoint, apartmentName: aptName });
+          }
         } catch (fetchErr) {
           logger.warn('PWAProvider', 'Failed to save push unsubscribe online, queuing offline', undefined, fetchErr);
           try {
@@ -745,10 +850,15 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
             logger.error('PWAProvider', 'Failed to enqueue push unsubscribe after fetch failure', undefined, err);
           }
         }
+        if (rejectedSingleUnsubscribe) {
+          return false;
+        }
       }
 
       if (!aptName) {
-        await pushSubscription.unsubscribe();
+        if (typeof pushSubscription.unsubscribe === 'function') {
+          await pushSubscription.unsubscribe();
+        }
         if (mountedRef.current) {
           setPushSubscription(null);
           showToast('모든 실거래 알림 구독이 해제되었습니다.');
@@ -809,19 +919,27 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       </React.Suspense>
       {children}
       {toastMessage && (
-        <div key={toastMessage} className="fixed bottom-[calc(env(safe-area-inset-bottom)+24px)] sm:bottom-8 left-1/2 -translate-x-1/2 z-[99999] w-[calc(100%-32px)] max-w-sm bg-slate-900/95 dark:bg-slate-800/95 backdrop-blur-md text-white font-extrabold px-5 py-4 rounded-[20px] shadow-2xl flex flex-col gap-1.5 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/10 select-none overflow-hidden">
-          <div className="flex items-center justify-between gap-3 w-full pr-1">
-            <span className="text-[12.5px] md:text-[13.5px] leading-relaxed flex-1">{toastMessage}</span>
-            <button 
-              onClick={() => setToastMessage(null)} 
-              className="hover:opacity-85 text-white/80 focus:outline-none text-[10px] font-black cursor-pointer bg-white/10 hover:bg-white/20 rounded-full w-[22px] h-[22px] flex items-center justify-center shrink-0"
+        <div
+          key={toastMessage}
+          role="status"
+          aria-live="polite"
+          data-testid="pwa-toast"
+          data-scroll-interactive="true"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+80px+var(--dview-mobile-anchor-offset,0px))] md:bottom-8 left-1/2 -translate-x-1/2 z-[99999] w-[calc(100%-32px)] max-w-sm bg-slate-900/95 dark:bg-slate-800/95 backdrop-blur-md text-white font-extrabold px-4 py-3.5 sm:px-5 sm:py-4 rounded-[20px] shadow-2xl flex flex-col gap-1.5 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/10 select-none overflow-hidden"
+        >
+          <div className="flex items-center justify-between gap-2.5 w-full">
+            <span className="text-[12.5px] md:text-[13.5px] leading-relaxed flex-1 break-keep">{toastMessage}</span>
+            <button
+              type="button"
+              onClick={() => setToastMessage(null)}
+              className="hover:opacity-85 text-white/80 focus:outline-none text-[10px] font-black cursor-pointer bg-white/10 hover:bg-white/20 active:scale-95 rounded-full w-7 h-7 flex items-center justify-center shrink-0 touch-manipulation"
               aria-label="알림 닫기"
             >
-              <X size={12} />
+              <X size={13} />
             </button>
           </div>
           {/* Timeout Progress Bar (Using GPU-accelerated scaleX to avoid Reflows) */}
-          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-emerald-500 origin-left animate-toast-progress" />
+          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/80 origin-left animate-toast-progress" />
         </div>
       )}
 
@@ -830,7 +948,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       {showCacheExpiredModal && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[24px] shadow-2xl p-6 text-center animate-in zoom-in-95 duration-300 select-none">
-            <div className="mx-auto w-12 h-12 rounded-full bg-red-50 dark:bg-red-950/40 flex items-center justify-center text-red-500 mb-4 animate-bounce">
+            <div className="mx-auto w-12 h-12 rounded-full bg-brand-red-light flex items-center justify-center text-brand-red mb-4 animate-bounce">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-wifi-off"><path d="M1 1l22 22"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.5"/><path d="M5 12.5a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.5 8"/><path d="M1.5 8a15.89 15.89 0 0 1 5.9-2.27"/><path d="M8.58 16.58A5 5 0 0 1 12 15a5 5 0 0 1 2.24.54"/><path d="M12 21a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>
             </div>
             
@@ -851,7 +969,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
                     alert('여전히 오프라인 상태입니다. 네트워크 연결을 다시 확인해 주세요.');
                   }
                 }}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-[13.5px] font-extrabold py-3 px-4 rounded-[16px] transition-colors cursor-pointer shadow-md"
+                className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-[13.5px] font-extrabold py-3 px-4 rounded-[16px] transition-colors cursor-pointer"
               >
                 네트워크 재연결 시도
               </button>

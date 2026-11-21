@@ -210,8 +210,8 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
           name: new RegExp(currentExpected.label),
         });
 
-        expect(activeHeaderLink).toHaveClass('text-blue-600');
-        expect(activeDockLink).toHaveClass('text-blue-600');
+        expect(activeHeaderLink).toHaveClass('text-primary');
+        expect(activeDockLink).toHaveClass('text-primary');
 
         unmountHeader();
         unmountDock();

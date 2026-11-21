@@ -12,11 +12,11 @@ import {
 } from '@/lib/design-system/copyDiet';
 
 const AnchorTenantSkeleton = () => (
-  <div className="pt-6 border-t border-[#f2f4f6] dark:border-[#202027]">
-    <div className="w-40 h-5 bg-[#f2f4f6] dark:bg-[#202027] rounded-lg mb-4 animate-shimmer" />
+  <div className="pt-6 border-t border-border">
+    <div className="w-40 h-5 bg-[#eff1f5] dark:bg-[#1e2532] rounded-lg mb-4 animate-shimmer" />
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
       {[1, 2, 3, 4].map(i => (
-        <div key={i} className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 min-h-[168px] animate-shimmer" />
+        <div key={i} className="bg-elevated rounded-2xl p-4 min-h-[168px] animate-shimmer" />
       ))}
     </div>
   </div>
@@ -114,11 +114,11 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
           <button
             type="button"
             onClick={() => handleShareSection('infra')}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 font-semibold text-[12px] rounded-lg transition-colors cursor-pointer border-none bg-transparent text-tertiary hover:text-primary hover:bg-[#f2f4f6] dark:hover:bg-[#202027]"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 font-semibold text-[12px] rounded-lg transition-colors cursor-pointer border-none bg-transparent text-tertiary hover:text-primary hover:bg-[#eff1f5] dark:hover:bg-[#1e2532]"
             title="생활 인프라 분석 결과 공유하기"
           >
             {copiedStatus === 'infra-link' ? (
-              <Check size={13} strokeWidth={2.4} className="text-emerald-600 dark:text-emerald-400" />
+              <Check size={13} strokeWidth={2.4} className="text-primary" />
             ) : (
               <Share size={13} strokeWidth={2.2} />
             )}
@@ -130,16 +130,16 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
         {(() => {
           const infraScoreInfo = calculateInfraScore(report.metrics);
           const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
-            S: { bg: 'bg-emerald-50 dark:bg-emerald-950/40', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800/50', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-emerald-600 dark:text-emerald-400' },
-            A: { bg: 'bg-blue-50 dark:bg-blue-950/40', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800/50', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-blue-600 dark:text-blue-400' },
-            B: { bg: 'bg-blue-50 dark:bg-blue-950/40', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200/50 dark:border-blue-800/50', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-blue-600 dark:text-blue-400' },
-            C: { bg: 'bg-slate-100 dark:bg-slate-800/60', text: 'text-slate-600 dark:text-slate-300', border: 'border-slate-200 dark:border-slate-700/60', descBg: 'bg-surface dark:bg-[#202027]', scoreText: 'text-slate-600 dark:text-slate-300' }
+            S: { bg: 'bg-[#eff1f5] dark:bg-[#1e2532]', text: 'text-primary', border: 'border-slate-900/20 dark:border-white/25', descBg: 'bg-surface dark:bg-[#1e2532]', scoreText: 'text-primary' },
+            A: { bg: 'bg-[#eff1f5] dark:bg-[#1e2532]', text: 'text-primary', border: 'border-border', descBg: 'bg-surface dark:bg-[#1e2532]', scoreText: 'text-primary' },
+            B: { bg: 'bg-[#eff1f5] dark:bg-[#1e2532]', text: 'text-secondary', border: 'border-border', descBg: 'bg-surface dark:bg-[#1e2532]', scoreText: 'text-secondary' },
+            C: { bg: 'bg-[#eff1f5] dark:bg-[#1e2532]', text: 'text-tertiary', border: 'border-border', descBg: 'bg-surface dark:bg-[#1e2532]', scoreText: 'text-tertiary' }
           };
           const colors = scoreColors[infraScoreInfo.grade] || scoreColors.C;
           
           return (
             <div className="mb-7">
-              <div className="bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-center gap-6">
+              <div className="bg-elevated rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-center gap-6">
                 <div className="flex flex-col items-center justify-center shrink-0">
                   <div className={`w-20 h-20 rounded-full flex flex-col items-center justify-center border-2 ${colors.border} ${colors.bg} relative`}>
                     <span className="text-[10px] font-bold text-tertiary tracking-wider">GRADE</span>
@@ -184,22 +184,22 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
             </div>
             <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-1 sm:grid sm:grid-cols-3">
               {[
-                { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#2563eb', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
-                { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestStationCoords, color: '#2563eb', bgFrom: '#eff6ff', bgTo: '#dbeafe' },
-                { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#3182f6', bgFrom: '#eff6ff', bgTo: '#dbeafe' },
+                { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#2f6bff', bgFrom: '#eff1f5', bgTo: '#e4e8ef' },
+                { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestStationCoords, color: '#475569', bgFrom: '#eff1f5', bgTo: '#e4e8ef' },
+                { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#64748b', bgFrom: '#eff1f5', bgTo: '#e4e8ef' },
               ].filter(s => s.dist != null && s.dist > 0).map(station => {
                 const dist = station.dist ?? 0;
                 const percent = Math.min((dist / 1200) * 100, 100);
                 return (
-                  <div key={station.label} className="w-[160px] shrink-0 sm:w-auto bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 flex flex-col justify-between transition-colors">
+                  <div key={station.label} className="w-[160px] shrink-0 sm:w-auto bg-elevated rounded-2xl p-4 flex flex-col justify-between transition-colors">
                     <div className="flex items-center justify-between gap-1.5 mb-2">
                       <span className="text-[12.5px] font-bold text-secondary truncate">
                         {station.label}
                       </span>
                       {dist <= 400 ? (
-                        <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 shrink-0">초역세</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-primary shrink-0">초역세</span>
                       ) : dist <= 800 ? (
-                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0">역세권</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#eff1f5] dark:bg-[#1e2532] text-secondary shrink-0">역세권</span>
                       ) : null}
                     </div>
                     <div className="flex items-baseline gap-1.5 mt-0.5 tabular-nums">
@@ -207,7 +207,7 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                         {Math.round(dist).toLocaleString()}
                       </span>
                       <span className="text-[12px] font-semibold text-tertiary">m</span>
-                      <span className="text-[11.5px] font-bold text-blue-600 dark:text-blue-400 ml-auto whitespace-nowrap">
+                      <span className="text-[11.5px] font-bold text-secondary ml-auto whitespace-nowrap">
                         도보 {Math.ceil(dist / 80)}분
                       </span>
                     </div>
@@ -251,37 +251,37 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
               {(() => {
                 const restaurantData = Object.entries(report.metrics.restaurantCategories || {}).map(([cat, cnt]) => {
                   let tag = '기타';
-                  let color = '#64748b'; // slate-500
-                  let bg = 'bg-slate-500';
+                  let color = '#94a3b8';
+                  let bg = 'bg-slate-400';
                   
                   if (cat.includes('한식') || cat.includes('구이') || cat.includes('갈비') || cat.includes('삼겹살') || cat.includes('육류') || cat.includes('탕') || cat.includes('찌개') || cat.includes('백반')) {
                     tag = '한식/고기';
-                    color = '#dc2626'; // red-600
-                    bg = 'bg-red-600';
+                    color = '#2f6bff';
+                    bg = 'bg-brand-blue';
                   } else if (cat.includes('커피') || cat.includes('카페') || cat.includes('디저트') || cat.includes('찻집') || cat.includes('제과') || cat.includes('빵')) {
                     tag = '카페/음료';
-                    color = '#334155'; // slate-700
-                    bg = 'bg-slate-700';
+                    color = '#14181f';
+                    bg = 'bg-slate-900 dark:bg-slate-200';
                   } else if (cat.includes('일식') || cat.includes('회') || cat.includes('초밥') || cat.includes('돈까스') || cat.includes('스시')) {
                     tag = '일식/일반';
-                    color = '#2563eb'; // blue-600
-                    bg = 'bg-blue-600';
+                    color = '#475569';
+                    bg = 'bg-slate-600';
                   } else if (cat.includes('중식') || cat.includes('중국') || cat.includes('짜장') || cat.includes('짬뽕')) {
                     tag = '중식/아시안';
-                    color = '#059669'; // emerald-600
-                    bg = 'bg-emerald-600';
+                    color = '#64748b';
+                    bg = 'bg-slate-500';
                   } else if (cat.includes('양식') || cat.includes('경양식') || cat.includes('피자') || cat.includes('파스타') || cat.includes('스테이크') || cat.includes('뷔페') || cat.includes('패스트')) {
                     tag = '양식/양식';
-                    color = '#2563eb'; // blue-600
-                    bg = 'bg-blue-600';
+                    color = '#94a3b8';
+                    bg = 'bg-slate-400';
                   } else if (cat.includes('분식') || cat.includes('떡볶이') || cat.includes('김밥') || cat.includes('만두') || cat.includes('라면')) {
                     tag = '분식/간식';
-                    color = '#2563eb'; // blue-600
-                    bg = 'bg-emerald-600';
+                    color = '#cbd5e1';
+                    bg = 'bg-slate-300 dark:bg-slate-600';
                   } else if (cat.includes('호프') || cat.includes('맥주') || cat.includes('치킨') || cat.includes('닭강정') || cat.includes('통닭') || cat.includes('술집')) {
                     tag = '치킨/주점';
-                    color = '#475569'; // slate-600
-                    bg = 'bg-slate-600';
+                    color = '#334155';
+                    bg = 'bg-slate-700';
                   }
                   return { cat, cnt: cnt as number, tag, color, bg };
                 });
@@ -298,7 +298,7 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                 const sortedRestTags = Object.entries(restTagSums).sort((a, b) => b[1].count - a[1].count);
 
                 return (
-                  <div className="w-full bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl p-4 md:p-5 flex flex-col">
+                  <div className="w-full bg-elevated rounded-2xl p-4 md:p-5 flex flex-col">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[13px] font-bold text-secondary truncate pr-1">
                         음식점·카페 (반경 500m)
@@ -345,12 +345,12 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                     )}
 
                     {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 border-t border-[#f2f4f6] dark:border-[#202027] pt-3.5 mt-1">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 border-t border-border pt-3.5 mt-1">
                         {Object.entries(report.metrics.restaurantCategories)
                           .sort(([,a], [,b]) => (b as number) - (a as number))
                           .slice(0, 5)
                           .map(([cat, cnt]) => (
-                            <div key={cat} className="flex justify-between items-center bg-surface dark:bg-[#202027] rounded-xl px-3 py-2">
+                            <div key={cat} className="flex justify-between items-center bg-surface dark:bg-[#1e2532] rounded-xl px-3 py-2">
                               <span className="text-[12px] font-semibold text-secondary truncate mr-2">{cat}</span>
                               <span className="font-bold text-[12px] text-primary shrink-0 tabular-nums">{cnt as number}개</span>
                             </div>

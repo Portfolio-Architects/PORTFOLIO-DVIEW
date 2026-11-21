@@ -112,8 +112,8 @@ export function MBTIShareButtons({ profile, className = '' }: MBTIShareButtonsPr
         >
           {copied ? (
             <>
-              <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="truncate text-emerald-400">복사됨!</span>
+              <Check className="w-4 h-4 text-white shrink-0" />
+              <span className="truncate text-white">복사됨!</span>
             </>
           ) : (
             <>
@@ -142,7 +142,7 @@ export function MBTIShareButtons({ profile, className = '' }: MBTIShareButtonsPr
           aria-live="polite"
           className="fixed bottom-20 sm:bottom-10 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full bg-slate-900/95 text-white text-xs sm:text-sm font-semibold shadow-2xl backdrop-blur-md border border-slate-700/60 flex items-center gap-2 animate-bounce"
         >
-          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+          <Check className="w-4 h-4 text-white shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
